@@ -2,6 +2,7 @@ class DuaItem {
   const DuaItem({
     required this.id,
     required this.uid,
+    required this.mainCategory,
     required this.category,
     required this.titleEn,
     required this.titleBn,
@@ -18,6 +19,7 @@ class DuaItem {
 
   final int id;
   final String uid;
+  final String mainCategory;
   final String category;
   final String titleEn;
   final String titleBn;
@@ -36,6 +38,10 @@ class DuaItem {
     return DuaItem(
       id: id,
       uid: (json['uid'] ?? 'dua_${id.toString().padLeft(4, '0')}').toString(),
+      mainCategory: _resolveMainCategory(
+        (json['main_category'] ?? '').toString(),
+        (json['category'] ?? 'general').toString(),
+      ),
       category: (json['category'] ?? 'general').toString(),
       titleEn: (json['title_en'] ?? '').toString(),
       titleBn: (json['title_bn'] ?? '').toString(),
@@ -55,6 +61,7 @@ class DuaItem {
     return {
       'id': id,
       'uid': uid,
+      'main_category': mainCategory,
       'category': category,
       'title_en': titleEn,
       'title_bn': titleBn,
@@ -68,5 +75,12 @@ class DuaItem {
       'is_active': isActive,
       'sort_order': sortOrder,
     };
+  }
+
+  static String _resolveMainCategory(String provided, String category) {
+    final trimmed = provided.trim().toLowerCase();
+    if (trimmed.isNotEmpty) return trimmed;
+    if (category.startsWith('after_')) return 'namaj';
+    return 'general';
   }
 }
