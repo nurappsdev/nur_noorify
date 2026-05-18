@@ -9,7 +9,6 @@ import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/core/constants/route_names.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class ProfilePreferencesScreen extends StatefulWidget {
@@ -1399,7 +1398,6 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                   ],
                 ),
               ),
-              bottomNav(context, 4),
             ],
           ),
         ),

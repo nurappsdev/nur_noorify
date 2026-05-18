@@ -7,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/features/prayer_time/services/prayer_schedule_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
@@ -928,7 +927,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   ),
                 ),
               ),
-              bottomNav(context, 3),
             ],
           ),
         ),

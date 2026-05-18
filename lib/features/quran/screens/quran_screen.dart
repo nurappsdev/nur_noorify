@@ -11,7 +11,6 @@ import 'package:first_project/features/quran/services/quran_bookmarks_service.da
 import 'package:first_project/features/quran/services/quran_content_cache_service.dart';
 import 'package:first_project/features/quran/services/quran_last_read_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class QuranScreen extends StatefulWidget {
@@ -929,7 +928,6 @@ class _QuranScreenState extends State<QuranScreen> {
                         },
                       ),
               ),
-              bottomNav(context, 2),
             ],
           ),
         ),

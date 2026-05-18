@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class DiscoverScreen extends StatelessWidget {
@@ -358,7 +357,6 @@ class DiscoverScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  bottomNav(context, 1),
                 ],
               ),
             ),

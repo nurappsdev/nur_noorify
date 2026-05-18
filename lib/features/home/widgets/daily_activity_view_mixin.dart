@@ -134,12 +134,6 @@ mixin DailyActivityViewMixin
   Color get _surfaceBorder =>
       _isDarkTheme ? const Color(0x334F7590) : const Color(0xFFD1E1EC);
 
-  Color get _navBg =>
-      _isDarkTheme ? const Color(0xFF0A111B) : const Color(0xE9FFFFFF);
-  Color get _navBorder => _isDarkTheme
-      ? Colors.white.withValues(alpha: 0.08)
-      : const Color(0xFFD5E5EF);
-
   Widget _buildGlassCard({
     required Widget child,
     EdgeInsetsGeometry padding = const EdgeInsets.all(14),
@@ -1690,105 +1684,6 @@ mixin DailyActivityViewMixin
     );
   }
 
-  Widget _buildPremiumBottomNav() {
-    final items = <({String en, String bn, IconData icon, String route})>[
-      (
-        en: 'Home',
-        bn: 'হোম',
-        icon: Icons.home_filled,
-        route: RouteNames.activity,
-      ),
-      (
-        en: 'Discover',
-        bn: 'আবিষ্কার',
-        icon: Icons.explore_outlined,
-        route: RouteNames.discover,
-      ),
-      if (kQuranFeatureEnabled)
-        (
-          en: 'Quran',
-          bn: 'কুরআন',
-          icon: Icons.menu_book_outlined,
-          route: RouteNames.quran,
-        ),
-      (
-        en: 'Prayer',
-        bn: 'নামাজ',
-        icon: Icons.calendar_month_outlined,
-        route: RouteNames.prayerTimes,
-      ),
-      (
-        en: 'Profile',
-        bn: 'প্রোফাইল',
-        icon: Icons.person_outline,
-        route: RouteNames.preferences,
-      ),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 14),
-      decoration: BoxDecoration(
-        color: _navBg,
-        border: Border(top: BorderSide(color: _navBorder)),
-      ),
-      child: Row(
-        children: [
-          for (int i = 0; i < items.length; i++) ...[
-            Expanded(
-              child: _buildBottomNavItem(
-                label: _text(items[i].en, items[i].bn),
-                icon: items[i].icon,
-                active: i == 0,
-                onTap: i == 0
-                    ? null
-                    : () => Navigator.of(
-                        context,
-                      ).pushReplacementNamed(items[i].route),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem({
-    required String label,
-    required IconData icon,
-    required bool active,
-    required VoidCallback? onTap,
-  }) {
-    final activeColor = _accentStrong;
-    final idleColor = _isDarkTheme
-        ? const Color(0xFF7B95A9)
-        : const Color(0xFF6E889A);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 20, color: active ? activeColor : idleColor),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: active ? activeColor : idleColor,
-                fontSize: 10,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1883,7 +1778,6 @@ mixin DailyActivityViewMixin
                       ),
                     ),
                   ),
-                  _buildPremiumBottomNav(),
                 ],
               ),
             ),
