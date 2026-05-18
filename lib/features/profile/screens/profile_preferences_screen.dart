@@ -4,9 +4,11 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
@@ -22,7 +24,8 @@ class ProfilePreferencesScreen extends StatefulWidget {
 class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
   static const _teal = Color(0xFF14A3B8);
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla =>
+      context.read<LanguageProvider>().current == AppLanguage.bangla;
 
   bool _looksMojibake(String value) {
     for (final unit in value.codeUnits) {
@@ -63,27 +66,8 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
     return _containsBangla(repaired) ? repaired : english;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  @override
-  void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
-    super.dispose();
-  }
-
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
   Future<void> _openEditProfile() async {
     await Navigator.of(context).pushNamed(RouteNames.editProfile);
-    if (!mounted) return;
-    setState(() {});
   }
 
   Future<void> _logout() async {
@@ -790,6 +774,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final glass = NoorifyGlassTheme(context);
     return Scaffold(
       backgroundColor: glass.bgBottom,

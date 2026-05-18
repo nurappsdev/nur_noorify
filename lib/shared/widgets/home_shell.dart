@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/features/discover/screens/discover_screen.dart';
 import 'package:first_project/features/home/screens/daily_activity_screen.dart';
 import 'package:first_project/features/prayer_time/screens/prayer_times_screen.dart';
 import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
 import 'package:first_project/features/quran/screens/quran_screen.dart';
+import 'package:first_project/shared/providers/bottom_nav_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/bottom_nav.dart';
 
@@ -18,8 +20,6 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  late int _index;
-
   static const List<Widget> _tabsWithQuran = <Widget>[
     DailyActivityScreen(),
     DiscoverScreen(),
@@ -41,24 +41,28 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _index = widget.initialIndex.clamp(0, _tabs.length - 1);
-  }
-
-  void _onTabTap(int index) {
-    if (index == _index) return;
-    setState(() => _index = index);
+    final clamped = widget.initialIndex.clamp(0, _tabs.length - 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<BottomNavProvider>().setIndex(clamped);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
-    final safeIndex = _index.clamp(0, tabs.length - 1);
+    final navIndex = context.watch<BottomNavProvider>().currentIndex;
+    final safeIndex = navIndex.clamp(0, tabs.length - 1);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: IndexedStack(index: safeIndex, children: tabs),
       bottomNavigationBar: SafeArea(
         top: false,
-        child: bottomNav(context, safeIndex, onTap: _onTabTap),
+        child: bottomNav(
+          context,
+          safeIndex,
+          onTap: (i) => context.read<BottomNavProvider>().setIndex(i),
+        ),
       ),
     );
   }
