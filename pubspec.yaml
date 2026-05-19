@@ -85,6 +85,7 @@ flutter:
   assets:
     - assets/images/
     - assets/kakbah.png
+    - assets/397.png
     - assets/data/
 
 flutter_launcher_icons:

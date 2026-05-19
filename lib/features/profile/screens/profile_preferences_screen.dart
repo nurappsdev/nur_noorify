@@ -24,6 +24,9 @@ class ProfilePreferencesScreen extends StatefulWidget {
 class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
   static const _teal = Color(0xFF14A3B8);
 
+  late final Stream<bool> _adminStream =
+      AdminRoleService.instance.watchCurrentUserAdmin().asBroadcastStream();
+
   bool get _isBangla =>
       context.read<LanguageProvider>().current == AppLanguage.bangla;
 
@@ -1320,7 +1323,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                       ),
                     ),
                     StreamBuilder<bool>(
-                      stream: AdminRoleService.instance.watchCurrentUserAdmin(),
+                      stream: _adminStream,
                       builder: (context, snapshot) {
                         final isAdmin = snapshot.data ?? false;
                         if (!isAdmin) return const SizedBox.shrink();

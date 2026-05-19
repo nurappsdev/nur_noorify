@@ -1710,6 +1710,16 @@ mixin DailyActivityViewMixin
         ),
         child: Stack(
           children: [
+            Positioned.fill(
+              child: Opacity(
+                opacity: _isDarkTheme ? 0.08 : 1.0,
+                child: Image.asset(
+                  'assets/397.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+              ),
+            ),
             Positioned(
               top: -120,
               left: -80,
