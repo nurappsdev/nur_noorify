@@ -126,6 +126,10 @@ mixin DailyActivityViewMixin
       _isDarkTheme ? const Color(0xFF1FD5C0) : const Color(0xFF1EA8B8);
   Color get _accentSoft =>
       _isDarkTheme ? const Color(0xFF7ED9EE) : const Color(0xFF2EA2BF);
+  Color get _accentGold =>
+      _isDarkTheme ? const Color(0xFFE6C77A) : const Color(0xFFB78A2E);
+  Color get _accentGoldSoft =>
+      _isDarkTheme ? const Color(0x66E6C77A) : const Color(0x66B78A2E);
 
   Color get _surfaceSubtle =>
       _isDarkTheme ? const Color(0xFF172A3A) : const Color(0xECFFFFFF);
@@ -138,8 +142,9 @@ mixin DailyActivityViewMixin
     required Widget child,
     EdgeInsetsGeometry padding = const EdgeInsets.all(14),
     BorderRadiusGeometry radius = const BorderRadius.all(Radius.circular(18)),
+    bool ornamentedCorners = false,
   }) {
-    return ClipRRect(
+    final card = ClipRRect(
       borderRadius: radius,
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -165,11 +170,412 @@ mixin DailyActivityViewMixin
         ),
       ),
     );
+
+    if (!ornamentedCorners) return card;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        card,
+        Positioned(
+          top: -2,
+          right: 14,
+          child: _cornerOrnament(),
+        ),
+        Positioned(
+          bottom: -2,
+          left: 14,
+          child: _cornerOrnament(),
+        ),
+      ],
+    );
+  }
+
+  Widget _cornerOrnament() {
+    return Transform.rotate(
+      angle: 0.785398,
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: _accentGold,
+          borderRadius: BorderRadius.circular(1.5),
+          boxShadow: [
+            BoxShadow(
+              color: _accentGoldSoft,
+              blurRadius: 8,
+              spreadRadius: 0.5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _ornamentDivider({EdgeInsetsGeometry? padding}) {
+    final line = Expanded(
+      child: Container(
+        height: 1,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              _accentGoldSoft.withValues(alpha: 0),
+              _accentGoldSoft,
+              _accentGoldSoft.withValues(alpha: 0),
+            ],
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: padding ?? const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          line,
+          const SizedBox(width: 8),
+          Transform.rotate(
+            angle: 0.785398,
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: _accentGold,
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          line,
+        ],
+      ),
+    );
+  }
+
+  String _arabicWeekdayLabel() {
+    const labels = {
+      DateTime.sunday: 'ইয়াউমুছ আহাদ',
+      DateTime.monday: 'ইয়াউমুছ ইসনাইন',
+      DateTime.tuesday: 'ইয়াউমুছ ছুলাছা',
+      DateTime.wednesday: 'ইয়াউমুছ আরবিয়া',
+      DateTime.thursday: 'ইয়াউমুছ খামিস',
+      DateTime.friday: 'ইয়াউমুছ জুমুআহ',
+      DateTime.saturday: 'ইয়াউমুছ সাবত',
+    };
+    return labels[_now.weekday] ?? '';
+  }
+
+  String _banglaWeekdayLabel() {
+    const labels = {
+      DateTime.sunday: 'রবিবার',
+      DateTime.monday: 'সোমবার',
+      DateTime.tuesday: 'মঙ্গলবার',
+      DateTime.wednesday: 'বুধবার',
+      DateTime.thursday: 'বৃহস্পতিবার',
+      DateTime.friday: 'শুক্রবার',
+      DateTime.saturday: 'শনিবার',
+    };
+    return labels[_now.weekday] ?? '';
+  }
+
+  String _banglaSeasonLabel() {
+    final month = _now.month;
+    if (month >= 4 && month <= 5) {
+      return 'গ্রীষ্মকাল';
+    }
+    if (month >= 6 && month <= 7) {
+      return 'বর্ষাকাল';
+    }
+    if (month >= 8 && month <= 9) {
+      return 'শরতকাল';
+    }
+    if (month == 10) {
+      return 'হেমন্তকাল';
+    }
+    if (month == 11 || month == 12) {
+      return 'শীতকাল';
+    }
+    return 'বসন্তকাল';
+  }
+
+  String _activePrayerProgressLabel() {
+    final remaining = _activeRemaining.isNegative
+        ? Duration.zero
+        : _activeRemaining;
+    final totalMinutes = remaining.inMinutes;
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    if (_isBangla) {
+      if (hours > 0) {
+        return '${_toBanglaDigits(hours.toString())} ঘণ্টা '
+            '${_toBanglaDigits(minutes.toString())} মিনিট বাকি';
+      }
+      return '${_toBanglaDigits(minutes.toString())} মিনিট বাকি';
+    }
+    if (hours > 0) {
+      return '${hours}h ${minutes}m left';
+    }
+    return '$minutes min left';
+  }
+
+  String _activePrayerWindowLabel() {
+    final scheduleToday = _todaySchedule;
+    if (scheduleToday == null) return '--:-- - --:--';
+    final boundaries = <String, ({DateTime start, DateTime end})>{
+      'Fajr': (start: scheduleToday.fajr, end: scheduleToday.dzuhr),
+      'Zuhr': (start: scheduleToday.dzuhr, end: scheduleToday.ashr),
+      'Asr': (start: scheduleToday.ashr, end: scheduleToday.maghrib),
+      'Maghrib': (start: scheduleToday.maghrib, end: scheduleToday.isha),
+      'Isha': (
+        start: scheduleToday.isha,
+        end: scheduleToday.isha.add(const Duration(hours: 4)),
+      ),
+    };
+    final entry = boundaries[_activePrayer];
+    if (entry == null) return '--:-- - --:--';
+    return _windowLabel(entry.start, entry.end);
+  }
+
+  /// Formats a start–end prayer window as zero-padded 12-hour clock text.
+  String _windowLabel(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return '--:-- - --:--';
+    String fmt(DateTime t) {
+      final h12 = t.hour % 12 == 0 ? 12 : t.hour % 12;
+      final hh = h12.toString().padLeft(2, '0');
+      final mm = t.minute.toString().padLeft(2, '0');
+      final value = '$hh:$mm';
+      return _isBangla ? _toBanglaDigits(value) : value;
+    }
+
+    return '${fmt(start)} - ${fmt(end)}';
+  }
+
+  /// Chasht (Duha) has no dedicated entry in the schedule, so it is taken as
+  /// the midpoint between sunrise and Zuhr.
+  DateTime? _chashtTime() {
+    final schedule = _todaySchedule;
+    if (schedule == null) return null;
+    final sunrise = schedule.fajr;
+    final zuhr = schedule.dzuhr;
+    if (!zuhr.isAfter(sunrise)) return null;
+    return sunrise.add(zuhr.difference(sunrise) ~/ 2);
+  }
+
+  /// Fraction of a start–end window already elapsed at [_now].
+  double _segmentProgress(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return 0.0;
+    final total = end.difference(start).inSeconds;
+    if (total <= 0) return 0.0;
+    final elapsed = _now.difference(start).inSeconds;
+    return (elapsed / total).clamp(0.0, 1.0);
+  }
+
+  Widget _buildHeroDateStrip() {
+    return _buildGlassCard(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  '$_formattedHijriDate । ${_arabicWeekdayLabel()}',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.nightlight_round, size: 16, color: _accentGold),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_banglaWeekdayLabel()}, $_formattedBanglaDate বঙ্গাব্দ, ${_banglaSeasonLabel()}',
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Position of the sun along the arc, where 0.5 is the apex.
+  ///
+  /// The apex is anchored to Dhuhr (solar noon) so the sun crests exactly at
+  /// midday: the Fajr→Dhuhr span fills the first half of the arc and the
+  /// Dhuhr→Maghrib span fills the second half.
+  double _sunPathProgress() {
+    final schedule = _todaySchedule;
+    if (schedule == null) return 0.5;
+    final sunrise = schedule.fajr;
+    final noon = schedule.dzuhr;
+    final sunset = schedule.maghrib;
+
+    if (!_now.isAfter(sunrise)) return 0.0;
+    if (!_now.isBefore(sunset)) return 1.0;
+
+    if (_now.isBefore(noon)) {
+      final total = noon.difference(sunrise).inSeconds;
+      if (total <= 0) return 0.5;
+      final elapsed = _now.difference(sunrise).inSeconds;
+      return (elapsed / total * 0.5).clamp(0.0, 0.5);
+    }
+
+    final total = sunset.difference(noon).inSeconds;
+    if (total <= 0) return 0.5;
+    final elapsed = _now.difference(noon).inSeconds;
+    return (0.5 + elapsed / total * 0.5).clamp(0.5, 1.0);
+  }
+
+  Widget _buildSunArcCard() {
+    final schedule = _todaySchedule;
+    final dzuhr = schedule?.dzuhr;
+    final chasht = _chashtTime();
+    final isForenoon = dzuhr == null ? _now.hour < 12 : _now.isBefore(dzuhr);
+
+    String clock(DateTime? t) =>
+        t == null ? '--:--' : _localizedPrayerTime(_formatPrayerTime(t));
+
+    // The two arc shoulder labels follow the half of the day: the forenoon
+    // shows Chasht (rising) and Zuhr (apex); the afternoon shows Asr and
+    // Maghrib (descending toward sunset).
+    final leadingTitle = isForenoon
+        ? _text('Chasht', 'চাশত')
+        : _text('Asr', 'আসর');
+    final leadingTimeLabel = isForenoon
+        ? clock(chasht)
+        : clock(schedule?.ashr);
+    final trailingTitle = isForenoon
+        ? _text('Zuhr', 'যুহর')
+        : _text('Maghrib', 'মাগরিব');
+    final trailingTimeLabel = isForenoon
+        ? clock(schedule?.dzuhr)
+        : clock(schedule?.maghrib);
+
+    // The progress strip presents the forenoon window as the Chasht period.
+    final isChasht = _activePrayer == 'Zuhr';
+    final segmentName = isChasht
+        ? _text('Chasht', 'চাশত')
+        : _localizedPrayerName(_activePrayer);
+    final segmentWindow = isChasht
+        ? _windowLabel(chasht, dzuhr)
+        : _activePrayerWindowLabel();
+    final segmentProgress = isChasht
+        ? _segmentProgress(chasht, dzuhr)
+        : _activeProgress.clamp(0.0, 1.0);
+
+    return _buildGlassCard(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SunArcArea(
+            currentProgress: _sunPathProgress(),
+            isBangla: _isBangla,
+            accentStrong: _accentStrong,
+            accentSoft: _accentSoft,
+            accentGold: _accentGold,
+            trackColor: _isDarkTheme
+                ? const Color(0x33A4D8E2)
+                : const Color(0x40274F6B),
+            isDark: _isDarkTheme,
+            textPrimary: _textPrimary,
+            textSecondary: _textSecondary,
+            leadingTitle: leadingTitle,
+            leadingTimeLabel: leadingTimeLabel,
+            trailingTitle: trailingTitle,
+            trailingTimeLabel: trailingTimeLabel,
+            sunriseClockText: clock(schedule?.fajr),
+            sunsetClockText: clock(schedule?.maghrib),
+            middayTimeLabel: clock(schedule?.dzuhr),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Text(
+                segmentName,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                segmentWindow,
+                style: TextStyle(
+                  color: _textSecondary,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: segmentProgress,
+              minHeight: 5,
+              backgroundColor: _isDarkTheme
+                  ? const Color(0xFF1B2D3E)
+                  : const Color(0xFFD8E7F1),
+              valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _accentStrong,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                _text('Ongoing', 'চলমান'),
+                style: TextStyle(
+                  color: _accentStrong,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _activePrayerProgressLabel(),
+                style: TextStyle(
+                  color: _textSecondary,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTopHeader() {
     return _buildGlassCard(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      ornamentedCorners: true,
       child: Column(
         children: [
           Row(
@@ -223,15 +629,30 @@ mixin DailyActivityViewMixin
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        _greetingText(),
-                                        style: TextStyle(
-                                          color: _isDarkTheme
-                                              ? const Color(0xB3D8E5F7)
-                                              : const Color(0xFF4B687F),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.nightlight_round,
+                                            size: 12,
+                                            color: _accentGold,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Flexible(
+                                            child: Text(
+                                              _greetingText(),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: _isDarkTheme
+                                                    ? const Color(0xB3D8E5F7)
+                                                    : const Color(0xFF4B687F),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                letterSpacing: 0.2,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 2),
                                       if (hasName)
@@ -433,41 +854,51 @@ mixin DailyActivityViewMixin
   Widget _buildPrayerStrip() {
     return _buildGlassCard(
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+      ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              Icon(
+                Icons.brightness_5_outlined,
+                size: 13,
+                color: _accentGold,
+              ),
+              const SizedBox(width: 6),
               Text(
                 _text('Prayer Times', 'নামাজের সময়'),
                 style: TextStyle(
                   color: _textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _isDarkTheme
-                      ? const Color(0x3320D3BF)
-                      : const Color(0x1F1EA8B8),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: _isDarkTheme
-                        ? const Color(0x4D8AE5D9)
-                        : const Color(0x4D54C4CD),
+                  gradient: LinearGradient(
+                    colors: _isDarkTheme
+                        ? const [Color(0x55E6C77A), Color(0x3320D3BF)]
+                        : const [Color(0x33B78A2E), Color(0x1F1EA8B8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: _accentGoldSoft),
                 ),
                 child: Text(
                   _isShowingActivePrayer
                       ? '${_localizedActiveRemainingLabel()}: ${_activePrayerShortCountdown()}'
                       : '${_localizedPrayerTimeLabel()}: ${_localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--')}',
                   style: TextStyle(
-                    color: _accentStrong,
+                    color: _isDarkTheme
+                        ? const Color(0xFFF5E2B8)
+                        : const Color(0xFF7A5A1F),
                     fontSize: 10.8,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -492,16 +923,34 @@ mixin DailyActivityViewMixin
               ),
               const SizedBox(width: 5),
               Text(
-                '${_localizedPrayerName(_displayPrayer)}: ${_localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--')}',
+                '${_localizedPrayerName(_displayPrayer)} · ',
                 style: TextStyle(
                   color: _textSecondary,
                   fontSize: 11.2,
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              Text(
+                _arabicPrayerName(_displayPrayer),
+                style: TextStyle(
+                  color: _accentGold,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--'),
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 9),
+          _ornamentDivider(padding: const EdgeInsets.only(top: 8, bottom: 4)),
           SizedBox(
             height: 104,
             child: PageView.builder(
@@ -642,6 +1091,17 @@ mixin DailyActivityViewMixin
                       ),
                     ),
                   ),
+                  Text(
+                    _arabicPrayerName(prayer),
+                    style: TextStyle(
+                      color: isActive
+                          ? const Color(0xCC032F35)
+                          : _accentGold,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 5),
@@ -673,10 +1133,15 @@ mixin DailyActivityViewMixin
                   ),
                   const Spacer(),
                   if (isActive)
-                    const Icon(
-                      Icons.circle,
-                      size: 6.5,
-                      color: Color(0xDD032F35),
+                    Transform.rotate(
+                      angle: 0.785398,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xDD032F35),
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -1367,11 +1832,18 @@ mixin DailyActivityViewMixin
 
     return _buildGlassCard(
       padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+      ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              Icon(
+                Icons.auto_awesome_outlined,
+                size: 13,
+                color: _accentGold,
+              ),
+              const SizedBox(width: 6),
               Text(
                 _text(
                   'Quick Menu',
@@ -1381,6 +1853,7 @@ mixin DailyActivityViewMixin
                   color: _textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
               ),
               const Spacer(),
@@ -1401,7 +1874,7 @@ mixin DailyActivityViewMixin
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          _ornamentDivider(padding: const EdgeInsets.only(top: 4, bottom: 8)),
           Row(
             children: [
               for (int i = 0; i < actions.length; i++) ...[
@@ -1769,6 +2242,10 @@ mixin DailyActivityViewMixin
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(14, 10, 14, 18),
                         children: [
+                          _buildHeroDateStrip(),
+                          const SizedBox(height: 12),
+                          _buildSunArcCard(),
+                          const SizedBox(height: 12),
                           _buildTopHeader(),
                           const SizedBox(height: 12),
                           _buildPrayerStrip(),
@@ -1873,6 +2350,454 @@ class _MiniQiblaNeedlePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MiniQiblaNeedlePainter oldDelegate) =>
       oldDelegate.isDark != isDark;
+}
+
+class _SunArcPainter extends CustomPainter {
+  const _SunArcPainter({
+    required this.progress,
+    required this.accentStrong,
+    required this.accentSoft,
+    required this.accentGold,
+    required this.trackColor,
+    required this.isDark,
+  });
+
+  final double progress;
+  final Color accentStrong;
+  final Color accentSoft;
+  final Color accentGold;
+  final Color trackColor;
+  final bool isDark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final radius = math.min(w / 2 - 8, h - 18);
+    final baseY = h - 8;
+    final center = Offset(cx, baseY);
+
+    final dashedTrack = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    final dashCount = 56;
+    for (var i = 0; i < dashCount; i++) {
+      final t = i / dashCount;
+      final angle = math.pi - (math.pi * t);
+      final inner = radius - 2;
+      final outer = radius + 2;
+      final p1 = Offset(
+        center.dx + inner * math.cos(angle),
+        center.dy - inner * math.sin(angle),
+      );
+      final p2 = Offset(
+        center.dx + outer * math.cos(angle),
+        center.dy - outer * math.sin(angle),
+      );
+      if (i % 2 == 0) {
+        canvas.drawLine(p1, p2, dashedTrack);
+      }
+    }
+
+    final arcRect = Rect.fromCircle(center: center, radius: radius);
+    final filledSweep = math.pi * progress.clamp(0.0, 1.0);
+    final filledPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [accentSoft, accentStrong],
+        begin: Alignment.bottomLeft,
+        end: Alignment.topRight,
+      ).createShader(arcRect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(arcRect, math.pi, filledSweep, false, filledPaint);
+
+    final ground = Paint()
+      ..color = trackColor
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(8, baseY),
+      Offset(w - 8, baseY),
+      ground,
+    );
+
+    final mosqueColor = (isDark ? Colors.white : const Color(0xFF1F4E66))
+        .withValues(alpha: isDark ? 0.06 : 0.07);
+    final mosquePaint = Paint()..color = mosqueColor;
+    final domeRadius = radius * 0.32;
+    final domeCenter = Offset(cx, baseY - domeRadius * 0.55);
+    final domePath = Path()
+      ..moveTo(domeCenter.dx - domeRadius, baseY)
+      ..lineTo(domeCenter.dx - domeRadius, domeCenter.dy)
+      ..arcToPoint(
+        Offset(domeCenter.dx + domeRadius, domeCenter.dy),
+        radius: Radius.circular(domeRadius),
+      )
+      ..lineTo(domeCenter.dx + domeRadius, baseY)
+      ..close();
+    canvas.drawPath(domePath, mosquePaint);
+
+    canvas.drawRect(
+      Rect.fromLTWH(
+        cx - domeRadius * 1.7,
+        baseY - domeRadius * 0.55,
+        domeRadius * 0.35,
+        domeRadius * 0.55,
+      ),
+      mosquePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(
+        cx + domeRadius * 1.35,
+        baseY - domeRadius * 0.55,
+        domeRadius * 0.35,
+        domeRadius * 0.55,
+      ),
+      mosquePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SunArcPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.accentStrong != accentStrong ||
+      oldDelegate.accentSoft != accentSoft ||
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.isDark != isDark;
+}
+
+class _SunIconMarker extends StatelessWidget {
+  const _SunIconMarker({required this.color, this.scale = 1.0});
+
+  final Color color;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconSize = 13.0 * scale;
+    final glowBlur = 10.0 + (scale - 1.0) * 14.0;
+    final glowSpread = 0.6 + (scale - 1.0) * 1.0;
+    return Container(
+      width: iconSize + 6,
+      height: iconSize + 6,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.55),
+            blurRadius: glowBlur,
+            spreadRadius: glowSpread,
+          ),
+        ],
+      ),
+      child: Icon(
+        Icons.wb_sunny_rounded,
+        size: iconSize,
+        color: Colors.white,
+      ),
+    );
+  }
+}
+
+class _ArcLabel extends StatelessWidget {
+  const _ArcLabel({
+    required this.title,
+    required this.time,
+    required this.titleColor,
+    required this.timeColor,
+    this.trailing,
+  });
+
+  final String title;
+  final String time;
+  final Color titleColor;
+  final Color timeColor;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: titleColor,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 3),
+              trailing!,
+            ],
+          ],
+        ),
+        const SizedBox(height: 1),
+        Text(
+          time,
+          style: TextStyle(
+            color: timeColor,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ArcEndpoint extends StatelessWidget {
+  const _ArcEndpoint({
+    required this.icon,
+    required this.time,
+    required this.iconColor,
+    required this.textColor,
+    this.alignRight = false,
+  });
+
+  final IconData icon;
+  final String time;
+  final Color iconColor;
+  final Color textColor;
+  final bool alignRight;
+
+  @override
+  Widget build(BuildContext context) {
+    final children = [
+      Icon(icon, size: 12, color: iconColor),
+      const SizedBox(width: 3),
+      Text(
+        time,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ];
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: alignRight ? children.reversed.toList() : children,
+    );
+  }
+}
+
+class _SunArcArea extends StatefulWidget {
+  const _SunArcArea({
+    required this.currentProgress,
+    required this.isBangla,
+    required this.accentStrong,
+    required this.accentSoft,
+    required this.accentGold,
+    required this.trackColor,
+    required this.isDark,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.leadingTitle,
+    required this.leadingTimeLabel,
+    required this.trailingTitle,
+    required this.trailingTimeLabel,
+    required this.sunriseClockText,
+    required this.sunsetClockText,
+    required this.middayTimeLabel,
+  });
+
+  final double currentProgress;
+  final bool isBangla;
+  final Color accentStrong;
+  final Color accentSoft;
+  final Color accentGold;
+  final Color trackColor;
+  final bool isDark;
+  final Color textPrimary;
+  final Color textSecondary;
+  final String leadingTitle;
+  final String leadingTimeLabel;
+  final String trailingTitle;
+  final String trailingTimeLabel;
+  final String sunriseClockText;
+  final String sunsetClockText;
+  final String middayTimeLabel;
+
+  @override
+  State<_SunArcArea> createState() => _SunArcAreaState();
+}
+
+class _SunArcAreaState extends State<_SunArcArea>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3500),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _controller.value = widget.currentProgress.clamp(0.0, 1.0);
+  }
+
+  @override
+  void didUpdateWidget(_SunArcArea old) {
+    super.didUpdateWidget(old);
+    if (!_controller.isAnimating &&
+        old.currentProgress != widget.currentProgress) {
+      _controller.value = widget.currentProgress.clamp(0.0, 1.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _replay() {
+    _controller.stop();
+    _controller.value = 0.0;
+    _controller.animateTo(widget.currentProgress.clamp(0.0, 1.0));
+  }
+
+  double _sunIconScale(double progress) {
+    // Sun appears largest near the apex (midday), smaller near the horizon.
+    final fromCenter = (progress - 0.5).abs() * 2; // 0 at apex, 1 at edges
+    return 1.0 + (1.0 - fromCenter) * 0.55;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _replay,
+      behavior: HitTestBehavior.opaque,
+      child: AspectRatio(
+        aspectRatio: 2.7,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final h = constraints.maxHeight;
+            final cx = w / 2;
+            final baseY = h - 6;
+            final radius = math.min(w / 2 - 6, h - 14);
+            final apexY = baseY - radius;
+
+            return AnimatedBuilder(
+              animation: _animation,
+              builder: (context, _) {
+                final progress = _animation.value.clamp(0.0, 1.0);
+                final angle = math.pi * (1 - progress);
+                final sunDx = cx + radius * math.cos(angle);
+                final sunDy = baseY - radius * math.sin(angle);
+                final iconScale = _sunIconScale(progress);
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _SunArcPainter(
+                          progress: progress,
+                          accentStrong: widget.accentStrong,
+                          accentSoft: widget.accentSoft,
+                          accentGold: widget.accentGold,
+                          trackColor: widget.trackColor,
+                          isDark: widget.isDark,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: cx,
+                      top: apexY - 16,
+                      child: FractionalTranslation(
+                        translation: const Offset(-0.5, 0),
+                        child: Text(
+                          widget.middayTimeLabel,
+                          style: TextStyle(
+                            color: widget.textPrimary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: sunDx,
+                      top: sunDy,
+                      child: FractionalTranslation(
+                        translation: const Offset(-0.5, -0.5),
+                        child: _SunIconMarker(
+                          color: widget.accentGold,
+                          scale: iconScale,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: const Alignment(-0.55, -0.15),
+                      child: _ArcLabel(
+                        title: widget.leadingTitle,
+                        time: widget.leadingTimeLabel,
+                        titleColor: widget.textPrimary,
+                        timeColor: widget.textSecondary,
+                      ),
+                    ),
+                    Align(
+                      alignment: const Alignment(0.55, -0.15),
+                      child: _ArcLabel(
+                        title: widget.trailingTitle,
+                        time: widget.trailingTimeLabel,
+                        titleColor: widget.textPrimary,
+                        timeColor: widget.textSecondary,
+                        trailing: Icon(
+                          Icons.check_circle_rounded,
+                          size: 11,
+                          color: widget.accentStrong,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -2,
+                      bottom: -2,
+                      child: _ArcEndpoint(
+                        icon: Icons.wb_twilight_rounded,
+                        time: widget.sunriseClockText,
+                        iconColor: widget.accentGold,
+                        textColor: widget.textSecondary,
+                      ),
+                    ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: _ArcEndpoint(
+                        icon: Icons.wb_sunny_rounded,
+                        time: widget.sunsetClockText,
+                        iconColor: widget.accentGold,
+                        textColor: widget.textSecondary,
+                        alignRight: true,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
 
 class _MiniKaabaMarker extends StatelessWidget {

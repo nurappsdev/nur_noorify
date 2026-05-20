@@ -497,6 +497,17 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     return map[name] ?? name;
   }
 
+  String _arabicPrayerName(String name) {
+    const map = {
+      'Fajr': '\u0627\u0644\u0641\u062c\u0631',
+      'Zuhr': '\u0627\u0644\u0638\u0647\u0631',
+      'Asr': '\u0627\u0644\u0639\u0635\u0631',
+      'Maghrib': '\u0627\u0644\u0645\u063a\u0631\u0628',
+      'Isha': '\u0627\u0644\u0639\u0634\u0627\u0621',
+    };
+    return map[name] ?? '';
+  }
+
   String _localizedHijriMonthName(String name) {
     if (!_isBangla) return name;
     const monthMap = {

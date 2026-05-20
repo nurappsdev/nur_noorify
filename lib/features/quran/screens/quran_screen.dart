@@ -929,7 +929,7 @@ class _QuranScreenState extends State<QuranScreen> {
                   },
                 ),
               ),
-              bottomNav(context, 1),
+              // bottomNav(context, 1),
             ],
           ),
         ),
