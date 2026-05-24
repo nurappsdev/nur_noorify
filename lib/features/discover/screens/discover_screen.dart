@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class DiscoverScreen extends StatelessWidget {
@@ -45,18 +46,16 @@ class DiscoverScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<AppLanguage>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, language, _) {
-        final isBangla = language == AppLanguage.bangla;
-        final glass = NoorifyGlassTheme(context);
+    final language = context.watch<LanguageProvider>().current;
+    final isBangla = language == AppLanguage.bangla;
+    final glass = NoorifyGlassTheme(context);
 
-        String t(String english, String bangla) {
-          if (!isBangla) return english;
-          final repaired = _repairMojibake(bangla);
-          if (_looksMojibake(repaired)) return english;
-          return _containsBangla(repaired) ? repaired : english;
-        }
+    String t(String english, String bangla) {
+      if (!isBangla) return english;
+      final repaired = _repairMojibake(bangla);
+      if (_looksMojibake(repaired)) return english;
+      return _containsBangla(repaired) ? repaired : english;
+    }
 
         void openRoute(String route) {
           Navigator.of(context).pushNamed(route);
@@ -358,14 +357,11 @@ class DiscoverScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  bottomNav(context, 1),
                 ],
               ),
             ),
           ),
         );
-      },
-    );
   }
 }
 

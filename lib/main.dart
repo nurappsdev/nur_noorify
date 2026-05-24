@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:first_project/firebase_options.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
+import 'package:first_project/shared/providers/app_providers.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/services/push_notification_service.dart';
 import 'package:first_project/core/constants/app_routes.dart';
@@ -16,7 +18,12 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeNotifications();
   await loadAppPreferences();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: buildAppProviders(),
+      child: const MyApp(),
+    ),
+  );
   unawaited(initializePushNotifications());
 }
 

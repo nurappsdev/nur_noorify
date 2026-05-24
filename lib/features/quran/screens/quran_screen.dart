@@ -148,8 +148,8 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   ({int ayahNo, double progress}) _lastReadProgressForSurah(
-    QuranChapter chapter,
-  ) {
+      QuranChapter chapter,
+      ) {
     if (chapter.totalAyah <= 0) {
       return (ayahNo: 0, progress: 0);
     }
@@ -237,9 +237,9 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Future<void> _autoCacheAllTextIfNeeded(
-    List<QuranChapter> chapters,
-    Set<int> downloaded,
-  ) async {
+      List<QuranChapter> chapters,
+      Set<int> downloaded,
+      ) async {
     if (_isBulkCachingText) return;
 
     final missing = chapters
@@ -304,7 +304,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
   bool get _showBulkCacheProgress =>
       _isBulkCachingText ||
-      (_bulkCacheTotal > 0 && _bulkCacheCompleted < _bulkCacheTotal);
+          (_bulkCacheTotal > 0 && _bulkCacheCompleted < _bulkCacheTotal);
 
   double get _bulkCacheProgressValue {
     if (_bulkCacheTotal <= 0) return 0;
@@ -315,20 +315,20 @@ class _QuranScreenState extends State<QuranScreen> {
   List<QuranChapter> get _filteredChapters {
     return _chapters
         .where((chapter) {
-          if (_showOnlyDownloaded &&
-              !_downloadedSurahNos.contains(chapter.surahNo)) {
-            return false;
-          }
+      if (_showOnlyDownloaded &&
+          !_downloadedSurahNos.contains(chapter.surahNo)) {
+        return false;
+      }
 
-          if (_filter == 'meccan' && !chapter.isMeccan) return false;
-          if (_filter == 'medinan' && !chapter.isMedinan) return false;
+      if (_filter == 'meccan' && !chapter.isMeccan) return false;
+      if (_filter == 'medinan' && !chapter.isMedinan) return false;
 
-          if (_searchQuery.isEmpty) return true;
-          return chapter.surahNo.toString() == _searchQuery ||
-              chapter.surahName.toLowerCase().contains(_searchQuery) ||
-              chapter.surahNameArabic.contains(_searchQuery) ||
-              chapter.surahNameTranslation.toLowerCase().contains(_searchQuery);
-        })
+      if (_searchQuery.isEmpty) return true;
+      return chapter.surahNo.toString() == _searchQuery ||
+          chapter.surahName.toLowerCase().contains(_searchQuery) ||
+          chapter.surahNameArabic.contains(_searchQuery) ||
+          chapter.surahNameTranslation.toLowerCase().contains(_searchQuery);
+    })
         .toList(growable: false);
   }
 
@@ -340,10 +340,10 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Future<void> _showSurahDetail(
-    QuranChapter chapter, {
-    bool autoStartAudio = false,
-    int? initialAyahNo,
-  }) async {
+      QuranChapter chapter, {
+        bool autoStartAudio = false,
+        int? initialAyahNo,
+      }) async {
     if (_lastReadSurahNo != chapter.surahNo) {
       setState(() {
         _lastReadSurahNo = chapter.surahNo;
@@ -403,18 +403,18 @@ class _QuranScreenState extends State<QuranScreen> {
     final fallbackChapter = _chapters.isNotEmpty
         ? _chapters.first
         : QuranChapter(
-            surahNo: 2,
-            surahName: 'Al-Baqara',
-            surahNameArabic: '\u0627\u0644\u0628\u0642\u0631\u0629',
-            surahNameArabicLong:
-                '\u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629',
-            surahNameTranslation: 'The Cow',
-            revelationPlace: 'Medina',
-            totalAyah: 286,
-          );
+      surahNo: 2,
+      surahName: 'Al-Baqara',
+      surahNameArabic: '\u0627\u0644\u0628\u0642\u0631\u0629',
+      surahNameArabicLong:
+      '\u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629',
+      surahNameTranslation: 'The Cow',
+      revelationPlace: 'Medina',
+      totalAyah: 286,
+    );
     final lastReadChapter = _chapters.firstWhere(
-      (chapter) =>
-          chapter.surahNo == (_lastReadSurahNo ?? fallbackChapter.surahNo),
+          (chapter) =>
+      chapter.surahNo == (_lastReadSurahNo ?? fallbackChapter.surahNo),
       orElse: () => fallbackChapter,
     );
     final lastReadProgress = _lastReadProgressForSurah(lastReadChapter);
@@ -422,9 +422,9 @@ class _QuranScreenState extends State<QuranScreen> {
     final progressLabel = lastReadProgress.ayahNo <= 0
         ? _t('Start reading to track progress', 'প্রগ্রেস দেখতে পড়া শুরু করুন')
         : _t(
-            '${_digits(completionPercent.toString())}% Complete \u2022 Ayat ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
-            '${_digits(completionPercent.toString())}% সম্পন্ন \u2022 আয়াত ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
-          );
+      '${_digits(completionPercent.toString())}% Complete \u2022 Ayat ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
+      '${_digits(completionPercent.toString())}% সম্পন্ন \u2022 আয়াত ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -656,10 +656,10 @@ class _QuranScreenState extends State<QuranScreen> {
               gradient: glass.isDark
                   ? null
                   : const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xEFFFFFFF), Color(0xD7F3FAFF)],
-                    ),
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xEFFFFFFF), Color(0xD7F3FAFF)],
+              ),
               color: glass.isDark ? const Color(0x3816232F) : null,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
@@ -670,12 +670,12 @@ class _QuranScreenState extends State<QuranScreen> {
               boxShadow: glass.isDark
                   ? null
                   : const [
-                      BoxShadow(
-                        color: Color(0x120E3853),
-                        blurRadius: 12,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
+                BoxShadow(
+                  color: Color(0x120E3853),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -712,7 +712,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     selected: _showOnlyDownloaded,
                     isSegment: true,
                     onTap: () => setState(
-                      () => _showOnlyDownloaded = !_showOnlyDownloaded,
+                          () => _showOnlyDownloaded = !_showOnlyDownloaded,
                     ),
                   ),
                 ),
@@ -879,57 +879,57 @@ class _QuranScreenState extends State<QuranScreen> {
               Expanded(
                 child: _isLoading
                     ? Center(
-                        child: CircularProgressIndicator(color: glass.accent),
-                      )
+                  child: CircularProgressIndicator(color: glass.accent),
+                )
                     : _error != null
                     ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _error!,
-                              style: TextStyle(color: glass.textSecondary),
-                            ),
-                            const SizedBox(height: 8),
-                            FilledButton(
-                              onPressed: _loadChapters,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: glass.accent,
-                                foregroundColor: glass.isDark
-                                    ? const Color(0xFF032F35)
-                                    : Colors.white,
-                              ),
-                              child: Text(_t('Retry', 'আবার চেষ্টা করুন')),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _surahListController,
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        itemCount: _filteredChapters.length,
-                        itemBuilder: (context, index) {
-                          final chapter = _filteredChapters[index];
-                          final firstBookmark = _firstBookmarkForSurah(
-                            chapter.surahNo,
-                          );
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _QuranSurahTile(
-                              chapter: chapter,
-                              hasBookmark: firstBookmark != null,
-                              isBangla: _isBangla,
-                              revelationLabel: _revelationLabel(
-                                chapter.revelationPlace,
-                              ),
-                              onTap: () => _showSurahDetail(chapter),
-                              onBookmarkTap: _openBookmarksScreen,
-                            ),
-                          );
-                        },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _error!,
+                        style: TextStyle(color: glass.textSecondary),
                       ),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: _loadChapters,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: glass.accent,
+                          foregroundColor: glass.isDark
+                              ? const Color(0xFF032F35)
+                              : Colors.white,
+                        ),
+                        child: Text(_t('Retry', 'আবার চেষ্টা করুন')),
+                      ),
+                    ],
+                  ),
+                )
+                    : ListView.builder(
+                  controller: _surahListController,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  itemCount: _filteredChapters.length,
+                  itemBuilder: (context, index) {
+                    final chapter = _filteredChapters[index];
+                    final firstBookmark = _firstBookmarkForSurah(
+                      chapter.surahNo,
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _QuranSurahTile(
+                        chapter: chapter,
+                        hasBookmark: firstBookmark != null,
+                        isBangla: _isBangla,
+                        revelationLabel: _revelationLabel(
+                          chapter.revelationPlace,
+                        ),
+                        onTap: () => _showSurahDetail(chapter),
+                        onBookmarkTap: _openBookmarksScreen,
+                      ),
+                    );
+                  },
+                ),
               ),
-              bottomNav(context, 2),
+              // bottomNav(context, 1),
             ],
           ),
         ),
@@ -978,23 +978,23 @@ class _FilterChipButton extends StatelessWidget {
           border: Border.all(color: borderColor),
           boxShadow: selected
               ? [
-                  BoxShadow(
-                    color: glass.accent.withValues(
-                      alpha: glass.isDark ? 0.28 : 0.22,
-                    ),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
+            BoxShadow(
+              color: glass.accent.withValues(
+                alpha: glass.isDark ? 0.28 : 0.22,
+              ),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ]
               : (glass.isDark
-                    ? null
-                    : const [
-                        BoxShadow(
-                          color: Color(0x0B0E3853),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
-                        ),
-                      ]),
+              ? null
+              : const [
+            BoxShadow(
+              color: Color(0x0B0E3853),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ]),
         ),
         child: Text(
           label,
@@ -1040,10 +1040,10 @@ class _QuranSurahTile extends StatelessWidget {
     final tileBackground = glass.isDark
         ? null
         : const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFDFEFF), Color(0xFFF4FAFF)],
-          );
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFFFDFEFF), Color(0xFFF4FAFF)],
+    );
 
     return Material(
       color: Colors.transparent,
@@ -1185,11 +1185,11 @@ class _QuranSurahTile extends StatelessWidget {
                       style: IconButton.styleFrom(
                         backgroundColor: hasBookmark
                             ? (glass.isDark
-                                  ? const Color(0x332EB8E6)
-                                  : const Color(0x1F1EA8B8))
+                            ? const Color(0x332EB8E6)
+                            : const Color(0x1F1EA8B8))
                             : (glass.isDark
-                                  ? const Color(0x3316383E)
-                                  : const Color(0x121EA8B8)),
+                            ? const Color(0x3316383E)
+                            : const Color(0x121EA8B8)),
                         foregroundColor: hasBookmark
                             ? glass.accent
                             : glass.textSecondary,

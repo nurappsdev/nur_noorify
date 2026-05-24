@@ -4,7 +4,11 @@ import 'package:first_project/core/theme/brand_colors.dart';
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 
-Widget bottomNav(BuildContext context, int active) {
+Widget bottomNav(
+  BuildContext context,
+  int active, {
+  ValueChanged<int>? onTap,
+}) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final isBangla = appLanguageNotifier.value == AppLanguage.bangla;
   String t(String en, String bn) => isBangla ? bn : en;
@@ -47,9 +51,18 @@ Widget bottomNav(BuildContext context, int active) {
       : (kQuranFeatureEnabled ? active : active.clamp(0, items.length - 1));
 
   void onTapItem(int index) {
-    final routeName = items[index].routeName;
     if (index == normalizedActive) return;
-    Navigator.of(context).pushReplacementNamed(routeName);
+    if (onTap != null) {
+      onTap(index);
+      return;
+    }
+    // From a non-shell screen (e.g. a detail page): jump straight back to the
+    // HomeShell at the requested tab, clearing the navigation stack so we
+    // don't pile detail routes underneath the shell.
+    final routeName = items[index].routeName;
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 
   return Container(
