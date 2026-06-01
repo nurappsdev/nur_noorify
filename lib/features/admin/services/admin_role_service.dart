@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AdminRoleService {
   AdminRoleService._();
 
   static final AdminRoleService instance = AdminRoleService._();
 
+  bool get _firebaseReady => Firebase.apps.isNotEmpty;
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
@@ -13,7 +15,7 @@ class AdminRoleService {
       _db.collection('users');
 
   Future<void> ensureUserProfile(User? user) async {
-    if (user == null) return;
+    if (!_firebaseReady || user == null) return;
     final docRef = _users.doc(user.uid);
     final snapshot = await docRef.get();
 
@@ -35,6 +37,7 @@ class AdminRoleService {
   }
 
   Future<bool> isCurrentUserAdmin() async {
+    if (!_firebaseReady) return false;
     final user = _auth.currentUser;
     if (user == null) return false;
 
@@ -43,6 +46,7 @@ class AdminRoleService {
   }
 
   Stream<bool> watchCurrentUserAdmin() {
+    if (!_firebaseReady) return Stream<bool>.value(false);
     final user = _auth.currentUser;
     if (user == null) return Stream<bool>.value(false);
     return _users.doc(user.uid).snapshots().map((snapshot) {

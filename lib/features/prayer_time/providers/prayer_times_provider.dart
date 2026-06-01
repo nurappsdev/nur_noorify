@@ -215,7 +215,20 @@ class PrayerTimesProvider extends ChangeNotifier {
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        if (locationPermissionRequestInProgress) {
+          return (
+            latitude: baitulMukarramLat,
+            longitude: baitulMukarramLng,
+            label: _profileOrFallbackLocationLabel(),
+            usingFallbackLocation: true,
+          );
+        }
+        locationPermissionRequestInProgress = true;
+        try {
+          permission = await Geolocator.requestPermission();
+        } finally {
+          locationPermissionRequestInProgress = false;
+        }
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {

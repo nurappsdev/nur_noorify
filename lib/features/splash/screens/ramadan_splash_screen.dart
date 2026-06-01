@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
@@ -27,16 +28,22 @@ class _RamadanSplashScreenState extends State<RamadanSplashScreen> {
     await Future<void>.delayed(_splashDuration);
     if (!mounted) return;
     var nextRoute = RouteNames.home;
-    try {
-      final user = AuthService.instance.currentUser;
-      if (user != null) {
-        await AuthService.instance.syncLocalProfileFromCurrentUser();
+    if (Firebase.apps.isNotEmpty) {
+      try {
+        final user = AuthService.instance.currentUser;
+        if (user != null) {
+          await AuthService.instance.syncLocalProfileFromCurrentUser();
+        }
+        nextRoute = skipAuthGateNotifier.value || user != null
+            ? RouteNames.home
+            : RouteNames.signIn;
+      } catch (_) {
+        nextRoute = RouteNames.home;
       }
-      nextRoute = skipAuthGateNotifier.value || user != null
+    } else {
+      nextRoute = skipAuthGateNotifier.value
           ? RouteNames.home
           : RouteNames.signIn;
-    } catch (_) {
-      nextRoute = RouteNames.home;
     }
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(nextRoute);

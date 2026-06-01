@@ -11,6 +11,7 @@ import 'package:timezone/timezone.dart' as tz;
 final FlutterLocalNotificationsPlugin localNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 bool localNotificationsInitialized = false;
+bool locationPermissionRequestInProgress = false;
 const int sehriNotificationId = 1001;
 const int iftarNotificationId = 1002;
 const int fajrNotificationId = 2001;
@@ -18,6 +19,7 @@ const int dzuhrNotificationId = 2002;
 const int ashrNotificationId = 2003;
 const int maghribNotificationId = 2004;
 const int ishaNotificationId = 2005;
+const int tahajjudNotificationId = 2006;
 // Toggle to hide/show Quran module from app navigation without deleting code.
 const bool kQuranFeatureEnabled = true;
 
@@ -57,6 +59,10 @@ final ValueNotifier<bool> prayerAlertsEnabledNotifier = ValueNotifier<bool>(
 );
 final ValueNotifier<bool> sehriAlertEnabledNotifier = ValueNotifier<bool>(true);
 final ValueNotifier<bool> iftarAlertEnabledNotifier = ValueNotifier<bool>(true);
+// Tahajjud reminders are opt-in (off by default) since they fire deep at night.
+final ValueNotifier<bool> tahajjudAlertEnabledNotifier = ValueNotifier<bool>(
+  false,
+);
 final ValueNotifier<AppAlertTone> alertToneNotifier =
     ValueNotifier<AppAlertTone>(AppAlertTone.appDefault);
 final ValueNotifier<bool> darkThemeEnabledNotifier = ValueNotifier<bool>(false);
@@ -205,8 +211,6 @@ Future<void> initializeNotifications() async {
   localNotificationsInitialized = true;
 
   await loadAlertTonePreference();
-  await ensureNotificationPermissions();
-  await ensureExactAlarmPermissions();
 }
 
 Future<void> _configureLocalTimeZone() async {
@@ -269,6 +273,11 @@ Future<void> loadAppPreferences() async {
     final iftarAlert = json['iftarAlert'];
     if (iftarAlert is bool) {
       iftarAlertEnabledNotifier.value = iftarAlert;
+    }
+
+    final tahajjudAlert = json['tahajjudAlert'];
+    if (tahajjudAlert is bool) {
+      tahajjudAlertEnabledNotifier.value = tahajjudAlert;
     }
 
     final profileName = (json['profileName'] ?? '').toString().trim();
@@ -368,6 +377,15 @@ Future<void> loadAppPreferences() async {
   }
 }
 
+Future<void> clearUserProfile() async {
+  profileNameNotifier.value = '';
+  profileLocationNotifier.value = 'Dhaka, Bangladesh';
+  profilePhotoBase64Notifier.value = null;
+  profilePhotoUrlNotifier.value = null;
+  skipAuthGateNotifier.value = false;
+  await saveAppPreferences();
+}
+
 Future<void> saveAppPreferences() async {
   final payload = jsonEncode({
     'schema_version': _appPreferencesSchemaVersion,
@@ -378,6 +396,7 @@ Future<void> saveAppPreferences() async {
     'prayerAlerts': prayerAlertsEnabledNotifier.value,
     'sehriAlert': sehriAlertEnabledNotifier.value,
     'iftarAlert': iftarAlertEnabledNotifier.value,
+    'tahajjudAlert': tahajjudAlertEnabledNotifier.value,
     'profileName': profileNameNotifier.value,
     'profileLocation': profileLocationNotifier.value,
     'profilePhoto': profilePhotoBase64Notifier.value ?? '',

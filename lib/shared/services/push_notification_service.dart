@@ -36,6 +36,11 @@ class PushNotificationService {
     if (_initialized) return;
     _initialized = true;
 
+    if (Firebase.apps.isEmpty) {
+      debugPrint('PushNotificationService: Firebase not initialized, skipping');
+      return;
+    }
+
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     await _requestPermissions();

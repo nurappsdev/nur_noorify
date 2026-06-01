@@ -369,46 +369,70 @@ mixin DailyActivityViewMixin
     return (elapsed / total).clamp(0.0, 1.0);
   }
 
-  Widget _buildHeroDateStrip() {
-    return _buildGlassCard(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  '$_formattedHijriDate । ${_arabicWeekdayLabel()}',
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _textPrimary,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
+  Widget _buildHeroDateStripContent() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                '$_formattedHijriDate । ${_arabicWeekdayLabel()}',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
               ),
-              const SizedBox(width: 6),
-              Icon(Icons.nightlight_round, size: 16, color: _accentGold),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${_banglaWeekdayLabel()}, $_formattedBanglaDate বঙ্গাব্দ, ${_banglaSeasonLabel()}',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: _textSecondary,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 6),
+            Icon(Icons.nightlight_round, size: 16, color: _accentGold),
+          ],
+        ),
+        const SizedBox(height: 4),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              _formattedTime,
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                _activeHeaderDate,
+                maxLines: 2,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        // Text(
+        //   '${_banglaWeekdayLabel()}, $_formattedBanglaDate বঙ্গাব্দ, ${_banglaSeasonLabel()}',
+        //   textAlign: TextAlign.center,
+        //   maxLines: 1,
+        //   overflow: TextOverflow.ellipsis,
+        //   style: TextStyle(
+        //     color: _textSecondary,
+        //     fontSize: 11.5,
+        //     fontWeight: FontWeight.w600,
+        //   ),
+        // ),
+      ],
     );
   }
 
@@ -440,14 +464,38 @@ mixin DailyActivityViewMixin
     return (0.5 + elapsed / total * 0.5).clamp(0.5, 1.0);
   }
 
+  String _skyClock(DateTime? t) =>
+      t == null ? '--:--' : _localizedPrayerTime(_formatPrayerTime(t));
+
+  /// Sun (daytime) or moon (nighttime) progress card. The two halves of the day
+  /// track separately: the sun arc covers Fajr→Maghrib, the moon arc covers
+  /// Maghrib→Fajr.
   Widget _buildSunArcCard() {
+    final isNight = _isNightTime;
+    return _buildGlassCard(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      ornamentedCorners: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isNight) _buildMoonArcArea() else _buildSunArcArea(),
+          _ornamentDivider(padding: const EdgeInsets.only(top: 10, bottom: 6)),
+          _buildHeroDateStripContent(),
+          const SizedBox(height: 10),
+          if (isNight)
+            ..._buildNightProgressSection()
+          else
+            ..._buildDayProgressSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSunArcArea() {
     final schedule = _todaySchedule;
     final dzuhr = schedule?.dzuhr;
     final chasht = _chashtTime();
     final isForenoon = dzuhr == null ? _now.hour < 12 : _now.isBefore(dzuhr);
-
-    String clock(DateTime? t) =>
-        t == null ? '--:--' : _localizedPrayerTime(_formatPrayerTime(t));
 
     // The two arc shoulder labels follow the half of the day: the forenoon
     // shows Chasht (rising) and Zuhr (apex); the afternoon shows Asr and
@@ -456,15 +504,41 @@ mixin DailyActivityViewMixin
         ? _text('Chasht', 'চাশত')
         : _text('Asr', 'আসর');
     final leadingTimeLabel = isForenoon
-        ? clock(chasht)
-        : clock(schedule?.ashr);
+        ? _skyClock(chasht)
+        : _skyClock(schedule?.ashr);
     final trailingTitle = isForenoon
         ? _text('Zuhr', 'যুহর')
         : _text('Maghrib', 'মাগরিব');
     final trailingTimeLabel = isForenoon
-        ? clock(schedule?.dzuhr)
-        : clock(schedule?.maghrib);
+        ? _skyClock(schedule?.dzuhr)
+        : _skyClock(schedule?.maghrib);
 
+    return _SunArcArea(
+      currentProgress: _sunPathProgress(),
+      isBangla: _isBangla,
+      accentStrong: _accentStrong,
+      accentSoft: _accentSoft,
+      accentGold: _accentGold,
+      trackColor: _isDarkTheme
+          ? const Color(0x33A4D8E2)
+          : const Color(0x40274F6B),
+      isDark: _isDarkTheme,
+      textPrimary: _textPrimary,
+      textSecondary: _textSecondary,
+      leadingTitle: leadingTitle,
+      leadingTimeLabel: leadingTimeLabel,
+      trailingTitle: trailingTitle,
+      trailingTimeLabel: trailingTimeLabel,
+      sunriseClockText: _skyClock(schedule?.fajr),
+      sunsetClockText: _skyClock(schedule?.maghrib),
+      middayTimeLabel: _skyClock(schedule?.dzuhr),
+    );
+  }
+
+  List<Widget> _buildDayProgressSection() {
+    final schedule = _todaySchedule;
+    final dzuhr = schedule?.dzuhr;
+    final chasht = _chashtTime();
     // The progress strip presents the forenoon window as the Chasht period.
     final isChasht = _activePrayer == 'Zuhr';
     final segmentName = isChasht
@@ -477,98 +551,427 @@ mixin DailyActivityViewMixin
         ? _segmentProgress(chasht, dzuhr)
         : _activeProgress.clamp(0.0, 1.0);
 
-    return _buildGlassCard(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return [
+      Row(
         children: [
-          _SunArcArea(
-            currentProgress: _sunPathProgress(),
-            isBangla: _isBangla,
-            accentStrong: _accentStrong,
-            accentSoft: _accentSoft,
-            accentGold: _accentGold,
-            trackColor: _isDarkTheme
-                ? const Color(0x33A4D8E2)
-                : const Color(0x40274F6B),
-            isDark: _isDarkTheme,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-            leadingTitle: leadingTitle,
-            leadingTimeLabel: leadingTimeLabel,
-            trailingTitle: trailingTitle,
-            trailingTimeLabel: trailingTimeLabel,
-            sunriseClockText: clock(schedule?.fajr),
-            sunsetClockText: clock(schedule?.maghrib),
-            middayTimeLabel: clock(schedule?.dzuhr),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
-                segmentName,
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                segmentWindow,
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: segmentProgress,
-              minHeight: 5,
-              backgroundColor: _isDarkTheme
-                  ? const Color(0xFF1B2D3E)
-                  : const Color(0xFFD8E7F1),
-              valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
+          Text(
+            segmentName,
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _accentStrong,
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                _text('Ongoing', 'চলমান'),
-                style: TextStyle(
-                  color: _accentStrong,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _activePrayerProgressLabel(),
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+          const Spacer(),
+          Text(
+            segmentWindow,
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
+      const SizedBox(height: 5),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: LinearProgressIndicator(
+          value: segmentProgress,
+          minHeight: 5,
+          backgroundColor: _isDarkTheme
+              ? const Color(0xFF1B2D3E)
+              : const Color(0xFFD8E7F1),
+          valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
+        ),
+      ),
+      const SizedBox(height: 5),
+      Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _accentStrong,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            _text('Ongoing', 'চলমান'),
+            style: TextStyle(
+              color: _accentStrong,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            _activePrayerProgressLabel(),
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  // Moonlight palette for the nighttime section, independent of the app theme
+  // so the night vibe reads the same in light and dark mode.
+  static const Color _moonInk = Color(0xFFCFE0FF);
+  static const Color _moonInkSoft = Color(0xFF9FB6E0);
+  static const Color _moonGlow = Color(0xFFBFD2FF);
+  static const Color _moonGold = Color(0xFFE9D8A6);
+
+  Widget _buildMoonArcArea() {
+    final schedule = _todaySchedule;
+    final window = _currentNightWindow();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0A1430), Color(0xFF111F45), Color(0xFF1A2B55)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          border: Border.all(color: const Color(0x3357739C)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x402A4A8C),
+              blurRadius: 22,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: _MoonArcArea(
+          progress: _nightProgress(),
+          isLastThird: _isLastThirdOfNight(),
+          maghribLabel: _text('Maghrib', 'মাগরিব'),
+          fajrLabel: _text('Fajr', 'ফজর'),
+          midnightLabel: _text('Midnight', 'মধ্যরাত'),
+          tahajjudLabel: _text('Tahajjud', 'তাহাজ্জুদ'),
+          maghribClock: _skyClock(schedule?.maghrib),
+          fajrClock: _skyClock(window?.end),
+          tahajjudClock: _skyClock(_tahajjudTime()),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildNightProgressSection() {
+    final isLastThird = _isLastThirdOfNight();
+    final pct = (_nightProgress() * 100).round();
+    final pctText = _isBangla
+        ? '${_toBanglaDigits(pct.toString())}%'
+        : '$pct%';
+    final label = isLastThird
+        ? _text('Last third of the night', 'রাতের শেষ তৃতীয়াংশ')
+        : _text('Night in progress', 'রাত চলছে');
+    return [
+      Row(
+        children: [
+          Icon(Icons.nightlight_round, size: 13, color: _accentGold),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            '${_text('Tahajjud', 'তাহাজ্জুদ')} · ${_skyClock(_tahajjudTime())}',
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 5),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: LinearProgressIndicator(
+          value: _nightProgress(),
+          minHeight: 5,
+          backgroundColor: _isDarkTheme
+              ? const Color(0xFF1B2D3E)
+              : const Color(0xFFD8E7F1),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            isLastThird ? _accentGold : _accentSoft,
+          ),
+        ),
+      ),
+      const SizedBox(height: 5),
+      Row(
+        children: [
+          Icon(
+            isLastThird
+                ? Icons.auto_awesome_rounded
+                : Icons.bedtime_outlined,
+            size: 11,
+            color: isLastThird ? _accentGold : _accentSoft,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            isLastThird
+                ? _text('Time for Tahajjud', 'তাহাজ্জুদের সময়')
+                : _text('Resting hours', 'বিশ্রামের সময়'),
+            style: TextStyle(
+              color: isLastThird ? _accentGold : _accentSoft,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${_text('Night', 'রাত')} $pctText',
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _buildTahajjudReminderCard() {
+    final tahajjudClock = _skyClock(_tahajjudTime());
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1B1142), Color(0xFF23215C), Color(0xFF15244F)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: const Color(0x55B79CF0)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x55382C7A),
+              blurRadius: 26,
+              offset: Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // A few static stars for the distinct night vibe.
+            const Positioned(
+              top: 12,
+              right: 22,
+              child: Icon(Icons.star_rounded, size: 9, color: Color(0x88FFFFFF)),
+            ),
+            const Positioned(
+              top: 30,
+              right: 48,
+              child: Icon(Icons.star_rounded, size: 6, color: Color(0x66FFFFFF)),
+            ),
+            const Positioned(
+              bottom: 18,
+              right: 16,
+              child: Icon(Icons.star_rounded, size: 7, color: Color(0x55FFFFFF)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFE9D8A6), Color(0xFFC9A24B)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x88E9D8A6),
+                              blurRadius: 14,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.nightlight_round,
+                          size: 18,
+                          color: Color(0xFF231A04),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _text('Tahajjud Reminder', 'তাহাজ্জুদের আহ্বান'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: _moonInk,
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'التهجد',
+                                  style: TextStyle(
+                                    color: _moonGold,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _text(
+                                'Last third of the night',
+                                'রাতের শেষ তৃতীয়াংশ',
+                              ),
+                              style: const TextStyle(
+                                color: _moonInkSoft,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 11),
+                  Text(
+                    _text(
+                      '“Our Lord descends to the lowest heaven in the last third of the night…” — stand, pray, and ask.',
+                      '“আমাদের রব রাতের শেষ তৃতীয়াংশে নিকটবর্তী আকাশে অবতরণ করেন…” — উঠুন, নামাজ পড়ুন ও দোয়া করুন।',
+                    ),
+                    style: const TextStyle(
+                      color: _moonInk,
+                      fontSize: 12,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 16,
+                        color: _moonGlow,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _text('Recommended', 'প্রস্তাবিত'),
+                        style: const TextStyle(
+                          color: _moonInkSoft,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        tahajjudClock,
+                        style: const TextStyle(
+                          color: _moonInk,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      _buildTahajjudReminderToggle(),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTahajjudReminderToggle() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: tahajjudAlertEnabledNotifier,
+      builder: (context, enabled, _) {
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              tahajjudAlertEnabledNotifier.value = !enabled;
+              unawaited(saveAppPreferences());
+            },
+            borderRadius: BorderRadius.circular(999),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: enabled
+                    ? const LinearGradient(
+                        colors: [Color(0xFFE9D8A6), Color(0xFFC9A24B)],
+                      )
+                    : null,
+                color: enabled ? null : const Color(0x332C3C72),
+                border: Border.all(
+                  color: enabled
+                      ? const Color(0x00000000)
+                      : const Color(0x66B79CF0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    enabled
+                        ? Icons.notifications_active_rounded
+                        : Icons.notifications_none_rounded,
+                    size: 14,
+                    color: enabled ? const Color(0xFF231A04) : _moonInk,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    enabled
+                        ? _text('On', 'চালু')
+                        : _text('Remind me', 'মনে করিয়ে দিন'),
+                    style: TextStyle(
+                      color: enabled ? const Color(0xFF231A04) : _moonInk,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -2081,37 +2484,77 @@ mixin DailyActivityViewMixin
   }
 
   Widget _buildDailyActivityCard() {
-    final progress = _dailyGoal == 0 ? 0.0 : _completedDaily / _dailyGoal;
+    final items = _activities;
+    // Both activity cards share the same row so they stay visible together,
+    // side by side, without scrolling between them. IntrinsicHeight keeps the
+    // two cards the same height even when their titles wrap differently.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            Expanded(child: _buildActivityStatCard(items[i])),
+            if (i != items.length - 1) const SizedBox(width: 12),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityStatCard(ActivityItem item) {
+    final progress = item.total == 0 ? 0.0 : item.done / item.total;
+    final clamped = progress.clamp(0.0, 1.0);
+    final percent = (clamped * 100).round();
     return _buildGlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text(
-                _text('Daily Activity', 'দৈনিক কার্যক্রম'),
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: _surfaceStrong,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _activityIcon(item.title),
+                  color: _accentSoft,
+                  size: 18,
                 ),
               ),
               const Spacer(),
               Text(
-                '${_localizedCount(_completedDaily)}/${_localizedCount(_dailyGoal)}',
+                _isBangla
+                    ? '${_toBanglaDigits(percent.toString())}%'
+                    : '$percent%',
                 style: TextStyle(
                   color: _accentStrong,
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
+          Text(
+            item.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
+              value: clamped,
               minHeight: 7,
               backgroundColor: _isDarkTheme
                   ? const Color(0xFF1B2D3E)
@@ -2119,42 +2562,29 @@ mixin DailyActivityViewMixin
               valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
             ),
           ),
-          const SizedBox(height: 11),
-          ..._activities.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _textPrimary.withValues(
-                          alpha: _isDarkTheme ? 0.9 : 0.88,
-                        ),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${_localizedCount(item.done)}/${_localizedCount(item.total)}',
-                    style: TextStyle(
-                      color: _textSecondary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 8),
+          Text(
+            '${_localizedCount(item.done)}/${_localizedCount(item.total)}',
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
       ),
     );
+  }
+
+  IconData _activityIcon(String title) {
+    final value = title.toLowerCase();
+    if (value.contains('alms') || value.contains('zakat')) {
+      return Icons.volunteer_activism_rounded;
+    }
+    if (value.contains('quran') || value.contains('recite')) {
+      return Icons.menu_book_rounded;
+    }
+    return Icons.check_circle_outline_rounded;
   }
 
   @override
@@ -2242,9 +2672,11 @@ mixin DailyActivityViewMixin
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(14, 10, 14, 18),
                         children: [
-                          _buildHeroDateStrip(),
-                          const SizedBox(height: 12),
                           _buildSunArcCard(),
+                          if (_isLastThirdOfNight()) ...[
+                            const SizedBox(height: 12),
+                            _buildTahajjudReminderCard(),
+                          ],
                           const SizedBox(height: 12),
                           _buildTopHeader(),
                           const SizedBox(height: 12),
@@ -2840,4 +3272,445 @@ class _MiniKaabaMarker extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A single twinkling star, with positions expressed as fractions of the
+/// painting area so the field scales with the card.
+class _NightStar {
+  const _NightStar({
+    required this.dxFraction,
+    required this.dyFraction,
+    required this.radius,
+    required this.phase,
+  });
+
+  final double dxFraction;
+  final double dyFraction;
+  final double radius;
+  final double phase;
+}
+
+/// Nighttime counterpart of [_SunArcArea]: a moon rides the Maghrib→Fajr arc
+/// over a calm starfield, with the last third of the night highlighted in gold.
+class _MoonArcArea extends StatefulWidget {
+  const _MoonArcArea({
+    required this.progress,
+    required this.isLastThird,
+    required this.maghribLabel,
+    required this.fajrLabel,
+    required this.midnightLabel,
+    required this.tahajjudLabel,
+    required this.maghribClock,
+    required this.fajrClock,
+    required this.tahajjudClock,
+  });
+
+  final double progress;
+  final bool isLastThird;
+  final String maghribLabel;
+  final String fajrLabel;
+  final String midnightLabel;
+  final String tahajjudLabel;
+  final String maghribClock;
+  final String fajrClock;
+  final String tahajjudClock;
+
+  @override
+  State<_MoonArcArea> createState() => _MoonArcAreaState();
+}
+
+class _MoonArcAreaState extends State<_MoonArcArea>
+    with TickerProviderStateMixin {
+  late final AnimationController _progressController;
+  late final Animation<double> _progressAnimation;
+  late final AnimationController _twinkleController;
+  late final List<_NightStar> _stars;
+
+  static const Color _silver = Color(0xFFDCE7FF);
+  static const Color _silverSoft = Color(0xFF8FA6D6);
+  static const Color _indigo = Color(0xFF6E8BD8);
+  static const Color _gold = Color(0xFFE9D8A6);
+
+  @override
+  void initState() {
+    super.initState();
+    _progressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3500),
+    );
+    _progressAnimation = CurvedAnimation(
+      parent: _progressController,
+      curve: Curves.easeInOutCubic,
+    );
+    _progressController.animateTo(widget.progress.clamp(0.0, 1.0));
+    _twinkleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+
+    final random = math.Random(7);
+    _stars = List<_NightStar>.generate(16, (_) {
+      return _NightStar(
+        dxFraction: random.nextDouble(),
+        // Keep stars in the upper sky, away from the ground/labels.
+        dyFraction: random.nextDouble() * 0.62,
+        radius: 0.6 + random.nextDouble() * 1.4,
+        phase: random.nextDouble() * math.pi * 2,
+      );
+    });
+  }
+
+  @override
+  void didUpdateWidget(_MoonArcArea old) {
+    super.didUpdateWidget(old);
+    if (!_progressController.isAnimating &&
+        old.progress != widget.progress) {
+      _progressController.value = widget.progress.clamp(0.0, 1.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    _twinkleController.dispose();
+    super.dispose();
+  }
+
+  void _replay() {
+    _progressController
+      ..stop()
+      ..value = 0.0
+      ..animateTo(widget.progress.clamp(0.0, 1.0));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _replay,
+      behavior: HitTestBehavior.opaque,
+      child: AspectRatio(
+        aspectRatio: 2.7,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final h = constraints.maxHeight;
+            final cx = w / 2;
+            final baseY = h - 6;
+            final radius = math.min(w / 2 - 6, h - 14);
+            final apexY = baseY - radius;
+
+            return AnimatedBuilder(
+              animation: Listenable.merge([
+                _progressAnimation,
+                _twinkleController,
+              ]),
+              builder: (context, _) {
+                final progress = _progressAnimation.value.clamp(0.0, 1.0);
+                final angle = math.pi * (1 - progress);
+                final moonDx = cx + radius * math.cos(angle);
+                final moonDy = baseY - radius * math.sin(angle);
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _MoonArcPainter(
+                          progress: progress,
+                          twinkle: _twinkleController.value,
+                          stars: _stars,
+                          silver: _silver,
+                          silverSoft: _silverSoft,
+                          indigo: _indigo,
+                          gold: _gold,
+                          isLastThird: widget.isLastThird,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: cx,
+                      top: apexY - 16,
+                      child: FractionalTranslation(
+                        translation: const Offset(-0.5, 0),
+                        child: Text(
+                          widget.midnightLabel,
+                          style: const TextStyle(
+                            color: _silver,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: moonDx,
+                      top: moonDy,
+                      child: FractionalTranslation(
+                        translation: const Offset(-0.5, -0.5),
+                        child: _MoonMarker(
+                          highlight: widget.isLastThird,
+                          gold: _gold,
+                          silver: _silver,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: const Alignment(0.32, -0.18),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.tahajjudLabel,
+                            style: TextStyle(
+                              color: widget.isLastThird ? _gold : _silverSoft,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            widget.tahajjudClock,
+                            style: const TextStyle(
+                              color: _silverSoft,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: -2,
+                      bottom: -2,
+                      child: _MoonEndpoint(
+                        icon: Icons.brightness_3_rounded,
+                        label: widget.maghribLabel,
+                        time: widget.maghribClock,
+                        color: _silver,
+                        subColor: _silverSoft,
+                      ),
+                    ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: _MoonEndpoint(
+                        icon: Icons.wb_twilight_rounded,
+                        label: widget.fajrLabel,
+                        time: widget.fajrClock,
+                        color: _silver,
+                        subColor: _silverSoft,
+                        alignRight: true,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _MoonMarker extends StatelessWidget {
+  const _MoonMarker({
+    required this.highlight,
+    required this.gold,
+    required this.silver,
+  });
+
+  final bool highlight;
+  final Color gold;
+  final Color silver;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = highlight ? gold : silver;
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: base,
+        boxShadow: [
+          BoxShadow(
+            color: base.withValues(alpha: highlight ? 0.7 : 0.5),
+            blurRadius: highlight ? 18 : 12,
+            spreadRadius: highlight ? 2 : 1,
+          ),
+        ],
+      ),
+      child: Icon(
+        Icons.nightlight_round,
+        size: 13,
+        color: const Color(0xFF101A36),
+      ),
+    );
+  }
+}
+
+class _MoonEndpoint extends StatelessWidget {
+  const _MoonEndpoint({
+    required this.icon,
+    required this.label,
+    required this.time,
+    required this.color,
+    required this.subColor,
+    this.alignRight = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String time;
+  final Color color;
+  final Color subColor;
+  final bool alignRight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: alignRight
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          time,
+          style: TextStyle(
+            color: subColor,
+            fontSize: 9.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MoonArcPainter extends CustomPainter {
+  const _MoonArcPainter({
+    required this.progress,
+    required this.twinkle,
+    required this.stars,
+    required this.silver,
+    required this.silverSoft,
+    required this.indigo,
+    required this.gold,
+    required this.isLastThird,
+  });
+
+  final double progress;
+  final double twinkle;
+  final List<_NightStar> stars;
+  final Color silver;
+  final Color silverSoft;
+  final Color indigo;
+  final Color gold;
+  final bool isLastThird;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final radius = math.min(w / 2 - 6, h - 14);
+    final baseY = h - 6;
+    final center = Offset(cx, baseY);
+
+    // Twinkling stars across the upper sky.
+    for (final star in stars) {
+      final twinklePhase = math.sin(twinkle * 2 * math.pi + star.phase);
+      final alpha = (0.35 + 0.45 * ((twinklePhase + 1) / 2)).clamp(0.0, 1.0);
+      final paint = Paint()
+        ..color = silver.withValues(alpha: alpha)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(
+        Offset(star.dxFraction * w, star.dyFraction * (baseY - 4)),
+        star.radius,
+        paint,
+      );
+    }
+
+    // Dashed arc track.
+    final dashedTrack = Paint()
+      ..color = silverSoft.withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..strokeCap = StrokeCap.round;
+    const dashCount = 56;
+    for (var i = 0; i < dashCount; i++) {
+      if (i.isOdd) continue;
+      final t = i / dashCount;
+      final angle = math.pi - (math.pi * t);
+      final p1 = Offset(
+        center.dx + (radius - 2) * math.cos(angle),
+        center.dy - (radius - 2) * math.sin(angle),
+      );
+      final p2 = Offset(
+        center.dx + (radius + 2) * math.cos(angle),
+        center.dy - (radius + 2) * math.sin(angle),
+      );
+      canvas.drawLine(p1, p2, dashedTrack);
+    }
+
+    // Filled arc up to the current night progress.
+    final arcRect = Rect.fromCircle(center: center, radius: radius);
+    final filledSweep = math.pi * progress.clamp(0.0, 1.0);
+    final filledPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [indigo, silver],
+        begin: Alignment.bottomLeft,
+        end: Alignment.topRight,
+      ).createShader(arcRect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(arcRect, math.pi, filledSweep, false, filledPaint);
+
+    // Ground line.
+    final ground = Paint()
+      ..color = silverSoft.withValues(alpha: 0.4)
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(8, baseY), Offset(w - 8, baseY), ground);
+
+    // Tahajjud onset marker at two-thirds of the night.
+    const tahajjudFraction = 2 / 3;
+    final tahajjudAngle = math.pi * (1 - tahajjudFraction);
+    final tickInner = Offset(
+      center.dx + (radius - 5) * math.cos(tahajjudAngle),
+      center.dy - (radius - 5) * math.sin(tahajjudAngle),
+    );
+    final tickOuter = Offset(
+      center.dx + (radius + 5) * math.cos(tahajjudAngle),
+      center.dy - (radius + 5) * math.sin(tahajjudAngle),
+    );
+    final tickPaint = Paint()
+      ..color = gold.withValues(alpha: isLastThird ? 1 : 0.7)
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(tickInner, tickOuter, tickPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MoonArcPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.twinkle != twinkle ||
+      oldDelegate.isLastThird != isLastThird;
 }

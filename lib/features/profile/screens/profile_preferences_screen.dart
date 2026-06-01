@@ -104,6 +104,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
     } catch (_) {
       // Keep logout flow usable even if sign out fails on a local-only session.
     }
+    await clearUserProfile();
     if (!mounted) return;
     Navigator.of(
       context,

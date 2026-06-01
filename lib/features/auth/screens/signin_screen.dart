@@ -22,6 +22,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _guestNameController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -45,6 +46,7 @@ class _SignInScreenState extends State<SignInScreen> {
     appLanguageNotifier.removeListener(_onLanguageChanged);
     _emailController.dispose();
     _passwordController.dispose();
+    _guestNameController.dispose();
     super.dispose();
   }
 
@@ -174,7 +176,7 @@ class _SignInScreenState extends State<SignInScreen> {
     ({String name, AppLanguage language, bool prayerAlerts, bool mealAlerts})?
   >
   _promptGuestQuickSetup() async {
-    final controller = TextEditingController();
+    _guestNameController.clear();
     var language = appLanguageNotifier.value;
     var prayerAlerts = prayerAlertsEnabledNotifier.value;
     var mealAlerts =
@@ -206,7 +208,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      controller: controller,
+                      controller: _guestNameController,
                       textInputAction: TextInputAction.next,
                       autofocus: true,
                       decoration: InputDecoration(
@@ -304,7 +306,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop((
-                    name: controller.text.trim(),
+                    name: _guestNameController.text.trim(),
                     language: language,
                     prayerAlerts: prayerAlerts,
                     mealAlerts: mealAlerts,
@@ -322,7 +324,6 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       },
     );
-    controller.dispose();
     return result;
   }
 

@@ -36,8 +36,6 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     'Isha': '--:--',
   };
 
-  final int _completedDaily = 3;
-  final int _dailyGoal = 6;
   StreamSubscription<CompassEvent>? _homeCompassSub;
   double? _homeHeading;
   double? _homeQiblaBearing;
@@ -93,9 +91,11 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     prayerAlertsEnabledNotifier.addListener(_onPrayerAlertToggleChanged);
     sehriAlertEnabledNotifier.addListener(_onSehriAlertToggleChanged);
     iftarAlertEnabledNotifier.addListener(_onIftarAlertToggleChanged);
+    tahajjudAlertEnabledNotifier.addListener(_onTahajjudAlertToggleChanged);
     alertToneNotifier.addListener(_onAlertToneChanged);
     _initializeMiniCompass();
     _loadPrayerData();
+    unawaited(ensureNotificationPermissions());
     if (kQuranFeatureEnabled) {
       _loadLastReadCard();
     }
@@ -164,6 +164,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     prayerAlertsEnabledNotifier.removeListener(_onPrayerAlertToggleChanged);
     sehriAlertEnabledNotifier.removeListener(_onSehriAlertToggleChanged);
     iftarAlertEnabledNotifier.removeListener(_onIftarAlertToggleChanged);
+    tahajjudAlertEnabledNotifier.removeListener(_onTahajjudAlertToggleChanged);
     alertToneNotifier.removeListener(_onAlertToneChanged);
     _homeCompassSub?.cancel();
     _clockTimer.cancel();
@@ -390,6 +391,18 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     _safeSetState(() {});
   }
 
+  Future<void> _onTahajjudAlertToggleChanged() async {
+    if (tahajjudAlertEnabledNotifier.value) {
+      final at = _nextTahajjudTimeForSchedule();
+      if (at != null) {
+        await _scheduleTahajjudNotification(at);
+      }
+    } else {
+      await _cancelTahajjudNotification();
+    }
+    _safeSetState(() {});
+  }
+
   void _onAlertToneChanged() {
     unawaited(_refreshAllAlertSchedulesForToneChange());
     _safeSetState(() {});
@@ -398,25 +411,101 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
   Future<void> _refreshAllAlertSchedulesForToneChange() async {
     await _refreshPrayerAlertScheduling();
     await _refreshMealAlertScheduling();
+    await _refreshTahajjudAlertScheduling();
+  }
+
+  /// Night runs from this evening's Maghrib to the next dawn (Fajr). When it is
+  /// already past midnight but before Fajr, the night began the previous
+  /// evening, so Maghrib is rewound by a day.
+  ({DateTime start, DateTime end})? _currentNightWindow() {
+    final today = _todaySchedule;
+    if (today == null) return null;
+    final fajrToday = today.fajr;
+    final maghribToday = today.maghrib;
+    if (_now.isBefore(fajrToday)) {
+      return (
+        start: maghribToday.subtract(const Duration(days: 1)),
+        end: fajrToday,
+      );
+    }
+    if (_now.isAfter(maghribToday)) {
+      final fajrNext =
+          _tomorrowSchedule?.fajr ?? fajrToday.add(const Duration(days: 1));
+      return (start: maghribToday, end: fajrNext);
+    }
+    return null;
+  }
+
+  bool get _isNightTime => _currentNightWindow() != null;
+
+  /// Fraction of the current night already elapsed (0 at Maghrib, 1 at Fajr).
+  double _nightProgress() {
+    final window = _currentNightWindow();
+    if (window == null) return 0.0;
+    final total = window.end.difference(window.start).inSeconds;
+    if (total <= 0) return 0.0;
+    final elapsed = _now.difference(window.start).inSeconds;
+    return (elapsed / total).clamp(0.0, 1.0);
+  }
+
+  /// Start of the last third of the current night — the recommended onset of
+  /// Tahajjud. Null during daytime.
+  DateTime? _tahajjudTime() {
+    final window = _currentNightWindow();
+    if (window == null) return null;
+    final total = window.end.difference(window.start);
+    return window.start.add(total * 2 ~/ 3);
+  }
+
+  bool _isLastThirdOfNight() {
+    final window = _currentNightWindow();
+    final tahajjud = _tahajjudTime();
+    if (window == null || tahajjud == null) return false;
+    return !_now.isBefore(tahajjud) && _now.isBefore(window.end);
+  }
+
+  /// Tonight's Tahajjud onset, computed independently of the current time so it
+  /// can be scheduled from anywhere in the day.
+  DateTime? _nextTahajjudTimeForSchedule() {
+    final today = _todaySchedule;
+    if (today == null) return null;
+    final start = today.maghrib;
+    final end =
+        _tomorrowSchedule?.fajr ?? today.fajr.add(const Duration(days: 1));
+    if (!end.isAfter(start)) return null;
+    return start.add(end.difference(start) * 2 ~/ 3);
+  }
+
+  static const Map<String, ({String am, String pm})> _meridiemLabels = {
+    'en': (am: 'AM', pm: 'PM'),
+    'bn': (am: 'পূর্বাহ্ণ', pm: 'অপরাহ্ণ'),
+    'ar': (am: 'ص', pm: 'م'),
+  };
+
+  String _localizedMeridiem(bool isAm) {
+    final code = _isBangla ? 'bn' : 'en';
+    final labels = _meridiemLabels[code] ?? _meridiemLabels['en']!;
+    return isAm ? labels.am : labels.pm;
   }
 
   String get _formattedTime {
     final hour12 = (_now.hour % 12 == 0) ? 12 : _now.hour % 12;
     final minute = _now.minute.toString().padLeft(2, '0');
+    final meridiem = _localizedMeridiem(_now.hour < 12);
     final value = '$hour12:$minute';
-    return _isBangla ? _toBanglaDigits(value) : value;
+    return _isBangla ? '${_toBanglaDigits(value)} $meridiem' : '$value $meridiem';
   }
 
   String get _formattedHijriDate {
     final hijri = HijriCalendar.fromDate(_now);
     final day = hijri.hDay.toString();
     final year = hijri.hYear.toString();
-    final month = hijri.longMonthName;
+    final monthName = _localizedHijriMonth(hijri.hMonth);
 
     if (_isBangla) {
-      return '${_toBanglaDigits(day)} ${_localizedHijriMonthName(month)} ${_toBanglaDigits(year)} \u09b9\u09bf\u099c\u09b0\u09bf';
+      return '${_toBanglaDigits(day)} $monthName ${_toBanglaDigits(year)} \u09b9\u09bf\u099c\u09b0\u09bf';
     }
-    return '$day $month $year H';
+    return '$day $monthName $year H';
   }
 
   String get _formattedBanglaDate {
@@ -508,27 +597,57 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     return map[name] ?? '';
   }
 
-  String _localizedHijriMonthName(String name) {
-    if (!_isBangla) return name;
-    const monthMap = {
-      'Muharram': '\u09ae\u09b9\u09b0\u09b0\u09ae',
-      'Safar': '\u09b8\u09ab\u09b0',
-      'Rabi\' al-awwal':
-          '\u09b0\u09ac\u09bf\u0989\u09b2 \u0986\u0989\u09df\u09be\u09b2',
-      'Rabi\' al-thani':
-          '\u09b0\u09ac\u09bf\u0989\u09b8 \u09b8\u09be\u09a8\u09bf',
-      'Jumada al-awwal':
-          '\u099c\u09ae\u09be\u09a6\u09bf\u0989\u09b2 \u0986\u0989\u09df\u09be\u09b2',
-      'Jumada al-thani':
-          '\u099c\u09ae\u09be\u09a6\u09bf\u0989\u09b8 \u09b8\u09be\u09a8\u09bf',
-      'Rajab': '\u09b0\u099c\u09ac',
-      'Sha\'ban': '\u09b6\u09be\u09ac\u09be\u09a8',
-      'Ramadan': '\u09b0\u09ae\u099c\u09be\u09a8',
-      'Shawwal': '\u09b6\u0993\u09df\u09be\u09b2',
-      'Dhu al-Qi\'dah': '\u099c\u09bf\u09b2\u0995\u09a6',
-      'Dhu al-Hijjah': '\u099c\u09bf\u09b2\u09b9\u099c',
-    };
-    return monthMap[name] ?? name;
+  static const Map<String, List<String>> _hijriMonths = {
+    'bn': [
+      'মুহাররম',
+      'সফর',
+      'রবিউল আউয়াল',
+      'রবিউস সানি',
+      'জমাদিউল আউয়াল',
+      'জমাদিউস সানি',
+      'রজব',
+      'শাবান',
+      'রমজান',
+      'শাওয়াল',
+      'জিলকদ',
+      'জিলহজ্জ',
+    ],
+    'en': [
+      'Muharram',
+      'Safar',
+      'Rabiul Awwal',
+      'Rabius Sani',
+      'Jamadial Awwal',
+      'Jamadias Sani',
+      'Rajab',
+      'Shaban',
+      'Ramadan',
+      'Shawwal',
+      'Zilkad',
+      'Zilhajj'
+    ],
+    'ar': [
+      'محرم',
+      'صفر',
+      'ربيع الأول',
+      'ربيع الآخر',
+      'جمادى الأولى',
+      'جمادى الآخرة',
+      'رجب',
+      'شعبان',
+      'رمضان',
+      'شوال',
+      'ذو القعدة',
+      'ذو الحجة',
+    ],
+  };
+
+  /// Localized Hijri month name for [month] (1-12) in the active language.
+  String _localizedHijriMonth(int month) {
+    final code = _isBangla ? 'bn' : 'en';
+    final names = _hijriMonths[code] ?? _hijriMonths['en']!;
+    if (month < 1 || month > names.length) return '';
+    return names[month - 1];
   }
 
   String _localizedCountdownLabel() {
@@ -563,6 +682,14 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
   String _localizedIftarAlertBody() => _isBangla
       ? '\u0987\u09ab\u09a4\u09be\u09b0\u09c7\u09b0 \u09b8\u09ae\u09df \u09b9\u09df\u09c7\u099b\u09c7\u0964'
       : 'It is time for Iftar.';
+
+  String _localizedTahajjudAlertTitle() => _isBangla
+      ? '\u09a4\u09be\u09b9\u09be\u099c\u09cd\u099c\u09c1\u09a6\u09c7\u09b0 \u09b8\u09ae\u09af\u09bc'
+      : 'Tahajjud Reminder';
+
+  String _localizedTahajjudAlertBody() => _isBangla
+      ? '\u09b0\u09be\u09a4\u09c7\u09b0 \u09b6\u09c7\u09b7 \u09a4\u09c3\u09a4\u09c0\u09af\u09bc\u09be\u0982\u09b6 \u2014 \u09a4\u09be\u09b9\u09be\u099c\u09cd\u099c\u09c1\u09a6 \u0993 \u09a6\u09cb\u09af\u09bc\u09be\u09b0 \u09b6\u09cd\u09b0\u09c7\u09b7\u09cd\u09a0 \u09b8\u09ae\u09af\u09bc\u0964 \u0986\u09b2\u09cd\u09b2\u09be\u09b9 \u098f\u0996\u09a8 \u09b8\u09ac\u099a\u09c7\u09af\u09bc\u09c7 \u09a8\u09bf\u0995\u099f\u09ac\u09b0\u09cd\u09a4\u09c0\u0964'
+      : 'The last third of the night has begun \u2014 the finest time for Tahajjud and dua. Your Lord is nearest now.';
 
   String _localizedPrayerTime(String value) =>
       _isBangla ? _toBanglaDigits(value) : value;
@@ -948,6 +1075,39 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     }
   }
 
+  Future<void> _scheduleTahajjudNotification(DateTime tahajjudTime) async {
+    if (!tahajjudAlertEnabledNotifier.value) return;
+    await _scheduleMealNotification(
+      id: tahajjudNotificationId,
+      channelId: 'tahajjud_alert_channel',
+      channelName: 'Tahajjud Reminders',
+      channelDescription: 'Reminder for the last third of the night',
+      at: tahajjudTime,
+      title: _localizedTahajjudAlertTitle(),
+      body: _localizedTahajjudAlertBody(),
+      payload: 'tahajjud',
+    );
+  }
+
+  Future<void> _cancelTahajjudNotification() async {
+    if (!localNotificationsInitialized) return;
+    await localNotificationsPlugin.cancel(tahajjudNotificationId);
+  }
+
+  Future<void> _refreshTahajjudAlertScheduling() async {
+    try {
+      final at = _nextTahajjudTimeForSchedule();
+      if (at == null) return;
+      if (tahajjudAlertEnabledNotifier.value) {
+        await _scheduleTahajjudNotification(at);
+      } else {
+        await _cancelTahajjudNotification();
+      }
+    } catch (e) {
+      debugPrint('Tahajjud alert scheduling failed: $e');
+    }
+  }
+
   String get _displayPrayer => _selectedPrayer ?? _activePrayer;
   bool get _isShowingActivePrayer => _displayPrayer == _activePrayer;
 
@@ -1023,7 +1183,17 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        if (locationPermissionRequestInProgress) {
+          _setBaitulMukarramLocation();
+          await _refreshPrayerScheduleFromSource(forceRefresh: true);
+          return;
+        }
+        locationPermissionRequestInProgress = true;
+        try {
+          permission = await Geolocator.requestPermission();
+        } finally {
+          locationPermissionRequestInProgress = false;
+        }
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -1310,6 +1480,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     });
     _refreshMealAlertScheduling();
     _refreshPrayerAlertScheduling();
+    _refreshTahajjudAlertScheduling();
     if (_selectedPrayer == null && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
