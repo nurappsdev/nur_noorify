@@ -1,0 +1,308 @@
+part of '../../screens/daily_activity_screen.dart';
+
+/// The Quick Menu card: primary action tiles plus the scrollable menu-link chips.
+mixin DailyQuickActionsSectionMixin
+    on
+        State<DailyActivityScreen>,
+        DailyActivityControllerMixin,
+        DailyActivityViewBaseMixin {
+  Future<void> _openZakatCalculator() async {
+    final uri = Uri.parse('https://ilmifytech.agency/zakat');
+
+    final launchedInApp = await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,
+      browserConfiguration: const BrowserConfiguration(showTitle: true),
+    );
+    if (launchedInApp) return;
+
+    final launchedWebView = await launchUrl(
+      uri,
+      mode: LaunchMode.inAppWebView,
+      webViewConfiguration: const WebViewConfiguration(
+        enableJavaScript: true,
+        enableDomStorage: true,
+      ),
+    );
+    if (launchedWebView) return;
+
+    final launchedExternal = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launchedExternal && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _text(
+              'Unable to open Zakat calculator',
+              'যাকাত ক্যালকুলেটর খোলা যাচ্ছে না',
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildQuickActions() {
+    final actions =
+        <({String titleEn, String titleBn, IconData icon, String route})>[
+          if (kQuranFeatureEnabled)
+            (
+              titleEn: 'Quran',
+              titleBn: '\u0995\u09c1\u09b0\u0986\u09a8',
+              icon: Icons.auto_stories_rounded,
+              route: RouteNames.quran,
+            ),
+          (
+            titleEn: 'Hadith',
+            titleBn: '\u09b9\u09be\u09a6\u09bf\u09b8',
+            icon: Icons.menu_book_rounded,
+            route: RouteNames.hadith,
+          ),
+          (
+            titleEn: 'Dua',
+            titleBn: '\u09a6\u09cb\u09af\u09bc\u09be',
+            icon: Icons.volunteer_activism_rounded,
+            route: RouteNames.dua,
+          ),
+          (
+            titleEn: 'Asma',
+            titleBn: '\u0986\u09b8\u09ae\u09be',
+            icon: Icons.nightlight_round,
+            route: RouteNames.asma,
+          ),
+        ];
+
+    final menuLinks =
+        <({String titleEn, String titleBn, IconData icon, VoidCallback onTap})>[
+          (
+            titleEn: 'Calendar',
+            titleBn:
+                '\u0995\u09cd\u09af\u09be\u09b2\u09c7\u09a8\u09cd\u09a1\u09be\u09b0',
+            icon: Icons.calendar_month_rounded,
+            onTap: () =>
+                Navigator.of(context).pushNamed(RouteNames.islamicCalendar),
+          ),
+          (
+            titleEn: 'Find Mosque',
+            titleBn: '\u09ae\u09b8\u099c\u09bf\u09a6',
+            icon: Icons.location_city_rounded,
+            onTap: () => Navigator.of(context).pushNamed(RouteNames.findMosque),
+          ),
+          (
+            titleEn: 'Qibla',
+            titleBn: '\u0995\u09bf\u09ac\u09b2\u09be',
+            icon: Icons.near_me_rounded,
+            onTap: () =>
+                Navigator.of(context).pushNamed(RouteNames.prayerCompass),
+          ),
+          (
+            titleEn: 'Prayer',
+            titleBn: '\u09a8\u09be\u09ae\u09be\u099c',
+            icon: Icons.schedule_rounded,
+            onTap: () =>
+                Navigator.of(context).pushNamed(RouteNames.prayerTimes),
+          ),
+          (
+            titleEn: 'Tasbih',
+            titleBn: '\u09a4\u09be\u09b8\u09ac\u09bf\u09b9',
+            icon: Icons.exposure_plus_1_rounded,
+            onTap: () => Navigator.of(context).pushNamed(RouteNames.tasbih),
+          ),
+          (
+            titleEn: 'Zakat',
+            titleBn: '\u09af\u09be\u0995\u09be\u09a4',
+            icon: Icons.savings_rounded,
+            onTap: () => unawaited(_openZakatCalculator()),
+          ),
+          (
+            titleEn: 'Settings',
+            titleBn: '\u09b8\u09c7\u099f\u09bf\u0982\u09b8',
+            icon: Icons.settings_rounded,
+            onTap: () =>
+                Navigator.of(context).pushNamed(RouteNames.preferences),
+          ),
+        ];
+
+    return _buildGlassCard(
+      padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+      ornamentedCorners: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome_outlined,
+                size: 13,
+                color: _accentGold,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _text(
+                  'Quick Menu',
+                  '\u09a6\u09cd\u09b0\u09c1\u09a4 \u09ae\u09c7\u09a8\u09c1',
+                ),
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: _accentStrong,
+                ),
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(RouteNames.discover),
+                icon: const Icon(Icons.grid_view_rounded, size: 15),
+                label: Text(
+                  _text(
+                    'Open Discover',
+                    '\u09a1\u09bf\u09b8\u0995\u09ad\u09be\u09b0',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          _ornamentDivider(padding: const EdgeInsets.only(top: 4, bottom: 8)),
+          Row(
+            children: [
+              for (int i = 0; i < actions.length; i++) ...[
+                Expanded(
+                  child: _buildQuickActionCard(
+                    title: _text(actions[i].titleEn, actions[i].titleBn),
+                    icon: actions[i].icon,
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(actions[i].route),
+                  ),
+                ),
+                if (i != actions.length - 1) const SizedBox(width: 7),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                for (int i = 0; i < menuLinks.length; i++) ...[
+                  _buildMenuLinkChip(
+                    title: _text(menuLinks[i].titleEn, menuLinks[i].titleBn),
+                    icon: menuLinks[i].icon,
+                    onTap: menuLinks[i].onTap,
+                  ),
+                  if (i != menuLinks.length - 1) const SizedBox(width: 7),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: _isDarkTheme
+                  ? const [Color(0xFF1C2A39), Color(0xFF121E2B)]
+                  : const [Color(0xFFF8FCFF), Color(0xFFECF5FB)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            border: Border.all(color: _surfaceBorder),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: _surfaceStrong,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: _accentSoft, size: 19),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuLinkChip({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            color: _isDarkTheme
+                ? const Color(0xFF162433)
+                : const Color(0xF8FFFFFF),
+            border: Border.all(color: _surfaceBorder),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: _accentSoft),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 11.2,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 10,
+                color: _textMuted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

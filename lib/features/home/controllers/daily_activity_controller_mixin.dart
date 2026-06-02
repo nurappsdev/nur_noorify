@@ -1359,6 +1359,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
       date: DateTime(date.year, date.month, date.day),
       imsak: _parseApiTime(date, valueFor('Imsak')),
       fajr: _parseApiTime(date, valueFor('Fajr')),
+      sunrise: _parseApiTimeOrNull(date, valueFor('Sunrise')),
       dzuhr: _parseApiTime(date, valueFor('Dhuhr')),
       ashr: _parseApiTime(date, valueFor('Asr')),
       maghrib: _parseApiTime(date, valueFor('Maghrib')),
@@ -1382,6 +1383,16 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     return DateTime(date.year, date.month, date.day, hour, minute);
   }
 
+  /// Lenient variant of [_parseApiTime] for optional timings (e.g. Sunrise):
+  /// returns null instead of throwing when the value is missing or malformed.
+  DateTime? _parseApiTimeOrNull(DateTime date, String raw) {
+    try {
+      return _parseApiTime(date, raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool _isSameDate(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -1391,6 +1402,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
       date: DateTime(date.year, date.month, date.day),
       imsak: prayers.fajr.toLocal(),
       fajr: prayers.fajr.toLocal(),
+      sunrise: prayers.sunrise.toLocal(),
       dzuhr: prayers.dhuhr.toLocal(),
       ashr: prayers.asr.toLocal(),
       maghrib: prayers.maghrib.toLocal(),

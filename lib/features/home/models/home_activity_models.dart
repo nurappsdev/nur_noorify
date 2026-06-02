@@ -15,11 +15,15 @@ class DailyPrayerSchedule {
     required this.ashr,
     required this.maghrib,
     required this.isha,
+    this.sunrise,
   });
 
   final DateTime date;
   final DateTime imsak;
   final DateTime fajr;
+  /// Actual sunrise (shuruq) — distinct from Fajr/dawn. Used by the forbidden
+  /// prayer-times card; may be null for schedules built before it was tracked.
+  final DateTime? sunrise;
   final DateTime dzuhr;
   final DateTime ashr;
   final DateTime maghrib;

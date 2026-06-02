@@ -27,10 +27,24 @@ import 'package:first_project/features/quran/services/quran_api_service.dart';
 import 'package:first_project/features/quran/services/quran_last_read_service.dart';
 import 'package:first_project/features/quran/screens/surah_detail_screen.dart';
 import 'package:first_project/features/home/models/home_activity_models.dart';
+import 'package:first_project/features/home/widgets/home_sun_arc.dart';
+import 'package:first_project/features/home/widgets/home_moon_arc.dart';
+import 'package:first_project/features/home/widgets/home_mini_compass.dart';
 import 'package:first_project/features/mosque/models/mosque_item.dart';
 import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
 
 part '../controllers/daily_activity_controller_mixin.dart';
+part '../widgets/sections/daily_activity_view_base_mixin.dart';
+part '../widgets/sections/sky_section_mixin.dart';
+part '../widgets/sections/tahajjud_section_mixin.dart';
+part '../widgets/sections/header_section_mixin.dart';
+part '../widgets/sections/prayer_section_mixin.dart';
+part '../widgets/sections/qibla_meal_section_mixin.dart';
+part '../widgets/sections/mosque_section_mixin.dart';
+part '../widgets/sections/quick_actions_section_mixin.dart';
+part '../widgets/sections/last_read_section_mixin.dart';
+part '../widgets/sections/activity_section_mixin.dart';
+part '../widgets/sections/forbidden_times_section_mixin.dart';
 part '../widgets/daily_activity_view_mixin.dart';
 
 class DailyActivityScreen extends StatefulWidget {
@@ -41,7 +55,20 @@ class DailyActivityScreen extends StatefulWidget {
 }
 
 class _DailyActivityScreenState extends State<DailyActivityScreen>
-    with DailyActivityControllerMixin, DailyActivityViewMixin {
+    with
+        DailyActivityControllerMixin,
+        DailyActivityViewBaseMixin,
+        DailySkySectionMixin,
+        DailyTahajjudSectionMixin,
+        DailyHeaderSectionMixin,
+        DailyPrayerSectionMixin,
+        DailyQiblaMealSectionMixin,
+        DailyMosqueSectionMixin,
+        DailyQuickActionsSectionMixin,
+        DailyLastReadSectionMixin,
+        DailyActivitySectionMixin,
+        DailyForbiddenTimesSectionMixin,
+        DailyActivityViewMixin {
   @override
   void initState() {
     super.initState();
