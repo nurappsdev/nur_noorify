@@ -1,17 +1,22 @@
 part of '../../screens/daily_activity_screen.dart';
 
-/// Warning-style card listing the three periods in which performing salah is
-/// prohibited — sunrise, midday (Zawal), and sunset — based on the Bangladesh
-/// prayer schedule. Shows each period's local time, a short description, a
-/// live countdown to the next period, and highlights the active one.
+/// Compact warning-style card listing the three periods in which voluntary
+/// (Sunnah / Nafl) prayers are prohibited — sunrise, midday (Zawal), and
+/// sunset. Windows are derived live from the device's prayer schedule (Adhan
+/// calculation + GPS location):
+///
+///   • Sunrise: sunrise → sunrise + 15 min
+///   • Zawal:   Dhuhr − 2 min → Dhuhr
+///   • Sunset:  Maghrib − 14 min → Maghrib
 mixin DailyForbiddenTimesSectionMixin
     on
         State<DailyActivityScreen>,
         DailyActivityControllerMixin,
         DailyActivityViewBaseMixin {
-  // Each forbidden period is treated as a short window so the screen can flag
-  // when one is currently active and count down to the next.
-  static const Duration _forbiddenWindow = Duration(minutes: 15);
+  // Window widths for each prohibited period, applied to the live schedule.
+  static const Duration _sunriseWindow = Duration(minutes: 15);
+  static const Duration _zawalWindow = Duration(minutes: 2);
+  static const Duration _sunsetWindow = Duration(minutes: 14);
 
   // Warning palette, tuned for both light and dark themes while staying within
   // the app's Islamic visual language.
@@ -25,53 +30,54 @@ mixin DailyForbiddenTimesSectionMixin
       IconData icon,
       String titleEn,
       String titleBn,
-      String descEn,
-      String descBn,
-      DateTime display,
       DateTime start,
       DateTime end,
     })
   >
   _forbiddenPeriods(DailyPrayerSchedule schedule) {
+    // All three boundaries come straight from the live Adhan/GPS schedule.
     final sunrise = schedule.sunrise ?? schedule.fajr;
     final dhuhr = schedule.dzuhr;
     final maghrib = schedule.maghrib;
-    // Zawal (Istiwa) taken as the midpoint between sunrise and Dhuhr.
-    final zawal = sunrise.add(dhuhr.difference(sunrise) ~/ 2);
 
     return [
       (
         icon: Icons.wb_twilight_rounded,
         titleEn: 'Sunrise',
         titleBn: 'সূর্যোদয়',
-        descEn: 'Just after sunrise, until the sun has fully risen.',
-        descBn: 'সূর্যোদয়ের পরপরই, সূর্য সম্পূর্ণ ওঠা পর্যন্ত।',
-        display: sunrise,
         start: sunrise,
-        end: sunrise.add(_forbiddenWindow),
+        end: sunrise.add(_sunriseWindow),
       ),
       (
         icon: Icons.wb_sunny_rounded,
-        titleEn: 'Midday / Zawal',
+        titleEn: 'Zawal',
         titleBn: 'যাওয়াল',
-        descEn: 'Around midday, when the sun is at its zenith (Istiwa).',
-        descBn: 'মধ্যাহ্নে, যখন সূর্য মধ্যগগনে অবস্থান করে (ইস্তিওয়া)।',
-        display: zawal,
-        start: zawal,
-        end: zawal.add(_forbiddenWindow),
+        start: dhuhr.subtract(_zawalWindow),
+        end: dhuhr,
       ),
       (
         icon: Icons.brightness_4_rounded,
         titleEn: 'Sunset',
         titleBn: 'সূর্যাস্ত',
-        descEn: 'During sunset, until the sun has fully set (Maghrib).',
-        descBn: 'সূর্যাস্তের সময়, সূর্য সম্পূর্ণ ডোবা পর্যন্ত (মাগরিব)।',
-        display: maghrib,
-        start: maghrib.subtract(_forbiddenWindow),
+        start: maghrib.subtract(_sunsetWindow),
         end: maghrib,
       ),
     ];
   }
+
+  /// Zero-padded 12-hour clock with localized digits and meridiem, e.g.
+  /// `05:09 AM` (or `০৫:০৯ পূর্বাহ্ণ` in Bangla).
+  String _forbiddenClock(DateTime t) {
+    final h12 = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final hh = h12.toString().padLeft(2, '0');
+    final mm = t.minute.toString().padLeft(2, '0');
+    final clock = '$hh:$mm';
+    final localizedClock = _isBangla ? _toBanglaDigits(clock) : clock;
+    return '$localizedClock ${_localizedMeridiem(t.hour < 12)}';
+  }
+
+  String _forbiddenRange(DateTime start, DateTime end) =>
+      '${_forbiddenClock(start)} - ${_forbiddenClock(end)}';
 
   String _formatForbiddenCountdown(Duration value) {
     final safe = value.isNegative ? Duration.zero : value;
@@ -120,10 +126,10 @@ mixin DailyForbiddenTimesSectionMixin
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
             colors: _isDarkTheme
                 ? const [Color(0xFF1F1512), Color(0xFF170F0D)]
@@ -137,125 +143,98 @@ mixin DailyForbiddenTimesSectionMixin
               color: _isDarkTheme
                   ? const Color(0x33FF6B45)
                   : const Color(0x1FD24A28),
-              blurRadius: 22,
-              offset: const Offset(0, 12),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+        padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: warning icon + title + subtitle.
+            // Header: warning icon + title + "Sunnah & Nafl only" note.
             Row(
               children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 17,
+                  color: _forbiddenStrong,
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    '🚫 ${_text('Forbidden Prayer Times', 'নিষিদ্ধ নামাজের সময়')}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _textPrimary,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // Scope note: these prohibitions apply to voluntary prayers.
                 Container(
-                  width: 34,
-                  height: 34,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
                     color: _isDarkTheme
                         ? const Color(0x33FF7043)
                         : const Color(0x1FD24A28),
+                    borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: _forbiddenBorder),
                   ),
-                  child: Icon(
-                    Icons.warning_amber_rounded,
-                    size: 19,
-                    color: _forbiddenStrong,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '🚫 ${_text('Forbidden Prayer Times', 'নিষিদ্ধ নামাজের সময়')}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _textPrimary,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _text(
-                          'Prayer is prohibited during these periods',
-                          'এই সময়গুলোতে নামাজ পড়া নিষিদ্ধ',
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _textSecondary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    _text('Sunnah & Nafl', 'সুন্নত ও নফল'),
+                    style: TextStyle(
+                      color: _forbiddenStrong,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 11),
+            const SizedBox(height: 9),
 
-            // Status banner: active highlight or countdown to next period.
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: hasActive
-                    ? (_isDarkTheme
-                          ? const Color(0x33FF7043)
-                          : const Color(0x1FD24A28))
-                    : (_isDarkTheme
-                          ? const Color(0x14FF8A6B)
-                          : const Color(0x14D24A28)),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _forbiddenBorder),
-              ),
-              child: Row(
-                children: [
-                  Icon(
+            // Status banner: active highlight or countdown to the next period.
+            Row(
+              children: [
+                Icon(
+                  hasActive ? Icons.block_rounded : Icons.timelapse_rounded,
+                  size: 13,
+                  color: _forbiddenStrong,
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
                     hasActive
-                        ? Icons.block_rounded
-                        : Icons.timelapse_rounded,
-                    size: 15,
-                    color: _forbiddenStrong,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      hasActive
-                          ? '${_text('Active now — prayer prohibited', 'এখন চলছে — নামাজ নিষিদ্ধ')} · '
-                                '${_text(periods[activeIndex].titleEn, periods[activeIndex].titleBn)}'
-                          : (nextStart != null
-                                ? '${_text('Next forbidden time', 'পরবর্তী নিষিদ্ধ সময়')}: '
-                                      '$nextTitle · ${_formatForbiddenCountdown(nextStart.difference(_now))}'
-                                : _text(
-                                    'No forbidden time upcoming',
-                                    'কোনো নিষিদ্ধ সময় নেই',
-                                  )),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _forbiddenStrong,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                      ),
+                        ? '${_text('Active now', 'এখন চলছে')} · '
+                              '${_text(periods[activeIndex].titleEn, periods[activeIndex].titleBn)}'
+                        : (nextStart != null
+                              ? '${_text('Next', 'পরবর্তী')}: $nextTitle · '
+                                    '${_formatForbiddenCountdown(nextStart.difference(_now))}'
+                              : _text('No forbidden time', 'নিষিদ্ধ সময় নেই')),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _forbiddenStrong,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 9),
 
             for (int i = 0; i < periods.length; i++) ...[
               _buildForbiddenRow(periods[i], isActive: i == activeIndex),
-              if (i != periods.length - 1) const SizedBox(height: 8),
+              if (i != periods.length - 1) const SizedBox(height: 6),
             ],
           ],
         ),
@@ -268,9 +247,6 @@ mixin DailyForbiddenTimesSectionMixin
       IconData icon,
       String titleEn,
       String titleBn,
-      String descEn,
-      String descBn,
-      DateTime display,
       DateTime start,
       DateTime end,
     })
@@ -278,7 +254,7 @@ mixin DailyForbiddenTimesSectionMixin
     required bool isActive,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
       decoration: BoxDecoration(
         color: isActive
             ? (_isDarkTheme
@@ -287,90 +263,52 @@ mixin DailyForbiddenTimesSectionMixin
             : (_isDarkTheme
                   ? const Color(0x14FF8A6B)
                   : const Color(0x0FD24A28)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
         border: Border.all(
           color: isActive ? _forbiddenStrong : _forbiddenBorder,
         ),
       ),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: _isDarkTheme
-                  ? const Color(0x33FF7043)
-                  : const Color(0x1FD24A28),
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(period.icon, size: 18, color: _forbiddenStrong),
-          ),
-          const SizedBox(width: 10),
+          Icon(period.icon, size: 18, color: _forbiddenStrong),
+          const SizedBox(width: 9),
+          // Bilingual title — both English and Bangla always visible.
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        '${_text(period.titleEn, period.titleBn)} '
-                        '(${_isBangla ? period.titleEn : period.titleBn})',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _textPrimary,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    if (isActive) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _forbiddenStrong,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          _text('Now', 'এখন'),
-                          style: TextStyle(
-                            color: _isDarkTheme
-                                ? const Color(0xFF2A0F06)
-                                : Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _text(period.descEn, period.descBn),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _textMuted,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.25,
-                  ),
-                ),
-              ],
+            child: Text(
+              '${period.titleEn} · ${period.titleBn}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
+          if (isActive) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: _forbiddenStrong,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                _text('Now', 'এখন'),
+                style: TextStyle(
+                  color: _isDarkTheme ? const Color(0xFF2A0F06) : Colors.white,
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(width: 8),
           Text(
-            _skyClock(period.display),
+            _forbiddenRange(period.start, period.end),
             style: TextStyle(
               color: _forbiddenStrong,
-              fontSize: 14,
+              fontSize: 11.5,
               fontWeight: FontWeight.w800,
             ),
           ),
