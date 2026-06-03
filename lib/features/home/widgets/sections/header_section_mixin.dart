@@ -323,7 +323,68 @@ mixin DailyHeaderSectionMixin
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          _buildCalendarWaqtButton(),
         ],
+      ),
+    );
+  }
+
+  /// Full-width call-to-action that opens the month-at-a-glance Calendar & Waqt
+  /// screen, seeded with the home screen's resolved location.
+  Widget _buildCalendarWaqtButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => CalendarWaqtScreen(
+              latitude: _latitude,
+              longitude: _longitude,
+              locationLabel: _locationLabel,
+            ),
+          ),
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isDarkTheme
+                  ? const [Color(0xFF13404B), Color(0xFF0F2F3A)]
+                  : const [Color(0xFFE3F4F7), Color(0xFFD3ECF1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isDarkTheme
+                  ? const Color(0x3359C8E4)
+                  : const Color(0x66A7D7E2),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.calendar_month_rounded,
+                size: 17,
+                color: _accentStrong,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _text('Calendar & Waqt', 'ক্যালেন্ডার ও ওয়াক্ত'),
+                style: TextStyle(
+                  color: _accentStrong,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
