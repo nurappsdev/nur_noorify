@@ -140,17 +140,17 @@ mixin DailySkySectionMixin
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 12.5,
+                  fontSize: 12.5.sp,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            Icon(Icons.nightlight_round, size: 14, color: _accentGold),
+            SizedBox(width: 6.w),
+            Icon(Icons.nightlight_round, size: 14.sp, color: _accentGold),
           ],
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
 
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -159,7 +159,7 @@ mixin DailySkySectionMixin
               _formattedTime,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -171,7 +171,7 @@ mixin DailySkySectionMixin
                 overflow: TextOverflow.visible,
                 style: TextStyle(
                   color: _textSecondary,
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -220,6 +220,7 @@ mixin DailySkySectionMixin
     final elapsed = _now.difference(noon).inSeconds;
     return (0.5 + elapsed / total * 0.5).clamp(0.5, 1.0);
   }
+
   ImageProvider<Object>? _profileAvatarImage({
     String? encodedPhoto,
     String? remotePhotoUrl,
@@ -241,6 +242,7 @@ mixin DailySkySectionMixin
     }
     return null;
   }
+
   String _profileDisplayName([String? rawName]) {
     final value = (rawName ?? profileNameNotifier.value).trim();
     return value;
@@ -259,13 +261,14 @@ mixin DailySkySectionMixin
     if (hour < 17) return _text('Good Afternoon,', 'শুভ অপরাহ্ন,');
     return _text('Good Evening,', 'শুভ সন্ধ্যা,');
   }
+
   /// Sun (daytime) or moon (nighttime) progress card. The two halves of the day
   /// track separately: the sun arc covers Fajr→Maghrib, the moon arc covers
   /// Maghrib→Fajr.
   Widget _buildSunArcCard() {
     final isNight = _isNightTime;
     return _buildGlassCard(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,45 +293,46 @@ mixin DailySkySectionMixin
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  radius: 16,
+                                  radius: 16.r,
                                   backgroundColor: _isDarkTheme
                                       ? const Color(0xFF1A2F45)
                                       : const Color(0xFFDDEBF5),
                                   backgroundImage: profileImage,
                                   child: profileImage == null
                                       ? (hasName
-                                      ? Text(
-                                    _profileInitial(profileName),
-                                    style: TextStyle(
-                                      color: _isDarkTheme
-                                          ? Colors.white
-                                          : const Color(0xFF183247),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  )
-                                      : Icon(
-                                    Icons.auto_awesome_rounded,
-                                    size: 16,
-                                    color: _isDarkTheme
-                                        ? const Color(0xFF9EE7F4)
-                                        : const Color(0xFF1EA8B8),
-                                  ))
+                                            ? Text(
+                                                _profileInitial(profileName),
+                                                style: TextStyle(
+                                                  color: _isDarkTheme
+                                                      ? Colors.white
+                                                      : const Color(0xFF183247),
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 13.sp,
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.auto_awesome_rounded,
+                                                size: 16.sp,
+                                                color: _isDarkTheme
+                                                    ? const Color(0xFF9EE7F4)
+                                                    : const Color(0xFF1EA8B8),
+                                              ))
                                       : null,
                                 ),
-                                const SizedBox(width: 18),
+                                SizedBox(width: 18.w),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
                                           Icon(
                                             Icons.nightlight_round,
-                                            size: 12,
+                                            size: 12.sp,
                                             color: _accentGold,
                                           ),
-                                          const SizedBox(width: 5),
+                                          SizedBox(width: 5.w),
                                           Flexible(
                                             child: Text(
                                               _greetingText(),
@@ -338,7 +342,7 @@ mixin DailySkySectionMixin
                                                 color: _isDarkTheme
                                                     ? const Color(0xB3D8E5F7)
                                                     : const Color(0xFF4B687F),
-                                                fontSize: 10,
+                                                fontSize: 10.sp,
                                                 fontWeight: FontWeight.w500,
                                                 letterSpacing: 0.2,
                                               ),
@@ -350,23 +354,29 @@ mixin DailySkySectionMixin
                                               children: [
                                                 Icon(
                                                   Icons.location_on_outlined,
-                                                  size: 12,
+                                                  size: 12.sp,
                                                   color: _isDarkTheme
                                                       ? const Color(0xFF8FB5CC)
                                                       : const Color(0xFF5D7B93),
                                                 ),
-                                                const SizedBox(width: 4),
+                                                SizedBox(width: 4.w),
                                                 Expanded(
                                                   child: Text(
                                                     _locationLabel,
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                     style: TextStyle(
                                                       color: _isDarkTheme
-                                                          ? const Color(0xFFB6CFE5)
-                                                          : const Color(0xFF56758E),
-                                                      fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
+                                                          ? const Color(
+                                                              0xFFB6CFE5,
+                                                            )
+                                                          : const Color(
+                                                              0xFF56758E,
+                                                            ),
+                                                      fontSize: 10.sp,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
@@ -375,7 +385,7 @@ mixin DailySkySectionMixin
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2.h),
                                       if (hasName)
                                         Text(
                                           _profileDisplayName(profileName),
@@ -383,7 +393,7 @@ mixin DailySkySectionMixin
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: _textPrimary,
-                                            fontSize: 14,
+                                            fontSize: 14.sp,
                                             fontWeight: FontWeight.w700,
                                             height: 1,
                                           ),
@@ -394,19 +404,19 @@ mixin DailySkySectionMixin
                                             context,
                                           ).pushNamed(RouteNames.editProfile),
                                           borderRadius: BorderRadius.circular(
-                                            999,
+                                            999.r,
                                           ),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 5,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 5.h,
                                             ),
                                             decoration: BoxDecoration(
                                               color: _isDarkTheme
                                                   ? const Color(0x2D2EB8E6)
                                                   : const Color(0x251EA8B8),
                                               borderRadius:
-                                              BorderRadius.circular(999),
+                                                  BorderRadius.circular(999.r),
                                               border: Border.all(
                                                 color: _isDarkTheme
                                                     ? const Color(0x6659C8E4)
@@ -420,7 +430,7 @@ mixin DailySkySectionMixin
                                               ),
                                               style: TextStyle(
                                                 color: _accentSoft,
-                                                fontSize: 11.5,
+                                                fontSize: 11.5.sp,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -442,19 +452,19 @@ mixin DailySkySectionMixin
                 color: _isDarkTheme
                     ? const Color(0xFF193048)
                     : const Color(0xE8FFFFFF),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () =>
                       Navigator.of(context).pushNamed(RouteNames.preferences),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.all(10.r),
                     child: Icon(
                       Icons.notifications_none_rounded,
                       color: _isDarkTheme
                           ? const Color(0xFFB6CFE5)
                           : const Color(0xFF47677E),
-                      size: 20,
+                      size: 20.sp,
                     ),
                   ),
                 ),
@@ -462,13 +472,15 @@ mixin DailySkySectionMixin
             ],
           ),
 
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildHeroDateStripContent(),
-          _ornamentDivider(padding: const EdgeInsets.only(top: 8, bottom: 8)),
+          _ornamentDivider(
+            padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+          ),
 
           if (isNight) _buildMoonArcArea() else _buildSunArcArea(),
 
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           if (_activeForbiddenWindow() != null)
             ..._buildForbiddenProgressSection()
           else if (isNight)
@@ -547,7 +559,7 @@ mixin DailySkySectionMixin
             segmentName,
             style: TextStyle(
               color: _textPrimary,
-              fontSize: 11.5,
+              fontSize: 11.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -556,41 +568,41 @@ mixin DailySkySectionMixin
             segmentWindow,
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
         ],
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         child: LinearProgressIndicator(
           value: segmentProgress,
-          minHeight: 3,
+          minHeight: 3.h,
           backgroundColor: _isDarkTheme
               ? const Color(0xFF1B2D3E)
               : const Color(0xFFD8E7F1),
           valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
         ),
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       Row(
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: 6.w,
+            height: 6.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _accentStrong,
             ),
           ),
-          const SizedBox(width: 5),
+          SizedBox(width: 5.w),
           Text(
             _text('Ongoing', 'চলমান'),
             style: TextStyle(
               color: _accentStrong,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -599,7 +611,7 @@ mixin DailySkySectionMixin
             _activePrayerProgressLabel(),
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -680,8 +692,8 @@ mixin DailySkySectionMixin
     return [
       Row(
         children: [
-          Icon(window.icon, size: 13, color: warn),
-          const SizedBox(width: 6),
+          Icon(window.icon, size: 13.sp, color: warn),
+          SizedBox(width: 6.w),
           Expanded(
             child: Text(
               '${_text('Forbidden', 'নিষিদ্ধ')} · ${window.name}',
@@ -689,7 +701,7 @@ mixin DailySkySectionMixin
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 11.5,
+                fontSize: 11.5.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -698,34 +710,34 @@ mixin DailySkySectionMixin
             _windowLabel(window.start, window.end),
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
         ],
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         child: LinearProgressIndicator(
           value: progress,
-          minHeight: 5,
+          minHeight: 5.h,
           backgroundColor: _isDarkTheme
               ? const Color(0x33FF8A6B)
               : const Color(0x1FD24A28),
           valueColor: AlwaysStoppedAnimation<Color>(warn),
         ),
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       Row(
         children: [
-          Icon(Icons.warning_amber_rounded, size: 11, color: warn),
-          const SizedBox(width: 5),
+          Icon(Icons.warning_amber_rounded, size: 11.sp, color: warn),
+          SizedBox(width: 5.w),
           Text(
             _text('Avoid Sunnah & Nafl now', 'এখন সুন্নত-নফল নিষিদ্ধ'),
             style: TextStyle(
               color: warn,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -734,7 +746,7 @@ mixin DailySkySectionMixin
             '${_text('Ends in', 'বাকি')} ${_forbiddenRemainingLabel(remaining)}',
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -747,10 +759,10 @@ mixin DailySkySectionMixin
     final schedule = _todaySchedule;
     final window = _currentNightWindow();
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           gradient: const LinearGradient(
             colors: [Color(0xFF0A1430), Color(0xFF111F45), Color(0xFF1A2B55)],
             begin: Alignment.topCenter,
@@ -765,7 +777,7 @@ mixin DailySkySectionMixin
             ),
           ],
         ),
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 8.h),
         child: MoonArcArea(
           progress: _nightProgress(),
           isLastThird: _isLastThirdOfNight(),
@@ -784,17 +796,15 @@ mixin DailySkySectionMixin
   List<Widget> _buildNightProgressSection() {
     final isLastThird = _isLastThirdOfNight();
     final pct = (_nightProgress() * 100).round();
-    final pctText = _isBangla
-        ? '${_toBanglaDigits(pct.toString())}%'
-        : '$pct%';
+    final pctText = _isBangla ? '${_toBanglaDigits(pct.toString())}%' : '$pct%';
     final label = isLastThird
         ? _text('Last third of the night', 'রাতের শেষ তৃতীয়াংশ')
         : _text('Night in progress', 'রাত চলছে');
     return [
       Row(
         children: [
-          Icon(Icons.nightlight_round, size: 13, color: _accentGold),
-          const SizedBox(width: 6),
+          Icon(Icons.nightlight_round, size: 13.sp, color: _accentGold),
+          SizedBox(width: 6.w),
           Expanded(
             child: Text(
               label,
@@ -802,7 +812,7 @@ mixin DailySkySectionMixin
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 11.5,
+                fontSize: 11.5.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -811,18 +821,18 @@ mixin DailySkySectionMixin
             '${_text('Tahajjud', 'তাহাজ্জুদ')} · ${_skyClock(_tahajjudTime())}',
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
         ],
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         child: LinearProgressIndicator(
           value: _nightProgress(),
-          minHeight: 5,
+          minHeight: 5.h,
           backgroundColor: _isDarkTheme
               ? const Color(0xFF1B2D3E)
               : const Color(0xFFD8E7F1),
@@ -831,24 +841,22 @@ mixin DailySkySectionMixin
           ),
         ),
       ),
-      const SizedBox(height: 5),
+      SizedBox(height: 5.h),
       Row(
         children: [
           Icon(
-            isLastThird
-                ? Icons.auto_awesome_rounded
-                : Icons.bedtime_outlined,
-            size: 11,
+            isLastThird ? Icons.auto_awesome_rounded : Icons.bedtime_outlined,
+            size: 11.sp,
             color: isLastThird ? _accentGold : _accentSoft,
           ),
-          const SizedBox(width: 5),
+          SizedBox(width: 5.w),
           Text(
             isLastThird
                 ? _text('Time for Tahajjud', 'তাহাজ্জুদের সময়')
                 : _text('Resting hours', 'বিশ্রামের সময়'),
             style: TextStyle(
               color: isLastThird ? _accentGold : _accentSoft,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -857,7 +865,7 @@ mixin DailySkySectionMixin
             '${_text('Night', 'রাত')} $pctText',
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),

@@ -17,10 +17,10 @@ mixin DailyTahajjudSectionMixin
   Widget _buildTahajjudReminderCard() {
     final tahajjudClock = _skyClock(_tahajjudTime());
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(18.r),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18.r),
           gradient: const LinearGradient(
             colors: [Color(0xFF1B1142), Color(0xFF23215C), Color(0xFF15244F)],
             begin: Alignment.topLeft,
@@ -41,28 +41,40 @@ mixin DailyTahajjudSectionMixin
             const Positioned(
               top: 12,
               right: 22,
-              child: Icon(Icons.star_rounded, size: 9, color: Color(0x88FFFFFF)),
+              child: Icon(
+                Icons.star_rounded,
+                size: 9,
+                color: Color(0x88FFFFFF),
+              ),
             ),
             const Positioned(
               top: 30,
               right: 48,
-              child: Icon(Icons.star_rounded, size: 6, color: Color(0x66FFFFFF)),
+              child: Icon(
+                Icons.star_rounded,
+                size: 6,
+                color: Color(0x66FFFFFF),
+              ),
             ),
             const Positioned(
               bottom: 18,
               right: 16,
-              child: Icon(Icons.star_rounded, size: 7, color: Color(0x55FFFFFF)),
+              child: Icon(
+                Icons.star_rounded,
+                size: 7,
+                color: Color(0x55FFFFFF),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+              padding: EdgeInsets.fromLTRB(14.w, 13.h, 14.w, 13.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
-                        width: 34,
-                        height: 34,
+                        width: 34.r,
+                        height: 34.r,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
@@ -76,13 +88,13 @@ mixin DailyTahajjudSectionMixin
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.nightlight_round,
-                          size: 18,
-                          color: Color(0xFF231A04),
+                          size: 18.sp,
+                          color: const Color(0xFF231A04),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10.w),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,36 +103,39 @@ mixin DailyTahajjudSectionMixin
                               children: [
                                 Flexible(
                                   child: Text(
-                                    _text('Tahajjud Reminder', 'তাহাজ্জুদের আহ্বান'),
+                                    _text(
+                                      'Tahajjud Reminder',
+                                      'তাহাজ্জুদের আহ্বান',
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: _moonInk,
-                                      fontSize: 14.5,
+                                      fontSize: 14.5.sp,
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 6),
-                                const Text(
+                                SizedBox(width: 6.w),
+                                Text(
                                   'التهجد',
                                   style: TextStyle(
                                     color: _moonGold,
-                                    fontSize: 13,
+                                    fontSize: 13.sp,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2.h),
                             Text(
                               _text(
                                 'Last third of the night',
                                 'রাতের শেষ তৃতীয়াংশ',
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _moonInkSoft,
-                                fontSize: 11,
+                                fontSize: 11.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -129,42 +144,42 @@ mixin DailyTahajjudSectionMixin
                       ),
                     ],
                   ),
-                  const SizedBox(height: 11),
+                  SizedBox(height: 11.h),
                   Text(
                     _text(
                       '“Our Lord descends to the lowest heaven in the last third of the night…” — stand, pray, and ask.',
                       '“আমাদের রব রাতের শেষ তৃতীয়াংশে নিকটবর্তী আকাশে অবতরণ করেন…” — উঠুন, নামাজ পড়ুন ও দোয়া করুন।',
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _moonInk,
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       height: 1.45,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time_rounded,
-                        size: 16,
+                        size: 16.sp,
                         color: _moonGlow,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         _text('Recommended', 'প্রস্তাবিত'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: _moonInkSoft,
-                          fontSize: 11.5,
+                          fontSize: 11.5.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         tahajjudClock,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: _moonInk,
-                          fontSize: 15,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -192,12 +207,12 @@ mixin DailyTahajjudSectionMixin
               tahajjudAlertEnabledNotifier.value = !enabled;
               unawaited(saveAppPreferences());
             },
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(999.r),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 7.h),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(999.r),
                 gradient: enabled
                     ? const LinearGradient(
                         colors: [Color(0xFFE9D8A6), Color(0xFFC9A24B)],
@@ -217,17 +232,17 @@ mixin DailyTahajjudSectionMixin
                     enabled
                         ? Icons.notifications_active_rounded
                         : Icons.notifications_none_rounded,
-                    size: 14,
+                    size: 14.sp,
                     color: enabled ? const Color(0xFF231A04) : _moonInk,
                   ),
-                  const SizedBox(width: 5),
+                  SizedBox(width: 5.w),
                   Text(
                     enabled
                         ? _text('On', 'চালু')
                         : _text('Remind me', 'মনে করিয়ে দিন'),
                     style: TextStyle(
                       color: enabled ? const Color(0xFF231A04) : _moonInk,
-                      fontSize: 11.5,
+                      fontSize: 11.5.sp,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

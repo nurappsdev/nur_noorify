@@ -12,8 +12,8 @@ mixin DailyLastReadSectionMixin
     return _buildGlassCard(
       child: Row(
         children: [
-          Icon(Icons.menu_book_rounded, color: _accentSoft, size: 20),
-          const SizedBox(width: 10),
+          Icon(Icons.menu_book_rounded, color: _accentSoft, size: 20.sp),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,30 +22,30 @@ mixin DailyLastReadSectionMixin
                   _localizedLastReadLabel(),
                   style: TextStyle(
                     color: _textSecondary,
-                    fontSize: 11,
+                    fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 3.h),
                 Text(
                   _lastReadPrimaryLine(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: _textPrimary,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 if (secondary != null) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     secondary,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: _textMuted,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -53,7 +53,7 @@ mixin DailyLastReadSectionMixin
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           FilledButton(
             onPressed: _openLastRead,
             style: FilledButton.styleFrom(
@@ -62,11 +62,11 @@ mixin DailyLastReadSectionMixin
                   ? const Color(0xFF032F35)
                   : Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(999.r),
               ),
-              textStyle: const TextStyle(
+              textStyle: TextStyle(
                 fontWeight: FontWeight.w700,
-                fontSize: 12,
+                fontSize: 12.sp,
               ),
             ),
             child: Text(_localizedContinueLabel()),

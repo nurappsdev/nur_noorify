@@ -22,7 +22,7 @@ mixin DailyActivitySectionMixin
         children: [
           for (int i = 0; i < items.length; i++) ...[
             Expanded(child: _buildActivityStatCard(items[i])),
-            if (i != items.length - 1) const SizedBox(width: 12),
+            if (i != items.length - 1) SizedBox(width: 12.w),
           ],
         ],
       ),
@@ -41,16 +41,16 @@ mixin DailyActivitySectionMixin
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 32.r,
+                height: 32.r,
                 decoration: BoxDecoration(
                   color: _surfaceStrong,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Icon(
                   _activityIcon(item.title),
                   color: _accentSoft,
-                  size: 18,
+                  size: 18.sp,
                 ),
               ),
               const Spacer(),
@@ -60,42 +60,42 @@ mixin DailyActivitySectionMixin
                     : '$percent%',
                 style: TextStyle(
                   color: _accentStrong,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Text(
             item.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: _textPrimary,
-              fontSize: 13,
+              fontSize: 13.sp,
               fontWeight: FontWeight.w700,
               height: 1.2,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(999.r),
             child: LinearProgressIndicator(
               value: clamped,
-              minHeight: 7,
+              minHeight: 7.h,
               backgroundColor: _isDarkTheme
                   ? const Color(0xFF1B2D3E)
                   : const Color(0xFFD8E7F1),
               valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             '${_localizedCount(item.done)}/${_localizedCount(item.total)}',
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w700,
             ),
           ),

@@ -127,7 +127,7 @@ mixin DailyQuickActionsSectionMixin
         ];
 
     return _buildGlassCard(
-      padding: const EdgeInsets.fromLTRB(11, 10, 11, 11),
+      padding: EdgeInsets.fromLTRB(11.w, 10.h, 11.w, 11.h),
       ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,10 +136,10 @@ mixin DailyQuickActionsSectionMixin
             children: [
               Icon(
                 Icons.auto_awesome_outlined,
-                size: 13,
+                size: 13.sp,
                 color: _accentGold,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 _text(
                   'Quick Menu',
@@ -147,7 +147,7 @@ mixin DailyQuickActionsSectionMixin
                 ),
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.3,
                 ),
@@ -160,7 +160,7 @@ mixin DailyQuickActionsSectionMixin
                 ),
                 onPressed: () =>
                     Navigator.of(context).pushNamed(RouteNames.discover),
-                icon: const Icon(Icons.grid_view_rounded, size: 15),
+                icon: Icon(Icons.grid_view_rounded, size: 15.sp),
                 label: Text(
                   _text(
                     'Open Discover',
@@ -170,7 +170,9 @@ mixin DailyQuickActionsSectionMixin
               ),
             ],
           ),
-          _ornamentDivider(padding: const EdgeInsets.only(top: 4, bottom: 8)),
+          _ornamentDivider(
+            padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+          ),
           Row(
             children: [
               for (int i = 0; i < actions.length; i++) ...[
@@ -182,11 +184,11 @@ mixin DailyQuickActionsSectionMixin
                         Navigator.of(context).pushNamed(actions[i].route),
                   ),
                 ),
-                if (i != actions.length - 1) const SizedBox(width: 7),
+                if (i != actions.length - 1) SizedBox(width: 7.w),
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -198,7 +200,7 @@ mixin DailyQuickActionsSectionMixin
                     icon: menuLinks[i].icon,
                     onTap: menuLinks[i].onTap,
                   ),
-                  if (i != menuLinks.length - 1) const SizedBox(width: 7),
+                  if (i != menuLinks.length - 1) SizedBox(width: 7.w),
                 ],
               ],
             ),
@@ -217,11 +219,11 @@ mixin DailyQuickActionsSectionMixin
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 9.h),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             gradient: LinearGradient(
               colors: _isDarkTheme
                   ? const [Color(0xFF1C2A39), Color(0xFF121E2B)]
@@ -235,22 +237,22 @@ mixin DailyQuickActionsSectionMixin
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 34.r,
+                height: 34.r,
                 decoration: BoxDecoration(
                   color: _surfaceStrong,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(icon, color: _accentSoft, size: 19),
+                child: Icon(icon, color: _accentSoft, size: 19.sp),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
               Text(
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -270,11 +272,11 @@ mixin DailyQuickActionsSectionMixin
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(999.r),
             color: _isDarkTheme
                 ? const Color(0xFF162433)
                 : const Color(0xF8FFFFFF),
@@ -283,20 +285,20 @@ mixin DailyQuickActionsSectionMixin
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: _accentSoft),
-              const SizedBox(width: 6),
+              Icon(icon, size: 16.sp, color: _accentSoft),
+              SizedBox(width: 6.w),
               Text(
                 title,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 11.2,
+                  fontSize: 11.2.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
               Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: 10,
+                size: 10.sp,
                 color: _textMuted,
               ),
             ],

@@ -36,14 +36,14 @@ mixin DailyQiblaMealSectionMixin
         : const Color(0xFF2B4A5F);
 
     return SizedBox(
-      width: 108,
-      height: 108,
+      width: 108.r,
+      height: 108.r,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
-            width: 108,
-            height: 108,
+            width: 108.r,
+            height: 108.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
@@ -63,8 +63,8 @@ mixin DailyQiblaMealSectionMixin
                       : (_isDarkTheme
                             ? const Color(0x22000000)
                             : const Color(0x220E3853)),
-                  blurRadius: hasLiveQibla ? (_isDarkTheme ? 18 : 14) : 8,
-                  spreadRadius: hasLiveQibla ? 1 : 0,
+                  blurRadius: hasLiveQibla ? (_isDarkTheme ? 18.r : 14.r) : 8.r,
+                  spreadRadius: hasLiveQibla ? 1.r : 0,
                 ),
               ],
             ),
@@ -74,8 +74,8 @@ mixin DailyQiblaMealSectionMixin
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
             child: SizedBox(
-              width: 96,
-              height: 96,
+              width: 96.r,
+              height: 96.r,
               child: CustomPaint(
                 painter: MiniCompassMarksPainter(isDark: _isDarkTheme),
               ),
@@ -86,8 +86,8 @@ mixin DailyQiblaMealSectionMixin
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
             child: SizedBox(
-              width: 86,
-              height: 86,
+              width: 86.r,
+              height: 86.r,
               child: Stack(
                 children: [
                   Align(
@@ -96,7 +96,7 @@ mixin DailyQiblaMealSectionMixin
                       'N',
                       style: TextStyle(
                         color: northColor,
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -107,7 +107,7 @@ mixin DailyQiblaMealSectionMixin
                       'E',
                       style: TextStyle(
                         color: _textWeak,
-                        fontSize: 9,
+                        fontSize: 9.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -118,7 +118,7 @@ mixin DailyQiblaMealSectionMixin
                       'S',
                       style: TextStyle(
                         color: _textWeak,
-                        fontSize: 9,
+                        fontSize: 9.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -129,7 +129,7 @@ mixin DailyQiblaMealSectionMixin
                       'W',
                       style: TextStyle(
                         color: _textWeak,
-                        fontSize: 9,
+                        fontSize: 9.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -144,13 +144,13 @@ mixin DailyQiblaMealSectionMixin
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOut,
               child: SizedBox(
-                width: 82,
-                height: 82,
+                width: 82.r,
+                height: 82.r,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(82, 82),
+                      size: Size(82.r, 82.r),
                       painter: MiniQiblaNeedlePainter(isDark: _isDarkTheme),
                     ),
                     Align(
@@ -162,8 +162,8 @@ mixin DailyQiblaMealSectionMixin
               ),
             ),
           Container(
-            width: 9,
-            height: 9,
+            width: 9.r,
+            height: 9.r,
             decoration: BoxDecoration(
               color: _accentSoft,
               shape: BoxShape.circle,
@@ -183,7 +183,7 @@ mixin DailyQiblaMealSectionMixin
             child: InkWell(
               onTap: () =>
                   Navigator.of(context).pushNamed(RouteNames.prayerCompass),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(18.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -191,19 +191,19 @@ mixin DailyQiblaMealSectionMixin
                     _text('Qibla', 'কিবলা'),
                     style: TextStyle(
                       color: _textPrimary,
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   Center(child: _buildMiniCompassDial()),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Text(
                     _text('Qibla Direction: ', 'কিবলার দিক: ') +
                         _miniQiblaValueText(),
                     style: TextStyle(
                       color: _textMuted,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -212,7 +212,7 @@ mixin DailyQiblaMealSectionMixin
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(child: _buildIftarCountdownCard()),
       ],
     );
@@ -224,21 +224,18 @@ mixin DailyQiblaMealSectionMixin
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _text(
-              'Sehri & Iftar',
-              'সেহরি ও ইফতার',
-            ),
+            _text('Sehri & Iftar', 'সেহরি ও ইফতার'),
             style: TextStyle(
               color: _textPrimary,
-              fontSize: 13,
+              fontSize: 13.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 9),
+          SizedBox(height: 9.h),
           Container(
             decoration: BoxDecoration(
               color: _surfaceSubtle,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(color: _surfaceBorder),
             ),
             child: Column(
@@ -258,15 +255,15 @@ mixin DailyQiblaMealSectionMixin
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: _isDarkTheme
                   ? const Color(0x1F1FD5C0)
                   : const Color(0x1A1EA8B8),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: _isDarkTheme
                     ? const Color(0x339DEFE5)
@@ -275,8 +272,8 @@ mixin DailyQiblaMealSectionMixin
             ),
             child: Row(
               children: [
-                Icon(Icons.timelapse_rounded, size: 15, color: _accentSoft),
-                const SizedBox(width: 6),
+                Icon(Icons.timelapse_rounded, size: 15.sp, color: _accentSoft),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     '${_localizedRemainingLabel()}: ${_formattedIftarRemaining()}',
@@ -284,7 +281,7 @@ mixin DailyQiblaMealSectionMixin
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: _accentStrong,
-                      fontSize: 11.5,
+                      fontSize: 11.5.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -305,12 +302,14 @@ mixin DailyQiblaMealSectionMixin
     bool showDivider = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 9.h),
       decoration: BoxDecoration(
         color: highlight
             ? (_isDarkTheme ? const Color(0x1F1FD5C0) : const Color(0x1A1EA8B8))
             : Colors.transparent,
-        borderRadius: highlight ? BorderRadius.circular(10) : BorderRadius.zero,
+        borderRadius: highlight
+            ? BorderRadius.circular(10.r)
+            : BorderRadius.zero,
         border: showDivider
             ? Border(bottom: BorderSide(color: _surfaceBorder))
             : (highlight
@@ -324,17 +323,17 @@ mixin DailyQiblaMealSectionMixin
       child: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 28.r,
+            height: 28.r,
             decoration: BoxDecoration(
               color: _isDarkTheme
                   ? const Color(0x332FD8C7)
                   : const Color(0x221EA8B8),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(icon, size: 17, color: _accentSoft),
+            child: Icon(icon, size: 17.sp, color: _accentSoft),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               title,
@@ -342,17 +341,17 @@ mixin DailyQiblaMealSectionMixin
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           Text(
             time,
             style: TextStyle(
               color: highlight ? _accentStrong : _textPrimary,
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w800,
             ),
           ),

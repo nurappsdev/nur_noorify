@@ -25,7 +25,7 @@ mixin DailyMosqueSectionMixin
                 _text('Nearby Mosques', 'নিকটবর্তী মসজিদ'),
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 15,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -34,21 +34,21 @@ mixin DailyMosqueSectionMixin
                 onPressed: _openFindMosque,
                 style: TextButton.styleFrom(
                   foregroundColor: _accentStrong,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w),
                   visualDensity: VisualDensity.compact,
                 ),
                 child: Text(_text('View all', 'সব দেখুন')),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           InkWell(
             onTap: _openFindMosque,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(14.r),
             child: Container(
-              constraints: const BoxConstraints(minHeight: 132),
+              constraints: BoxConstraints(minHeight: 132.h),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14.r),
                 gradient: LinearGradient(
                   colors: _isDarkTheme
                       ? const [Color(0xFF1A3045), Color(0xFF142435)]
@@ -63,7 +63,7 @@ mixin DailyMosqueSectionMixin
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
                 child: Column(
                   children: [
                     if (hasData) ...[
@@ -72,19 +72,19 @@ mixin DailyMosqueSectionMixin
                           name: item.name,
                           distance: _localizedDistance(item.distanceKm),
                         ),
-                        if (item != items.last) const SizedBox(height: 8),
+                        if (item != items.last) SizedBox(height: 8.h),
                       ],
                     ] else ...[
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 10, 4, 14),
+                        padding: EdgeInsets.fromLTRB(4.w, 10.h, 4.w, 14.h),
                         child: Row(
                           children: [
                             Icon(
                               Icons.location_searching_rounded,
-                              size: 18,
+                              size: 18.sp,
                               color: _textWeak,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Expanded(
                               child: Text(
                                 _text(
@@ -93,7 +93,7 @@ mixin DailyMosqueSectionMixin
                                 ),
                                 style: TextStyle(
                                   color: _textSecondary,
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -102,17 +102,17 @@ mixin DailyMosqueSectionMixin
                         ),
                       ),
                     ],
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     Align(
                       alignment: Alignment.centerRight,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 6.h,
                         ),
                         decoration: BoxDecoration(
                           color: _accentStrong,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(999.r),
                         ),
                         child: Text(
                           _text(
@@ -123,7 +123,7 @@ mixin DailyMosqueSectionMixin
                             color: _isDarkTheme
                                 ? const Color(0xFF042A31)
                                 : Colors.white,
-                            fontSize: 11,
+                            fontSize: 11.sp,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -135,7 +135,7 @@ mixin DailyMosqueSectionMixin
             ),
           ),
           if (_nearbyMosquePreviewUpdatedAt != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             Text(
               _text(
                 'Last synced from Find Mosque',
@@ -143,7 +143,7 @@ mixin DailyMosqueSectionMixin
               ),
               style: TextStyle(
                 color: _textMuted,
-                fontSize: 10.5,
+                fontSize: 10.5.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -158,10 +158,10 @@ mixin DailyMosqueSectionMixin
     required String distance,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: _isDarkTheme ? const Color(0xB2122231) : const Color(0xEFFFFFFF),
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(11.r),
         border: Border.all(
           color: _isDarkTheme
               ? const Color(0x334F7590)
@@ -170,8 +170,8 @@ mixin DailyMosqueSectionMixin
       ),
       child: Row(
         children: [
-          Icon(Icons.location_city_rounded, size: 16, color: _textWeak),
-          const SizedBox(width: 7),
+          Icon(Icons.location_city_rounded, size: 16.sp, color: _textWeak),
+          SizedBox(width: 7.w),
           Expanded(
             child: Text(
               name,
@@ -179,17 +179,17 @@ mixin DailyMosqueSectionMixin
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           Text(
             distance,
             style: TextStyle(
               color: _accentStrong,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w700,
             ),
           ),

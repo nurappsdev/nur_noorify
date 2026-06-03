@@ -1,9 +1,5 @@
 part of '../screens/daily_activity_screen.dart';
 
-/// Assembles the home screen from the section mixins below. Each section lives
-/// in its own file under `widgets/sections/`; this mixin only owns the overall
-/// scaffold, background, and the scrolling list that stitches the sections
-/// together.
 mixin DailyActivityViewMixin
     on
         State<DailyActivityScreen>,
@@ -56,11 +52,11 @@ mixin DailyActivityViewMixin
               ),
             ),
             Positioned(
-              top: -120,
-              left: -80,
+              top: -120.h,
+              left: -80.w,
               child: Container(
-                width: 220,
-                height: 220,
+                width: 220.w,
+                height: 220.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
@@ -72,11 +68,11 @@ mixin DailyActivityViewMixin
               ),
             ),
             Positioned(
-              bottom: 80,
-              right: -90,
+              bottom: 80.h,
+              right: -90.w,
               child: Container(
-                width: 240,
-                height: 240,
+                width: 240.w,
+                height: 240.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
@@ -102,30 +98,35 @@ mixin DailyActivityViewMixin
                           _refreshPrayerScheduleFromSource(forceRefresh: true),
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(14, 10, 14, 18),
+                        padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 18.h),
                         children: [
                           _buildSunArcCard(),
+
                           if (_isLastThirdOfNight()) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             _buildTahajjudReminderCard(),
                           ],
-                          // const SizedBox(height: 12),
-                          // _buildTopHeader(),
-                          const SizedBox(height: 12),
+
+                          SizedBox(height: 12.h),
                           _buildPrayerStrip(),
-                          const SizedBox(height: 12),
+
+                          SizedBox(height: 12.h),
                           _buildForbiddenTimesCard(),
-                          const SizedBox(height: 12),
+
+                          SizedBox(height: 12.h),
                           _buildQiblaAndCountdownRow(),
-                          const SizedBox(height: 12),
-                          // _buildMosquePreviewCard(),
-                          const SizedBox(height: 12),
+
+                          SizedBox(height: 12.h),
+
+                          SizedBox(height: 12.h),
                           _buildQuickActions(),
+
                           if (kQuranFeatureEnabled) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             _buildLastReadCard(),
                           ],
-                          const SizedBox(height: 12),
+
+                          SizedBox(height: 12.h),
                           _buildDailyActivityCard(),
                         ],
                       ),

@@ -83,18 +83,20 @@ mixin DailyActivityViewBaseMixin
 
   Widget _buildGlassCard({
     required Widget child,
-    EdgeInsetsGeometry padding = const EdgeInsets.all(14),
-    BorderRadiusGeometry radius = const BorderRadius.all(Radius.circular(18)),
+    EdgeInsetsGeometry? padding,
+    BorderRadiusGeometry? radius,
     bool ornamentedCorners = false,
   }) {
+    final resolvedPadding = padding ?? EdgeInsets.all(14.r);
+    final resolvedRadius = radius ?? BorderRadius.all(Radius.circular(18.r));
     final card = ClipRRect(
-      borderRadius: radius,
+      borderRadius: resolvedRadius,
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          padding: padding,
+          padding: resolvedPadding,
           decoration: BoxDecoration(
-            borderRadius: radius,
+            borderRadius: resolvedRadius,
             gradient: LinearGradient(
               colors: [_glassStart, _glassEnd],
               begin: Alignment.topLeft,
@@ -104,8 +106,8 @@ mixin DailyActivityViewBaseMixin
             boxShadow: [
               BoxShadow(
                 color: _glassShadow,
-                blurRadius: 24,
-                offset: Offset(0, 12),
+                blurRadius: 24.r,
+                offset: Offset(0, 12.h),
               ),
             ],
           ),
@@ -120,16 +122,8 @@ mixin DailyActivityViewBaseMixin
       clipBehavior: Clip.none,
       children: [
         card,
-        Positioned(
-          top: -2,
-          right: 14,
-          child: _cornerOrnament(),
-        ),
-        Positioned(
-          bottom: -2,
-          left: 14,
-          child: _cornerOrnament(),
-        ),
+        Positioned(top: -2.h, right: 14.w, child: _cornerOrnament()),
+        Positioned(bottom: -2.h, left: 14.w, child: _cornerOrnament()),
       ],
     );
   }
@@ -138,16 +132,16 @@ mixin DailyActivityViewBaseMixin
     return Transform.rotate(
       angle: 0.785398,
       child: Container(
-        width: 8,
-        height: 8,
+        width: 8.w,
+        height: 8.h,
         decoration: BoxDecoration(
           color: _accentGold,
-          borderRadius: BorderRadius.circular(1.5),
+          borderRadius: BorderRadius.circular(1.5.r),
           boxShadow: [
             BoxShadow(
               color: _accentGoldSoft,
-              blurRadius: 8,
-              spreadRadius: 0.5,
+              blurRadius: 8.r,
+              spreadRadius: 0.5.r,
             ),
           ],
         ),
@@ -158,7 +152,7 @@ mixin DailyActivityViewBaseMixin
   Widget _ornamentDivider({EdgeInsetsGeometry? padding}) {
     final line = Expanded(
       child: Container(
-        height: 1,
+        height: 1.h,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -171,23 +165,23 @@ mixin DailyActivityViewBaseMixin
       ),
     );
     return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(vertical: 4),
+      padding: padding ?? EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
         children: [
           line,
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Transform.rotate(
             angle: 0.785398,
             child: Container(
-              width: 6,
-              height: 6,
+              width: 6.w,
+              height: 6.h,
               decoration: BoxDecoration(
                 color: _accentGold,
-                borderRadius: BorderRadius.circular(1),
+                borderRadius: BorderRadius.circular(1.r),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           line,
         ],
       ),

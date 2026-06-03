@@ -15,11 +15,12 @@ mixin DailyPrayerSectionMixin
   String _prayerMeridiem(String prayer) {
     return prayer == 'Fajr' ? 'AM' : 'PM';
   }
+
   Widget _buildCalendarWaqtButton() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         onTap: () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => CalendarWaqtScreen(
@@ -31,7 +32,7 @@ mixin DailyPrayerSectionMixin
         ),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 11),
+          padding: EdgeInsets.symmetric(vertical: 11.h),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isDarkTheme
@@ -40,7 +41,7 @@ mixin DailyPrayerSectionMixin
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: _isDarkTheme
                   ? const Color(0x3359C8E4)
@@ -52,15 +53,15 @@ mixin DailyPrayerSectionMixin
             children: [
               Icon(
                 Icons.calendar_month_rounded,
-                size: 17,
+                size: 17.sp,
                 color: _accentStrong,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Text(
                 _text('Calendar & Waqt', 'ক্যালেন্ডার ও ওয়াক্ত'),
                 style: TextStyle(
                   color: _accentStrong,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.2,
                 ),
@@ -71,9 +72,10 @@ mixin DailyPrayerSectionMixin
       ),
     );
   }
+
   Widget _buildPrayerStrip() {
     return _buildGlassCard(
-      padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+      padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 10.h),
       ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,22 +84,22 @@ mixin DailyPrayerSectionMixin
             children: [
               Icon(
                 Icons.brightness_5_outlined,
-                size: 13,
+                size: 13.sp,
                 color: _accentGold,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 _text('Prayer Times', 'নামাজের সময়'),
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.3,
                 ),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: _isDarkTheme
@@ -106,7 +108,7 @@ mixin DailyPrayerSectionMixin
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(999.r),
                   border: Border.all(color: _accentGoldSoft),
                 ),
                 child: Text(
@@ -117,36 +119,36 @@ mixin DailyPrayerSectionMixin
                     color: _isDarkTheme
                         ? const Color(0xFFF5E2B8)
                         : const Color(0xFF7A5A1F),
-                    fontSize: 10.8,
+                    fontSize: 10.8.sp,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           Text(
             _localizedCountdownLabel(),
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 9),
+          SizedBox(height: 9.h),
           Row(
             children: [
               Icon(
                 Icons.access_time_filled_rounded,
-                size: 14,
+                size: 14.sp,
                 color: _accentSoft,
               ),
-              const SizedBox(width: 5),
+              SizedBox(width: 5.w),
               Text(
                 '${_localizedPrayerName(_displayPrayer)} · ',
                 style: TextStyle(
                   color: _textSecondary,
-                  fontSize: 11.2,
+                  fontSize: 11.2.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -154,25 +156,27 @@ mixin DailyPrayerSectionMixin
                 _arabicPrayerName(_displayPrayer),
                 style: TextStyle(
                   color: _accentGold,
-                  fontSize: 12.5,
+                  fontSize: 12.5.sp,
                   fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 _localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--'),
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
-          _ornamentDivider(padding: const EdgeInsets.only(top: 8, bottom: 4)),
+          _ornamentDivider(
+            padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
+          ),
           SizedBox(
-            height: 104,
+            height: 104.h,
             child: PageView.builder(
               controller: _prayerPageController,
               itemCount: _prayerCarouselItemsCount,
@@ -191,14 +195,14 @@ mixin DailyPrayerSectionMixin
               itemBuilder: (context, index) {
                 final prayer = _prayerForCarouselIndex(index);
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 3.w),
                   child: _buildPrayerTimeChip(prayer, pageIndex: index),
                 );
               },
             ),
           ),
           if (!_isShowingActivePrayer) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
@@ -210,12 +214,12 @@ mixin DailyPrayerSectionMixin
                   setState(() => _selectedPrayer = null);
                   _syncPrayerPageToActive(animate: true);
                 },
-                icon: const Icon(Icons.my_location_rounded, size: 15),
+                icon: Icon(Icons.my_location_rounded, size: 15.sp),
                 label: Text(_text('Back to current', 'বর্তমানে ফিরুন')),
               ),
             ),
           ],
-          SizedBox(height: 10,),
+          SizedBox(height: 10.h),
           _buildCalendarWaqtButton(),
         ],
       ),
@@ -242,16 +246,16 @@ mixin DailyPrayerSectionMixin
           );
         }
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: AnimatedScale(
         scale: isActive ? 1.02 : 1,
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 8.h),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             gradient: isActive
                 ? const LinearGradient(
                     colors: [Color(0xFF1FD5C0), Color(0xFF1EA8B8)],
@@ -289,14 +293,14 @@ mixin DailyPrayerSectionMixin
                 children: [
                   Icon(
                     icon,
-                    size: 12.5,
+                    size: 12.5.sp,
                     color: isActive
                         ? const Color(0xDD032F35)
                         : (_isDarkTheme
                               ? const Color(0xFF9BC1D8)
                               : const Color(0xFF56758A)),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4.w),
                   Expanded(
                     child: Text(
                       _localizedPrayerName(prayer),
@@ -308,7 +312,7 @@ mixin DailyPrayerSectionMixin
                             : (_isDarkTheme
                                   ? Colors.white
                                   : const Color(0xFF214259)),
-                        fontSize: 10.8,
+                        fontSize: 10.8.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -316,29 +320,27 @@ mixin DailyPrayerSectionMixin
                   Text(
                     _arabicPrayerName(prayer),
                     style: TextStyle(
-                      color: isActive
-                          ? const Color(0xCC032F35)
-                          : _accentGold,
-                      fontSize: 11.5,
+                      color: isActive ? const Color(0xCC032F35) : _accentGold,
+                      fontSize: 11.5.sp,
                       fontWeight: FontWeight.w700,
                       height: 1,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
+              SizedBox(height: 5.h),
               Text(
                 time,
                 style: TextStyle(
                   color: isActive
                       ? const Color(0xFF032F35)
                       : (_isDarkTheme ? Colors.white : const Color(0xFF214259)),
-                  fontSize: 15.5,
+                  fontSize: 15.5.sp,
                   fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
-              const SizedBox(height: 3),
+              SizedBox(height: 3.h),
               Row(
                 children: [
                   Text(
@@ -349,7 +351,7 @@ mixin DailyPrayerSectionMixin
                           : (_isDarkTheme
                                 ? const Color(0xFF86A8BE)
                                 : const Color(0xFF5D7C91)),
-                      fontSize: 9,
+                      fontSize: 9.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -358,8 +360,8 @@ mixin DailyPrayerSectionMixin
                     Transform.rotate(
                       angle: 0.785398,
                       child: Container(
-                        width: 6,
-                        height: 6,
+                        width: 6.w,
+                        height: 6.h,
                         decoration: const BoxDecoration(
                           color: Color(0xDD032F35),
                         ),
