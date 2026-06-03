@@ -96,6 +96,13 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
   late int _selectedMonth;
   late int _selectedYear;
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _todayKey = GlobalKey();
+
+  // Approximate height of one day card + separator, used for the initial jump
+  // before refining the position with [Scrollable.ensureVisible].
+  static const double _estimatedCardExtent = 316;
+
   bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
@@ -106,12 +113,41 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
     _selectedMonth = now.month;
     _selectedYear = now.year;
     appLanguageNotifier.addListener(_onLanguageChanged);
+    // After the first layout, bring today's card into view.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday(now));
   }
 
   @override
   void dispose() {
     appLanguageNotifier.removeListener(_onLanguageChanged);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Scrolls the list so the card for [today] is visible. The list is lazily
+  /// built, so we first jump to an estimated offset (forcing the target card to
+  /// build), then refine to the exact position once it has a render box.
+  void _scrollToToday(DateTime today) {
+    if (!mounted || !_scrollController.hasClients) return;
+    if (today.year != _selectedYear || today.month != _selectedMonth) return;
+
+    final position = _scrollController.position;
+    final estimated = ((today.day - 1) * _estimatedCardExtent).clamp(
+      0.0,
+      position.maxScrollExtent,
+    );
+    _scrollController.jumpTo(estimated);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _todayKey.currentContext;
+      if (context == null) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignment: 0.1,
+      );
+    });
   }
 
   void _onLanguageChanged() {
@@ -250,6 +286,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
               ),
             Expanded(
               child: ListView.separated(
+                controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 20),
                 itemCount: dayCount,
                 separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -263,7 +300,10 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                       date.year == now.year &&
                       date.month == now.month &&
                       date.day == now.day;
-                  return _buildDayCard(date, isToday: isToday);
+                  return KeyedSubtree(
+                    key: isToday ? _todayKey : null,
+                    child: _buildDayCard(date, isToday: isToday),
+                  );
                 },
               ),
             ),
