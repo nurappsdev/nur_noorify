@@ -23,7 +23,7 @@ class SunArcArea extends StatefulWidget {
     required this.trailingTimeLabel,
     required this.sunriseClockText,
     required this.sunsetClockText,
-    required this.middayTimeLabel,
+    required this.currentTimeLabel,
   });
 
   final double currentProgress;
@@ -41,7 +41,9 @@ class SunArcArea extends StatefulWidget {
   final String trailingTimeLabel;
   final String sunriseClockText;
   final String sunsetClockText;
-  final String middayTimeLabel;
+
+  /// Live clock shown riding with the sun marker along the arc.
+  final String currentTimeLabel;
 
   @override
   State<SunArcArea> createState() => _SunArcAreaState();
@@ -99,24 +101,29 @@ class _SunArcAreaState extends State<SunArcArea>
       onTap: _replay,
       behavior: HitTestBehavior.opaque,
       child: AspectRatio(
-        aspectRatio: 2.7,
+        aspectRatio: 3.6,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final w = constraints.maxWidth;
             final h = constraints.maxHeight;
             final cx = w / 2;
-            final baseY = h - 6;
-            final radius = math.min(w / 2 - 6, h - 14);
-            final apexY = baseY - radius;
+            final baseY = h - 5;
+            // Elliptical arc: a wide horizontal radius spreads the endpoints to
+            // the card edges, while the smaller vertical radius keeps it short.
+            final rx = w / 2 - 6;
+            final ry = h - 14;
 
             return AnimatedBuilder(
               animation: _animation,
               builder: (context, _) {
                 final progress = _animation.value.clamp(0.0, 1.0);
                 final angle = math.pi * (1 - progress);
-                final sunDx = cx + radius * math.cos(angle);
-                final sunDy = baseY - radius * math.sin(angle);
+                final sunDx = cx + rx * math.cos(angle);
+                final sunDy = baseY - ry * math.sin(angle);
                 final iconScale = _sunIconScale(progress);
+                final chipColor = widget.accentSoft.withValues(
+                  alpha: widget.isDark ? 0.18 : 0.12,
+                );
 
                 return Stack(
                   clipBehavior: Clip.none,
@@ -134,73 +141,58 @@ class _SunArcAreaState extends State<SunArcArea>
                       ),
                     ),
                     Positioned(
-                      left: cx,
-                      top: apexY - 16,
-                      child: FractionalTranslation(
-                        translation: const Offset(-0.5, 0),
-                        child: Text(
-                          widget.middayTimeLabel,
-                          style: TextStyle(
-                            color: widget.textPrimary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
                       left: sunDx,
                       top: sunDy,
                       child: FractionalTranslation(
                         translation: const Offset(-0.5, -0.5),
-                        child: SunIconMarker(
-                          color: widget.accentGold,
+                        child: SunMarker(
                           scale: iconScale,
+                          timeLabel: widget.currentTimeLabel,
+                          timeColor: widget.textPrimary,
+                          glowColor: widget.accentGold,
                         ),
                       ),
                     ),
                     Align(
-                      alignment: const Alignment(-0.55, -0.15),
+                      alignment: const Alignment(-0.62, -0.1),
                       child: ArcLabel(
+                        emoji: '🌤️',
                         title: widget.leadingTitle,
                         time: widget.leadingTimeLabel,
                         titleColor: widget.textPrimary,
                         timeColor: widget.textSecondary,
+                        chipColor: chipColor,
                       ),
                     ),
                     Align(
-                      alignment: const Alignment(0.55, -0.15),
+                      alignment: const Alignment(0.62, -0.1),
                       child: ArcLabel(
+                        emoji: '☀️',
                         title: widget.trailingTitle,
                         time: widget.trailingTimeLabel,
                         titleColor: widget.textPrimary,
                         timeColor: widget.textSecondary,
-                        trailing: Icon(
-                          Icons.check_circle_rounded,
-                          size: 11,
-                          color: widget.accentStrong,
-                        ),
+                        chipColor: chipColor,
                       ),
                     ),
                     Positioned(
                       left: -2,
                       bottom: -2,
                       child: ArcEndpoint(
-                        icon: Icons.wb_twilight_rounded,
+                        emoji: '🌅',
                         time: widget.sunriseClockText,
-                        iconColor: widget.accentGold,
                         textColor: widget.textSecondary,
+                        chipColor: chipColor,
                       ),
                     ),
                     Positioned(
                       right: -2,
                       bottom: -2,
                       child: ArcEndpoint(
-                        icon: Icons.wb_sunny_rounded,
+                        emoji: '🌇',
                         time: widget.sunsetClockText,
-                        iconColor: widget.accentGold,
                         textColor: widget.textSecondary,
+                        chipColor: chipColor,
                         alignRight: true,
                       ),
                     ),
@@ -215,36 +207,68 @@ class _SunArcAreaState extends State<SunArcArea>
   }
 }
 
-class SunIconMarker extends StatelessWidget {
-  const SunIconMarker({super.key, required this.color, this.scale = 1.0});
+/// Traveling sun glyph (emoji) wrapped in a soft golden halo, with the live
+/// clock shown in a pill just beneath it.
+class SunMarker extends StatelessWidget {
+  const SunMarker({
+    super.key,
+    required this.scale,
+    required this.timeLabel,
+    required this.timeColor,
+    required this.glowColor,
+  });
 
-  final Color color;
   final double scale;
+  final String timeLabel;
+  final Color timeColor;
+  final Color glowColor;
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = 13.0 * scale;
-    final glowBlur = 10.0 + (scale - 1.0) * 14.0;
-    final glowSpread = 0.6 + (scale - 1.0) * 1.0;
-    return Container(
-      width: iconSize + 6,
-      height: iconSize + 6,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.55),
-            blurRadius: glowBlur,
-            spreadRadius: glowSpread,
+    final emojiSize = 16.0 * scale;
+    final haloSize = emojiSize + 18;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: haloSize,
+          height: haloSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      glowColor.withValues(alpha: 0.55),
+                      glowColor.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+                child: const SizedBox.expand(),
+              ),
+              Text('☀️', style: TextStyle(fontSize: emojiSize)),
+            ],
           ),
-        ],
-      ),
-      child: Icon(
-        Icons.wb_sunny_rounded,
-        size: iconSize,
-        color: Colors.white,
-      ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(
+            color: glowColor.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            timeLabel,
+            style: TextStyle(
+              color: timeColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -256,47 +280,56 @@ class ArcLabel extends StatelessWidget {
     required this.time,
     required this.titleColor,
     required this.timeColor,
-    this.trailing,
+    required this.chipColor,
+    this.emoji,
   });
 
   final String title;
   final String time;
   final Color titleColor;
   final Color timeColor;
-  final Widget? trailing;
+  final Color chipColor;
+  final String? emoji;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: titleColor,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (emoji != null) ...[
+                Text(emoji!, style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 3),
+              ],
+              Text(
+                title,
+                style: TextStyle(
+                  color: titleColor,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: 3),
-              trailing!,
             ],
-          ],
-        ),
-        const SizedBox(height: 1),
-        Text(
-          time,
-          style: TextStyle(
-            color: timeColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
           ),
-        ),
-      ],
+          const SizedBox(height: 1),
+          Text(
+            time,
+            style: TextStyle(
+              color: timeColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -304,24 +337,24 @@ class ArcLabel extends StatelessWidget {
 class ArcEndpoint extends StatelessWidget {
   const ArcEndpoint({
     super.key,
-    required this.icon,
+    required this.emoji,
     required this.time,
-    required this.iconColor,
     required this.textColor,
+    required this.chipColor,
     this.alignRight = false,
   });
 
-  final IconData icon;
+  final String emoji;
   final String time;
-  final Color iconColor;
   final Color textColor;
+  final Color chipColor;
   final bool alignRight;
 
   @override
   Widget build(BuildContext context) {
     final children = [
-      Icon(icon, size: 12, color: iconColor),
-      const SizedBox(width: 3),
+      Text(emoji, style: const TextStyle(fontSize: 12)),
+      const SizedBox(width: 4),
       Text(
         time,
         style: TextStyle(
@@ -331,9 +364,16 @@ class ArcEndpoint extends StatelessWidget {
         ),
       ),
     ];
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: alignRight ? children.reversed.toList() : children,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: alignRight ? children.reversed.toList() : children,
+      ),
     );
   }
 }
@@ -360,61 +400,103 @@ class SunArcPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final cx = w / 2;
-    final radius = math.min(w / 2 - 8, h - 18);
-    final baseY = h - 8;
+    // Match the elliptical geometry used by the marker in the widget state.
+    final rx = w / 2 - 6;
+    final ry = h - 14;
+    final baseY = h - 6;
     final center = Offset(cx, baseY);
 
+    final arcRect = Rect.fromCenter(
+      center: center,
+      width: rx * 2,
+      height: ry * 2,
+    );
+    final clamped = progress.clamp(0.0, 1.0);
+    final filledSweep = math.pi * clamped;
+
+    // Full dashed track for the not-yet-reached portion of the path.
     final dashedTrack = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
-    final dashCount = 56;
+    const dashCount = 60;
     for (var i = 0; i < dashCount; i++) {
-      final t = i / dashCount;
-      final angle = math.pi - (math.pi * t);
-      final inner = radius - 2;
-      final outer = radius + 2;
+      if (i.isOdd) continue;
+      final angle = math.pi - (math.pi * (i / dashCount));
       final p1 = Offset(
-        center.dx + inner * math.cos(angle),
-        center.dy - inner * math.sin(angle),
+        center.dx + (rx - 2) * math.cos(angle),
+        center.dy - (ry - 2) * math.sin(angle),
       );
       final p2 = Offset(
-        center.dx + outer * math.cos(angle),
-        center.dy - outer * math.sin(angle),
+        center.dx + (rx + 2) * math.cos(angle),
+        center.dy - (ry + 2) * math.sin(angle),
       );
-      if (i % 2 == 0) {
-        canvas.drawLine(p1, p2, dashedTrack);
-      }
+      canvas.drawLine(p1, p2, dashedTrack);
     }
 
-    final arcRect = Rect.fromCircle(center: center, radius: radius);
-    final filledSweep = math.pi * progress.clamp(0.0, 1.0);
+    // Soft "sky" gradient filling the area under the traveled arc.
+    if (clamped > 0) {
+      final tipX = center.dx + rx * math.cos(math.pi + filledSweep);
+      final fillPath = Path()
+        ..moveTo(cx - rx, baseY)
+        ..arcTo(arcRect, math.pi, filledSweep, false)
+        ..lineTo(tipX, baseY)
+        ..close();
+      final fillPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            accentGold.withValues(alpha: isDark ? 0.30 : 0.22),
+            accentSoft.withValues(alpha: 0.03),
+          ],
+        ).createShader(Rect.fromLTRB(0, baseY - ry, w, baseY));
+      canvas.drawPath(fillPath, fillPaint);
+    }
+
+    // Blurred glow behind the traveled arc stroke.
+    final glowPaint = Paint()
+      ..color = accentGold.withValues(alpha: isDark ? 0.55 : 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawArc(arcRect, math.pi, filledSweep, false, glowPaint);
+
+    // Crisp gradient arc: cool at the horizon, warming toward the sun.
     final filledPaint = Paint()
       ..shader = LinearGradient(
-        colors: [accentSoft, accentStrong],
+        colors: [accentStrong, accentGold],
         begin: Alignment.bottomLeft,
         end: Alignment.topRight,
       ).createShader(arcRect)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
     canvas.drawArc(arcRect, math.pi, filledSweep, false, filledPaint);
 
+    // Horizon line that fades out toward both ends.
     final ground = Paint()
-      ..color = trackColor
-      ..strokeWidth = 1
+      ..shader = LinearGradient(
+        colors: [
+          trackColor.withValues(alpha: 0),
+          trackColor,
+          trackColor.withValues(alpha: 0),
+        ],
+      ).createShader(Rect.fromLTWH(0, baseY, w, 1))
+      ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(
-      Offset(8, baseY),
-      Offset(w - 8, baseY),
+      Offset(4, baseY),
+      Offset(w - 4, baseY),
       ground,
     );
 
     final mosqueColor = (isDark ? Colors.white : const Color(0xFF1F4E66))
         .withValues(alpha: isDark ? 0.06 : 0.07);
     final mosquePaint = Paint()..color = mosqueColor;
-    final domeRadius = radius * 0.32;
+    final domeRadius = ry * 0.42;
     final domeCenter = Offset(cx, baseY - domeRadius * 0.55);
     final domePath = Path()
       ..moveTo(domeCenter.dx - domeRadius, baseY)
@@ -452,6 +534,7 @@ class SunArcPainter extends CustomPainter {
       oldDelegate.progress != progress ||
       oldDelegate.accentStrong != accentStrong ||
       oldDelegate.accentSoft != accentSoft ||
+      oldDelegate.accentGold != accentGold ||
       oldDelegate.trackColor != trackColor ||
       oldDelegate.isDark != isDark;
 }

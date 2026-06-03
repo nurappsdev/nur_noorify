@@ -520,7 +520,7 @@ mixin DailySkySectionMixin
       trailingTimeLabel: trailingTimeLabel,
       sunriseClockText: _skyClock(schedule?.fajr),
       sunsetClockText: _skyClock(schedule?.maghrib),
-      middayTimeLabel: _skyClock(schedule?.dzuhr),
+      currentTimeLabel: _skyClock(_now),
     );
   }
 
@@ -567,7 +567,7 @@ mixin DailySkySectionMixin
         borderRadius: BorderRadius.circular(999),
         child: LinearProgressIndicator(
           value: segmentProgress,
-          minHeight: 5,
+          minHeight: 3,
           backgroundColor: _isDarkTheme
               ? const Color(0xFF1B2D3E)
               : const Color(0xFFD8E7F1),
