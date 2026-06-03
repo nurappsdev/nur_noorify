@@ -469,7 +469,9 @@ mixin DailySkySectionMixin
           if (isNight) _buildMoonArcArea() else _buildSunArcArea(),
 
           const SizedBox(height: 10),
-          if (isNight)
+          if (_activeForbiddenWindow() != null)
+            ..._buildForbiddenProgressSection()
+          else if (isNight)
             ..._buildNightProgressSection()
           else
             ..._buildDayProgressSection(),
@@ -595,6 +597,141 @@ mixin DailySkySectionMixin
           const Spacer(),
           Text(
             _activePrayerProgressLabel(),
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  /// Warning palette for the forbidden (Sunnah/Nafl prohibited) windows, kept
+  /// in step with the dedicated forbidden-times card.
+  Color get _forbiddenWarn =>
+      _isDarkTheme ? const Color(0xFFFF8A6B) : const Color(0xFFD24A28);
+
+  /// The forbidden prayer window currently in progress, or null when none is
+  /// active. Boundaries mirror the forbidden-times card:
+  ///   • Sunrise: sunrise → sunrise + 15 min
+  ///   • Zawal:   Dhuhr − 2 min → Dhuhr
+  ///   • Sunset:  Maghrib − 14 min → Maghrib
+  ({IconData icon, String name, DateTime start, DateTime end})?
+  _activeForbiddenWindow() {
+    final schedule = _todaySchedule;
+    if (schedule == null) return null;
+    final sunrise = schedule.sunrise ?? schedule.fajr;
+    final dhuhr = schedule.dzuhr;
+    final maghrib = schedule.maghrib;
+
+    final periods =
+        <({IconData icon, String name, DateTime start, DateTime end})>[
+          (
+            icon: Icons.wb_twilight_rounded,
+            name: _text('Sunrise', 'সূর্যোদয়'),
+            start: sunrise,
+            end: sunrise.add(const Duration(minutes: 15)),
+          ),
+          (
+            icon: Icons.wb_sunny_rounded,
+            name: _text('Zawal', 'যাওয়াল'),
+            start: dhuhr.subtract(const Duration(minutes: 2)),
+            end: dhuhr,
+          ),
+          (
+            icon: Icons.brightness_4_rounded,
+            name: _text('Sunset', 'সূর্যাস্ত'),
+            start: maghrib.subtract(const Duration(minutes: 14)),
+            end: maghrib,
+          ),
+        ];
+
+    for (final period in periods) {
+      if (!_now.isBefore(period.start) && _now.isBefore(period.end)) {
+        return period;
+      }
+    }
+    return null;
+  }
+
+  String _forbiddenRemainingLabel(Duration value) {
+    final safe = value.isNegative ? Duration.zero : value;
+    final minutes = safe.inMinutes;
+    final seconds = safe.inSeconds % 60;
+    if (_isBangla) {
+      final mm = _toBanglaDigits(minutes.toString());
+      final ss = _toBanglaDigits(seconds.toString());
+      return minutes > 0 ? '$mm মিনিট $ss সেকেন্ড' : '$ss সেকেন্ড';
+    }
+    return minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+  }
+
+  /// Progress strip for an in-progress forbidden window, rendered in the warning
+  /// palette so it visibly stands apart from the normal day/night progress.
+  List<Widget> _buildForbiddenProgressSection() {
+    final window = _activeForbiddenWindow();
+    if (window == null) return const [];
+    final warn = _forbiddenWarn;
+    final progress = _segmentProgress(window.start, window.end);
+    final remaining = window.end.difference(_now);
+
+    return [
+      Row(
+        children: [
+          Icon(window.icon, size: 13, color: warn),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '${_text('Forbidden', 'নিষিদ্ধ')} · ${window.name}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            _windowLabel(window.start, window.end),
+            style: TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 5),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: LinearProgressIndicator(
+          value: progress,
+          minHeight: 5,
+          backgroundColor: _isDarkTheme
+              ? const Color(0x33FF8A6B)
+              : const Color(0x1FD24A28),
+          valueColor: AlwaysStoppedAnimation<Color>(warn),
+        ),
+      ),
+      const SizedBox(height: 5),
+      Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 11, color: warn),
+          const SizedBox(width: 5),
+          Text(
+            _text('Avoid Sunnah & Nafl now', 'এখন সুন্নত-নফল নিষিদ্ধ'),
+            style: TextStyle(
+              color: warn,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${_text('Ends in', 'বাকি')} ${_forbiddenRemainingLabel(remaining)}',
             style: TextStyle(
               color: _textSecondary,
               fontSize: 10.5,
