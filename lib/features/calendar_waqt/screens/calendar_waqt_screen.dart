@@ -1,5 +1,6 @@
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:ponjika/ponjika.dart';
 
@@ -249,7 +250,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
           style: TextStyle(
             color: _textPrimary,
             fontWeight: FontWeight.w800,
-            fontSize: 18,
+            fontSize: 18.sp,
           ),
         ),
         centerTitle: true,
@@ -260,15 +261,15 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
             _buildSelectors(),
             if ((widget.locationLabel ?? '').trim().isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 4.h),
                 child: Row(
                   children: [
                     Icon(
                       Icons.location_on_outlined,
-                      size: 14,
+                      size: 14.sp,
                       color: _textSecondary,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     Expanded(
                       child: Text(
                         widget.locationLabel!.trim(),
@@ -276,7 +277,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: _textSecondary,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -287,9 +288,9 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
             Expanded(
               child: ListView.separated(
                 controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 20),
+                padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 20.h),
                 itemCount: dayCount,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   final date = DateTime(
                     _selectedYear,
@@ -318,7 +319,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
       for (var y = _selectedYear - 5; y <= _selectedYear + 5; y++) y,
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
       child: Row(
         children: [
           Expanded(
@@ -331,7 +332,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                 iconEnabledColor: _textSecondary,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 15,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w700,
                 ),
                 items: [
@@ -347,7 +348,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: _dropdownShell(
               child: DropdownButton<int>(
@@ -358,7 +359,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                 iconEnabledColor: _textSecondary,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 15,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w700,
                 ),
                 items: [
@@ -381,10 +382,10 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
 
   Widget _dropdownShell({required Widget child}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: EdgeInsets.symmetric(horizontal: 14.w),
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: _cardBorder),
       ),
       child: child,
@@ -403,7 +404,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
     return Container(
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: _cardBorder),
         boxShadow: [
           BoxShadow(
@@ -421,7 +422,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
         children: [
           _buildDayHeader(date, isToday: isToday),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -432,7 +433,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                   maghrib: maghrib,
                   isha: isha,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
                 Row(
                   children: [
                     Expanded(
@@ -443,7 +444,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                         rightValue: _clock(maghrib),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10.w),
                     Expanded(
                       child: _buildPairCell(
                         leftLabel: _text('Sahri', 'সাহরি'),
@@ -454,7 +455,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 _buildForbiddenTimes(
                   sunrise: sunrise,
                   dhuhr: dhuhr,
@@ -478,7 +479,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [_greenStart, _greenEnd],
@@ -495,41 +496,41 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                 child: Text(
                   '${_digits('${date.day}')} ${_monthName(date.month)}, '
                   '${_digits(date.year.toString())} • ${_weekdayName(date)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
               if (isToday)
                 Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 3,
+                  margin: EdgeInsets.only(left: 8.w),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 9.w,
+                    vertical: 3.h,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(999.r),
                   ),
                   child: Text(
                     _text('Today', 'আজ'),
                     style: TextStyle(
                       color: _greenEnd,
-                      fontSize: 10.5,
+                      fontSize: 10.5.sp,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             '$hijriLine • $banglaLine',
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFFE6F6EF),
-              fontSize: 11.5,
+              fontSize: 11.5.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -553,10 +554,10 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
       (label: _text('Isha', 'ইশা'), at: isha),
     ];
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 6.w),
       decoration: BoxDecoration(
         color: _cellBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         children: [
@@ -571,16 +572,16 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: _textSecondary,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     _clock(cell.at),
                     style: TextStyle(
                       color: _textPrimary,
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -608,16 +609,16 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _textSecondary,
-              fontSize: 10.5,
+              fontSize: 10.5.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 3),
+          SizedBox(height: 3.h),
           Text(
             value,
             style: TextStyle(
               color: _textPrimary,
-              fontSize: 12.5,
+              fontSize: 12.5.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -626,10 +627,10 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
+      padding: EdgeInsets.symmetric(vertical: 9.h, horizontal: 6.w),
       decoration: BoxDecoration(
         color: _cellBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         children: [
@@ -670,19 +671,19 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
           _text('Forbidden Prayer Times', 'সালাতের নিষিদ্ধ সময়'),
           style: TextStyle(
             color: _textPrimary,
-            fontSize: 12.5,
+            fontSize: 12.5.sp,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Row(
           children: [
             for (var i = 0; i < periods.length; i++) ...[
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 9,
-                    horizontal: 4,
+                  padding: EdgeInsets.symmetric(
+                    vertical: 9.h,
+                    horizontal: 4.w,
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -690,7 +691,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Column(
                     children: [
@@ -698,20 +699,20 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                         periods[i].label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFFF3D9D2),
-                          fontSize: 11,
+                          fontSize: 11.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         _clockRange(periods[i].start, periods[i].end),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10.5,
+                          fontSize: 10.5.sp,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -719,7 +720,7 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                   ),
                 ),
               ),
-              if (i != periods.length - 1) const SizedBox(width: 8),
+              if (i != periods.length - 1) SizedBox(width: 8.w),
             ],
           ],
         ),

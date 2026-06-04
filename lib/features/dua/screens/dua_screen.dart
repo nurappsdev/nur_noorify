@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:first_project/features/dua/models/dua_item.dart';
@@ -285,10 +286,10 @@ class _DuaScreenState extends State<DuaScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                    padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 10.h),
                     child: NoorifyGlassCard(
-                      radius: BorderRadius.circular(20),
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                      radius: BorderRadius.circular(20.r),
+                      padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 14.h),
                       child: Row(
                         children: [
                           Expanded(
@@ -298,19 +299,19 @@ class _DuaScreenState extends State<DuaScreen> {
                                 Text(
                                   isBangla ? '\u09a6\u09c1\u0986' : 'Dua',
                                   style: TextStyle(
-                                    fontSize: 30,
+                                    fontSize: 30.sp,
                                     fontWeight: FontWeight.w700,
                                     color: glass.textPrimary,
                                     height: 1,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6.h),
                                 Text(
                                   isBangla
                                       ? '\u09aa\u09cd\u09b0\u09a7\u09be\u09a8 \u0995\u09cd\u09af\u09be\u099f\u09be\u0997\u09b0\u09bf \u09a5\u09c7\u0995\u09c7 \u09a6\u09c1\u0986 \u09ac\u09c7\u099b\u09c7 \u09a8\u09bf\u09a8'
                                       : 'Choose a main category to continue',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 13.sp,
                                     color: glass.textSecondary,
                                   ),
                                 ),
@@ -320,7 +321,7 @@ class _DuaScreenState extends State<DuaScreen> {
                           Icon(
                             Icons.menu_book_rounded,
                             color: glass.accent,
-                            size: 26,
+                            size: 26.sp,
                           ),
                         ],
                       ),
@@ -343,12 +344,12 @@ class _DuaScreenState extends State<DuaScreen> {
                                 : 'Retry',
                           )
                         : ListView(
-                            padding: const EdgeInsets.fromLTRB(14, 2, 14, 10),
+                            padding: EdgeInsets.fromLTRB(14.w, 2.h, 14.w, 10.h),
                             children: [
                               if (mainTiles.isEmpty)
                                 NoorifyGlassCard(
-                                  radius: BorderRadius.circular(16),
-                                  padding: const EdgeInsets.all(16),
+                                  radius: BorderRadius.circular(16.r),
+                                  padding: EdgeInsets.all(16.r),
                                   child: Text(
                                     isBangla
                                         ? '\u0995\u09cb\u09a8\u09cb \u09a6\u09c1\u0986 \u09a1\u09c7\u099f\u09be \u09aa\u09be\u0993\u09df\u09be \u09af\u09be\u09df\u09a8\u09bf\u0964'
@@ -438,10 +439,10 @@ class _MainCategoryScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                    padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 8.h),
                     child: NoorifyGlassCard(
-                      radius: BorderRadius.circular(18),
-                      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                      radius: BorderRadius.circular(18.r),
+                      padding: EdgeInsets.fromLTRB(12.w, 10.h, 8.w, 10.h),
                       child: Row(
                         children: [
                           IconButton(
@@ -460,18 +461,18 @@ class _MainCategoryScreen extends StatelessWidget {
                                       ? mainMeta.titleBn
                                       : mainMeta.titleEn,
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 18.sp,
                                     fontWeight: FontWeight.w700,
                                     color: glass.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2.h),
                                 Text(
                                   isBangla
                                       ? mainMeta.subtitleBn
                                       : mainMeta.subtitleEn,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.sp,
                                     color: glass.textSecondary,
                                   ),
                                 ),
@@ -485,12 +486,12 @@ class _MainCategoryScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(14, 2, 14, 10),
+                      padding: EdgeInsets.fromLTRB(14.w, 2.h, 14.w, 10.h),
                       children: [
                         if (tiles.isEmpty)
                           NoorifyGlassCard(
-                            radius: BorderRadius.circular(16),
-                            padding: const EdgeInsets.all(16),
+                            radius: BorderRadius.circular(16.r),
+                            padding: EdgeInsets.all(16.r),
                             child: Text(
                               isBangla
                                   ? '\u098f\u0987 \u0995\u09cd\u09af\u09be\u099f\u09be\u0997\u09b0\u09bf\u09a4\u09c7 \u0995\u09cb\u09a8\u09cb \u0986\u0987\u099f\u09c7\u09ae \u09a8\u09c7\u0987\u0964'
@@ -624,7 +625,7 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
         final glass = NoorifyGlassTheme(sheetContext);
         final title = _titleFor(item, isBangla);
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+          padding: EdgeInsets.fromLTRB(16.w, 6.h, 16.w, 18.h),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -632,20 +633,20 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w700,
                     color: glass.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: EdgeInsets.all(14.r),
                   decoration: BoxDecoration(
                     color: glass.isDark
                         ? const Color(0x33162833)
                         : const Color(0xFFF2F8FB),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14.r),
                     border: Border.all(color: glass.glassBorder),
                   ),
                   child: Text(
@@ -654,7 +655,7 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                     style: GoogleFonts.getFont(
                       _indoPakArabicFont,
                       textStyle: TextStyle(
-                        fontSize: 38,
+                        fontSize: 38.sp,
                         height: 1.55,
                         fontWeight: FontWeight.w500,
                         color: glass.textPrimary,
@@ -662,32 +663,32 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14.h),
                 Text(
                   isBangla ? item.bangla : item.english,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     height: 1.7,
                     color: glass.textPrimary,
                   ),
                 ),
                 if (item.reference.trim().isNotEmpty) ...[
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14.h),
                   Text(
                     isBangla
                         ? '\u09b0\u09c7\u09ab\u09be\u09b0\u09c7\u09a8\u09cd\u09b8'
                         : 'Reference',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w700,
                       color: glass.textMuted,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     item.reference,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       height: 1.5,
                       color: glass.textSecondary,
                     ),
@@ -718,10 +719,10 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                    padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 8.h),
                     child: NoorifyGlassCard(
-                      radius: BorderRadius.circular(18),
-                      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                      radius: BorderRadius.circular(18.r),
+                      padding: EdgeInsets.fromLTRB(12.w, 10.h, 8.w, 10.h),
                       child: Column(
                         children: [
                           Row(
@@ -740,7 +741,7 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                                       ? widget.categoryTitleBn
                                       : widget.categoryTitleEn,
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 18.sp,
                                     fontWeight: FontWeight.w700,
                                     color: glass.textPrimary,
                                   ),
@@ -767,7 +768,7 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                             ],
                           ),
                           if (_showSearch) ...[
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             TextField(
                               controller: _searchController,
                               style: TextStyle(color: glass.textPrimary),
@@ -785,20 +786,20 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                                     ? const Color(0x33152933)
                                     : const Color(0xF2FFFFFF),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                   borderSide: BorderSide(
                                     color: glass.glassBorder,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                   borderSide: BorderSide(
                                     color: glass.glassBorder,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 10.h,
                                 ),
                               ),
                             ),
@@ -809,47 +810,47 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                   ),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(14, 2, 14, 10),
+                      padding: EdgeInsets.fromLTRB(14.w, 2.h, 14.w, 10.h),
                       children: [
                         NoorifyGlassCard(
-                          radius: BorderRadius.circular(16),
-                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                          radius: BorderRadius.circular(16.r),
+                          padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.menu_book_rounded,
-                                size: 18,
+                                size: 18.sp,
                                 color: glass.accent,
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8.w),
                               Expanded(
                                 child: Text(
                                   isBangla
                                       ? widget.categoryTitleBn
                                       : widget.categoryTitleEn,
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 14.sp,
                                     fontWeight: FontWeight.w700,
                                     color: glass.textPrimary,
                                   ),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 9,
-                                  vertical: 4,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 9.w,
+                                  vertical: 4.h,
                                 ),
                                 decoration: BoxDecoration(
                                   color: glass.isDark
                                       ? const Color(0x2A2EB8E6)
                                       : const Color(0x221EA8B8),
-                                  borderRadius: BorderRadius.circular(999),
+                                  borderRadius: BorderRadius.circular(999.r),
                                 ),
                                 child: Text(
                                   '${filtered.length}',
                                   style: TextStyle(
                                     color: glass.accent,
-                                    fontSize: 12,
+                                    fontSize: 12.sp,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -857,11 +858,11 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         if (filtered.isEmpty)
                           NoorifyGlassCard(
-                            radius: BorderRadius.circular(16),
-                            padding: const EdgeInsets.all(16),
+                            radius: BorderRadius.circular(16.r),
+                            padding: EdgeInsets.all(16.r),
                             child: Text(
                               isBangla
                                   ? '\u098f\u0987 \u09ab\u09bf\u09b2\u09cd\u099f\u09be\u09b0\u09c7 \u0995\u09cb\u09a8\u09cb \u09a6\u09c1\u0986 \u09a8\u09c7\u0987\u0964'
@@ -875,12 +876,12 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                         else
                           ...filtered.map((item) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: EdgeInsets.only(bottom: 8.h),
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(14.r),
                                 onTap: () => _openDuaDetails(item, isBangla),
                                 child: NoorifyGlassCard(
-                                  radius: BorderRadius.circular(14),
+                                  radius: BorderRadius.circular(14.r),
                                   padding: const EdgeInsets.fromLTRB(
                                     12,
                                     10,
@@ -899,28 +900,28 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                fontSize: 14.5,
+                                                fontSize: 14.5.sp,
                                                 fontWeight: FontWeight.w700,
                                                 color: glass.textPrimary,
                                               ),
                                             ),
-                                            const SizedBox(height: 2),
+                                            SizedBox(height: 2.h),
                                             Text(
                                               _subtitleFor(item, isBangla),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                fontSize: 12,
+                                                fontSize: 12.sp,
                                                 color: glass.textSecondary,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8.w),
                                       Icon(
                                         Icons.bookmark_add_outlined,
-                                        size: 21,
+                                        size: 21.sp,
                                         color: glass.textMuted,
                                       ),
                                     ],
@@ -964,49 +965,49 @@ class _MainCategoryGrid extends StatelessWidget {
       children: items
           .map((item) {
             return InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               onTap: () => onTap(item),
               child: SizedBox(
                 width: itemWidth,
                 child: NoorifyGlassCard(
-                  radius: BorderRadius.circular(16),
-                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                  radius: BorderRadius.circular(16.r),
+                  padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 12.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 46,
-                        height: 46,
+                        width: 46.r,
+                        height: 46.r,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                           color: glass.isDark
                               ? const Color(0x33243C46)
                               : const Color(0xFFE5F5F6),
                         ),
                         child: Icon(item.meta.icon, color: glass.accent),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       Text(
                         isBangla ? item.meta.titleBn : item.meta.titleEn,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w700,
                           color: glass.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      SizedBox(height: 3.h),
                       Text(
                         isBangla ? item.meta.subtitleBn : item.meta.subtitleEn,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11.5.sp,
                           color: glass.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
@@ -1056,18 +1057,18 @@ class _SubCategoryGrid extends StatelessWidget {
       children: items
           .map((item) {
             return InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               onTap: () => onTap(item),
               child: SizedBox(
                 width: itemWidth,
                 child: NoorifyGlassCard(
-                  radius: BorderRadius.circular(16),
-                  padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                  radius: BorderRadius.circular(16.r),
+                  padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 12.h),
                   child: Column(
                     children: [
                       Container(
-                        width: 70,
-                        height: 70,
+                        width: 70.r,
+                        height: 70.r,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: glass.isDark
@@ -1076,23 +1077,23 @@ class _SubCategoryGrid extends StatelessWidget {
                         ),
                         child: Icon(
                           item.meta.icon,
-                          size: 32,
+                          size: 32.sp,
                           color: glass.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Text(
                         isBangla ? item.meta.titleBn : item.meta.titleEn,
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 13.sp,
                           fontWeight: FontWeight.w700,
                           color: glass.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6.h),
                       _CountPill(
                         text: isBangla
                             ? '${item.duaCount} \u09a6\u09c1\u0986'
@@ -1118,16 +1119,16 @@ class _CountPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
         color: glass.isDark ? const Color(0x2A2EB8E6) : const Color(0x221EA8B8),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
       ),
       child: Text(
         text,
         style: TextStyle(
           color: glass.accent,
-          fontSize: 11,
+          fontSize: 11.sp,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -1152,7 +1153,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(18.r),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1161,7 +1162,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(color: glass.textSecondary),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10.h),
             FilledButton(
               onPressed: onRetry,
               style: FilledButton.styleFrom(

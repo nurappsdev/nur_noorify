@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
@@ -58,12 +59,12 @@ class _RamadanSplashScreenState extends State<RamadanSplashScreen> {
           key: const Key('opening_splash_image'),
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            return const Center(
+            return Center(
               child: Text(
                 'Noorify',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 32,
+                  fontSize: 32.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),

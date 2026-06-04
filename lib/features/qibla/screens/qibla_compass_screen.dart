@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -436,7 +437,7 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 16),
+                  padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 16.h),
                   child: Column(
                     children: [
                       Row(
@@ -451,17 +452,17 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                               onPressed: () => Navigator.of(context).maybePop(),
                               icon: Icon(
                                 Icons.arrow_back_ios_new_rounded,
-                                size: 18,
+                                size: 18.sp,
                                 color: glass.textPrimary,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               _text('Qibla Compass', 'কিবলা কম্পাস'),
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 28.sp,
                                 fontWeight: FontWeight.w700,
                                 color: glass.textPrimary,
                               ),
@@ -469,10 +470,10 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       NoorifyGlassCard(
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                        radius: BorderRadius.circular(20),
+                        padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 14.h),
+                        radius: BorderRadius.circular(20.r),
                         child: Column(
                           children: [
                             Text(
@@ -482,21 +483,21 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                               ),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 13.5,
+                                fontSize: 13.5.sp,
                                 color: glass.textSecondary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            SizedBox(height: 14.h),
                             SizedBox(
-                              width: 314,
-                              height: 314,
+                              width: 314.r,
+                              height: 314.r,
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   Container(
-                                    width: 300,
-                                    height: 300,
+                                    width: 300.r,
+                                    height: 300.r,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: RadialGradient(
@@ -522,8 +523,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                     duration: const Duration(milliseconds: 220),
                                     curve: Curves.easeOut,
                                     child: SizedBox(
-                                      width: 286,
-                                      height: 286,
+                                      width: 286.r,
+                                      height: 286.r,
                                       child: CustomPaint(
                                         painter: _CompassDialMarksPainter(
                                           isDark: glass.isDark,
@@ -536,8 +537,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                     duration: const Duration(milliseconds: 220),
                                     curve: Curves.easeOut,
                                     child: SizedBox(
-                                      width: 268,
-                                      height: 268,
+                                      width: 268.r,
+                                      height: 268.r,
                                       child: Stack(
                                         children: [
                                           Align(
@@ -588,8 +589,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                       ),
                                       curve: Curves.easeOut,
                                       child: SizedBox(
-                                        width: 256,
-                                        height: 256,
+                                        width: 256.r,
+                                        height: 256.r,
                                         child: Align(
                                           alignment: Alignment.topCenter,
                                           child: _QiblaDot(
@@ -599,8 +600,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                       ),
                                     ),
                                   SizedBox(
-                                    width: 258,
-                                    height: 258,
+                                    width: 258.r,
+                                    height: 258.r,
                                     child: CustomPaint(
                                       painter: _NeedlePainter(
                                         color: glass.accent,
@@ -608,8 +609,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                     ),
                                   ),
                                   Container(
-                                    width: 11,
-                                    height: 11,
+                                    width: 11.r,
+                                    height: 11.r,
                                     decoration: BoxDecoration(
                                       color: glass.isDark
                                           ? const Color(0xFF8DB3CA)
@@ -620,54 +621,54 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            SizedBox(height: 14.h),
                             Text(
                               _headingText(_heading),
                               style: TextStyle(
-                                fontSize: 50,
+                                fontSize: 50.sp,
                                 height: 1,
                                 color: glass.accent,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            SizedBox(height: 3.h),
                             Text(
                               _directionText(_heading),
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 20.sp,
                                 color: glass.textSecondary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4.h),
                             Text(
                               _text(
                                 'Qibla offset: ${_qiblaValueText()}',
                                 'কিবলা অফসেট: ${_qiblaValueText()}',
                               ),
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: 15.sp,
                                 color: glass.textSecondary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4.h),
                             Text(
                               _qiblaSourceText(),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 12.sp,
                                 color: glass.textMuted,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10.h),
                             Text(
                               location.primary,
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 21,
+                                fontSize: 21.sp,
                                 color: glass.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -679,40 +680,40 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 13.sp,
                                   color: glass.textSecondary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             if (_distanceKm != null) ...[
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4.h),
                               Text(
                                 _text(
                                   '${_distanceKm!.toStringAsFixed(0)} km to Kaaba',
                                   'কাবা পর্যন্ত ${_distanceKm!.toStringAsFixed(0)} কিমি',
                                 ),
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   color: glass.textMuted,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                             if (_usingFallbackLocation) ...[
-                              const SizedBox(height: 6),
+                              SizedBox(height: 6.h),
                               Text(
                                 _text(
                                   'Using fallback location (Dhaka)',
                                   'ফলব্যাক লোকেশন (ঢাকা) ব্যবহার হচ্ছে',
                                 ),
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
                                   color: Color(0xFFC58A1E),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             FilledButton.icon(
                               onPressed: _refreshAll,
                               style: FilledButton.styleFrom(
@@ -721,39 +722,39 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                                     ? const Color(0xFF072734)
                                     : Colors.white,
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 22,
-                                  vertical: 12,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 22.w,
+                                  vertical: 12.h,
                                 ),
                                 shape: const StadiumBorder(),
                               ),
-                              icon: const Icon(Icons.refresh_rounded, size: 17),
-                              label: const Text(
+                              icon: Icon(Icons.refresh_rounded, size: 17.sp),
+                              label: Text(
                                 'Refresh',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                 ),
                               ),
                             ),
                             if ((_isLoadingQibla || !_isListening) &&
                                 _sensorError == null) ...[
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12.h),
                               SizedBox(
-                                width: 22,
-                                height: 22,
+                                width: 22.r,
+                                height: 22.r,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.1,
                                   color: glass.accent,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10.h),
                             Text(
                               _statusHint(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 13.sp,
                                 color: _sensorError == null
                                     ? glass.textSecondary
                                     : const Color(0xFFB65757),
@@ -784,14 +785,14 @@ class _QiblaDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 20,
-      height: 20,
+      width: 20.r,
+      height: 20.r,
       decoration: BoxDecoration(
         color: accent,
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(color: Colors.white, width: 2.w),
         shape: BoxShape.circle,
       ),
-      child: const Icon(Icons.star_rounded, size: 10, color: Colors.white),
+      child: Icon(Icons.star_rounded, size: 10.sp, color: Colors.white),
     );
   }
 }
@@ -806,7 +807,7 @@ class _CardinalLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: TextStyle(fontSize: 26, color: color, fontWeight: FontWeight.w700),
+      style: TextStyle(fontSize: 26.sp, color: color, fontWeight: FontWeight.w700),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
@@ -308,7 +309,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 20.h),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -317,7 +318,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Daily Goal'),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   DropdownButtonFormField<int>(
                     initialValue: reminder,
                     decoration: const InputDecoration(labelText: 'Reminder'),
@@ -457,7 +458,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                         icon: Icon(
                                           Icons.arrow_back_rounded,
                                           color: Colors.white,
-                                          size: 22 * scale,
+                                          size: 22.sp * scale,
                                         ),
                                       ),
                                     ),
@@ -479,7 +480,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                         icon: Icon(
                                           Icons.settings_outlined,
                                           color: Colors.white,
-                                          size: 21 * scale,
+                                          size: 21.sp * scale,
                                         ),
                                       ),
                                     ),
@@ -493,7 +494,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 style: TextStyle(
                                   color: BrandColors.primaryLight,
                                   letterSpacing: 0.9,
-                                  fontSize: 10.5 * scale,
+                                  fontSize: 10.5.sp * scale,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -515,7 +516,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: const Color(0xFFB9CAE1),
-                                    fontSize: 13 * scale,
+                                    fontSize: 13.sp * scale,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -533,8 +534,8 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             MaterialTapTargetSize.shrinkWrap,
                                         visualDensity: VisualDensity.compact,
                                         padding: EdgeInsets.symmetric(
-                                          horizontal: 8 * scale,
-                                          vertical: 7 * scale,
+                                          horizontal: 8.w * scale,
+                                          vertical: 7.h * scale,
                                         ),
                                         label: Text(
                                           preset.label,
@@ -565,8 +566,8 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               Container(
                                 width: double.infinity,
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 14 * scale,
-                                  vertical: 12 * scale,
+                                  horizontal: 14.w * scale,
+                                  vertical: 12.h * scale,
                                 ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF1E3556),
@@ -607,7 +608,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: const Color(0xFFBDD0E8),
-                                        fontSize: 14 * scale,
+                                        fontSize: 14.sp * scale,
                                       ),
                                     ),
                                   ],
@@ -620,14 +621,14 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 child: IgnorePointer(
                                   ignoring: !successOn,
                                   child: Container(
-                                    margin: EdgeInsets.only(bottom: 6 * scale),
+                                    margin: EdgeInsets.only(bottom: 6.h * scale),
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: 12 * scale,
-                                      vertical: 6 * scale,
+                                      horizontal: 12.w * scale,
+                                      vertical: 6.h * scale,
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0x1A7ED9EE),
-                                      borderRadius: BorderRadius.circular(999),
+                                      borderRadius: BorderRadius.circular(999.r),
                                       border: Border.all(
                                         color: const Color(0x667ED9EE),
                                       ),
@@ -637,7 +638,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: BrandColors.primaryLight,
-                                        fontSize: 12 * scale,
+                                        fontSize: 12.sp * scale,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -659,7 +660,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0xFFB6C9E2),
-                                  fontSize: 18 * scale,
+                                  fontSize: 18.sp * scale,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -684,7 +685,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       '${(progress * 100).round()}%',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 14 * scale,
+                                        fontSize: 14.sp * scale,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -709,7 +710,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             ? const Color(0xFF27B5D0)
                                             : const Color(0xFF188DA8),
                                       ],
-                                      radius: 0.86,
+                                      radius: 0.86.r,
                                     ),
                                     boxShadow: <BoxShadow>[
                                       BoxShadow(
@@ -735,14 +736,14 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             ? Icons.check_circle_rounded
                                             : Icons.touch_app_rounded,
                                         color: Colors.white,
-                                        size: 35 * scale,
+                                        size: 35.sp * scale,
                                       ),
                                       SizedBox(height: 2 * scale),
                                       Text(
                                         successOn ? 'DONE' : 'TAP',
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 21 * scale,
+                                          fontSize: 21.sp * scale,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0.7,
                                         ),
@@ -767,13 +768,13 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                           ),
                                           foregroundColor: Colors.white,
                                           textStyle: TextStyle(
-                                            fontSize: 13 * scale,
+                                            fontSize: 13.sp * scale,
                                           ),
                                           padding: EdgeInsets.zero,
                                         ),
                                         icon: Icon(
                                           Icons.restart_alt_rounded,
-                                          size: 16 * scale,
+                                          size: 16.sp * scale,
                                         ),
                                         label: const Text('Reset'),
                                       ),
@@ -797,7 +798,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                           'Total: $_todayTotal',
                                           style: TextStyle(
                                             color: BrandColors.primaryLight,
-                                            fontSize: 14 * scale,
+                                            fontSize: 14.sp * scale,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -808,7 +809,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               ),
                               SizedBox(height: 8 * scale),
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(99),
+                                borderRadius: BorderRadius.circular(99.r),
                                 child: SizedBox(
                                   height: 8 * scale,
                                   child: LinearProgressIndicator(
@@ -827,7 +828,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0xFFC2D3E8),
-                                  fontSize: 12.5 * scale,
+                                  fontSize: 12.5.sp * scale,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -838,7 +839,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: BrandColors.primaryLight,
-                                    fontSize: 12 * scale,
+                                    fontSize: 12.sp * scale,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -849,7 +850,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0x99D9E8FF),
-                                  fontSize: 14 * scale,
+                                  fontSize: 14.sp * scale,
                                 ),
                               ),
                             ],

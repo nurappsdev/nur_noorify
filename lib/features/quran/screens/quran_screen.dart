@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
 import 'package:first_project/features/quran/models/quran_models.dart';
@@ -427,21 +428,21 @@ class _QuranScreenState extends State<QuranScreen> {
     );
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF091A2A), Color(0xFF0E2B3D), Color(0xFF144B64)],
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(46),
+          bottomLeft: Radius.circular(28.r),
+          bottomRight: Radius.circular(46.r),
         ),
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(46),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28.r),
+          bottomRight: Radius.circular(46.r),
         ),
         child: Stack(
           children: [
@@ -449,8 +450,8 @@ class _QuranScreenState extends State<QuranScreen> {
               right: -36,
               top: -36,
               child: Container(
-                width: 144,
-                height: 144,
+                width: 144.r,
+                height: 144.r,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0x1FFFFFFF),
@@ -461,8 +462,8 @@ class _QuranScreenState extends State<QuranScreen> {
               left: -52,
               bottom: -72,
               child: Container(
-                width: 190,
-                height: 190,
+                width: 190.r,
+                height: 190.r,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0x18FFFFFF),
@@ -470,50 +471,50 @@ class _QuranScreenState extends State<QuranScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     '\u0627\u0644\u0642\u0631\u0622\u0646 \u0627\u0644\u0643\u0631\u064a\u0645',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 26,
+                      fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
                       height: 1,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     _t('Quran', 'কুরআন'),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 44,
+                      fontSize: 44.sp,
                       fontWeight: FontWeight.w300,
                       height: 0.92,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     _t('Read | Listen | Offline', 'পড়ুন | শুনুন | অফলাইন'),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xD7FFFFFF),
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   Container(
-                    padding: const EdgeInsets.fromLTRB(12, 11, 12, 10),
+                    padding: EdgeInsets.fromLTRB(12.w, 11.h, 12.w, 10.h),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [Color(0x2AFFFFFF), Color(0x12000000)],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.26),
                       ),
@@ -523,22 +524,22 @@ class _QuranScreenState extends State<QuranScreen> {
                         Row(
                           children: [
                             Container(
-                              width: 34,
-                              height: 34,
+                              width: 34.r,
+                              height: 34.r,
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(10.r),
                                 border: Border.all(
                                   color: Colors.white.withValues(alpha: 0.24),
                                 ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.menu_book_rounded,
-                                size: 18,
+                                size: 18.sp,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10.w),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,18 +550,18 @@ class _QuranScreenState extends State<QuranScreen> {
                                       color: Colors.white.withValues(
                                         alpha: 0.86,
                                       ),
-                                      fontSize: 11,
+                                      fontSize: 11.sp,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2.h),
                                   Text(
                                     lastReadChapter.surahName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 17,
+                                      fontSize: 17.sp,
                                       fontWeight: FontWeight.w700,
                                       height: 1.05,
                                     ),
@@ -571,24 +572,24 @@ class _QuranScreenState extends State<QuranScreen> {
                                       color: Colors.white.withValues(
                                         alpha: 0.84,
                                       ),
-                                      fontSize: 13,
+                                      fontSize: 13.sp,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             FilledButton(
                               onPressed: () =>
                                   _showSurahDetail(lastReadChapter),
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF43E6B0),
                                 foregroundColor: const Color(0xFF04353A),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 18.w,
                                 ),
-                                minimumSize: const Size(0, 40),
+                                minimumSize: Size(0.w, 40.h),
                                 shape: const StadiumBorder(),
                               ),
                               child: Text(
@@ -598,11 +599,11 @@ class _QuranScreenState extends State<QuranScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(999.r),
                           child: LinearProgressIndicator(
-                            minHeight: 5,
+                            minHeight: 5.h,
                             value: lastReadProgress.progress,
                             backgroundColor: Colors.white.withValues(
                               alpha: 0.24,
@@ -612,14 +613,14 @@ class _QuranScreenState extends State<QuranScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        SizedBox(height: 5.h),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             progressLabel,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 11.5,
+                              fontSize: 11.5.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -646,12 +647,12 @@ class _QuranScreenState extends State<QuranScreen> {
         : const Color(0xFFBDD5E4);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 8.h),
       child: Column(
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(5),
+            padding: EdgeInsets.all(5.r),
             decoration: BoxDecoration(
               gradient: glass.isDark
                   ? null
@@ -661,7 +662,7 @@ class _QuranScreenState extends State<QuranScreen> {
                 colors: [Color(0xEFFFFFFF), Color(0xD7F3FAFF)],
               ),
               color: glass.isDark ? const Color(0x3816232F) : null,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
                 color: glass.isDark
                     ? const Color(0x6AA9C7DB)
@@ -687,7 +688,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     onTap: () => setState(() => _filter = 'all'),
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: _FilterChipButton(
                     label: _t('Meccan', 'মক্কী'),
@@ -696,7 +697,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     onTap: () => setState(() => _filter = 'meccan'),
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: _FilterChipButton(
                     label: _t('Medinan', 'মাদানী'),
@@ -705,7 +706,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     onTap: () => setState(() => _filter = 'medinan'),
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: _FilterChipButton(
                     label: _t('Downloaded', 'ডাউনলোডেড'),
@@ -719,7 +720,7 @@ class _QuranScreenState extends State<QuranScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           TextField(
             controller: _searchController,
             focusNode: _searchFocusNode,
@@ -736,29 +737,29 @@ class _QuranScreenState extends State<QuranScreen> {
               ),
               filled: true,
               fillColor: searchFill,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              contentPadding: EdgeInsets.symmetric(vertical: 12.h),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: searchBorder, width: 1.2),
+                borderRadius: BorderRadius.circular(14.r),
+                borderSide: BorderSide(color: searchBorder, width: 1.2.w),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: searchBorder, width: 1.2),
+                borderRadius: BorderRadius.circular(14.r),
+                borderSide: BorderSide(color: searchBorder, width: 1.2.w),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: glass.accent, width: 1.7),
+                borderRadius: BorderRadius.circular(14.r),
+                borderSide: BorderSide(color: glass.accent, width: 1.7.w),
               ),
             ),
           ),
           if (_showBulkCacheProgress) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10.h),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
               decoration: BoxDecoration(
                 color: BrandColors.tintBackground,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(color: BrandColors.border),
               ),
               child: Column(
@@ -769,17 +770,17 @@ class _QuranScreenState extends State<QuranScreen> {
                       'Preparing offline reading: $_bulkCacheCompleted/$_bulkCacheTotal',
                       'অফলাইন রিডিং প্রস্তুত হচ্ছে: ${_digits(_bulkCacheCompleted.toString())}/${_digits(_bulkCacheTotal.toString())}',
                     ),
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 12.sp,
                       color: BrandColors.primaryDark,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6.h),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(999.r),
                     child: LinearProgressIndicator(
-                      minHeight: 6,
+                      minHeight: 6.h,
                       value: _bulkCacheProgressValue,
                       backgroundColor: Colors.white,
                       valueColor: const AlwaysStoppedAnimation<Color>(
@@ -799,17 +800,17 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget _buildCollapsedTopBar() {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 6.h),
       child: NoorifyGlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        radius: BorderRadius.circular(14),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
+        radius: BorderRadius.circular(14.r),
         child: Row(
           children: [
             Text(
               _t('Quran', 'কুরআন'),
               style: TextStyle(
                 color: glass.textPrimary,
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -890,7 +891,7 @@ class _QuranScreenState extends State<QuranScreen> {
                         _error!,
                         style: TextStyle(color: glass.textSecondary),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       FilledButton(
                         onPressed: _loadChapters,
                         style: FilledButton.styleFrom(
@@ -906,7 +907,7 @@ class _QuranScreenState extends State<QuranScreen> {
                 )
                     : ListView.builder(
                   controller: _surahListController,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 8.h),
                   itemCount: _filteredChapters.length,
                   itemBuilder: (context, index) {
                     final chapter = _filteredChapters[index];
@@ -914,7 +915,7 @@ class _QuranScreenState extends State<QuranScreen> {
                       chapter.surahNo,
                     );
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                      padding: EdgeInsets.only(bottom: 10.h),
                       child: _QuranSurahTile(
                         chapter: chapter,
                         hasBookmark: firstBookmark != null,
@@ -970,8 +971,8 @@ class _FilterChipButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: isSegment
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 9)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            ? EdgeInsets.symmetric(horizontal: 4.w, vertical: 9.h)
+            : EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(isSegment ? 10 : 100),
@@ -1047,13 +1048,13 @@ class _QuranSurahTile extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(18.r),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18.r),
         onTap: onTap,
         child: NoorifyGlassCard(
-          radius: BorderRadius.circular(18),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          radius: BorderRadius.circular(18.r),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
           boxShadow: [
             BoxShadow(
               color: glass.isDark
@@ -1065,7 +1066,7 @@ class _QuranSurahTile extends StatelessWidget {
           ],
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               gradient: tileBackground,
               border: glass.isDark
                   ? null
@@ -1079,10 +1080,10 @@ class _QuranSurahTile extends StatelessWidget {
                     left: -18,
                     child: IgnorePointer(
                       child: Container(
-                        width: 140,
-                        height: 64,
+                        width: 140.w,
+                        height: 64.h,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(999.r),
                           gradient: const LinearGradient(
                             colors: [Color(0x4DFFFFFF), Color(0x00FFFFFF)],
                           ),
@@ -1093,15 +1094,15 @@ class _QuranSurahTile extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 48.r,
+                      height: 48.r,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: glass.isDark
                             ? const Color(0xFF122A35)
                             : const Color(0xFFE9F8FC),
                         shape: BoxShape.circle,
-                        border: Border.all(color: glass.accentSoft, width: 1.4),
+                        border: Border.all(color: glass.accentSoft, width: 1.4.w),
                         boxShadow: [
                           BoxShadow(
                             color: glass.accent.withValues(alpha: 0.26),
@@ -1114,13 +1115,13 @@ class _QuranSurahTile extends StatelessWidget {
                         chapter.surahNo.toString(),
                         style: TextStyle(
                           color: glass.accentSoft,
-                          fontSize: 24,
+                          fontSize: 24.sp,
                           fontWeight: FontWeight.w700,
                           height: 1,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1129,23 +1130,23 @@ class _QuranSurahTile extends StatelessWidget {
                             chapter.surahName,
                             style: TextStyle(
                               color: glass.textPrimary,
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.w700,
                               height: 1.1,
                             ),
                           ),
-                          const SizedBox(height: 1),
+                          SizedBox(height: 1.h),
                           Text(
                             chapter.surahName,
                             style: TextStyle(
                               color: glass.isDark
                                   ? const Color(0xFFE4F1FA)
                                   : const Color(0xFF21465F),
-                              fontSize: 12.5,
+                              fontSize: 12.5.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 1),
+                          SizedBox(height: 1.h),
                           Text(
                             '$revelationLabel \u2022 ${chapter.totalAyah} ${_t('ayah', 'আয়াত')} \u2022 $translation',
                             maxLines: 1,
@@ -1154,16 +1155,16 @@ class _QuranSurahTile extends StatelessWidget {
                               color: glass.isDark
                                   ? const Color(0xFFC6DBEB)
                                   : const Color(0xFF3F627B),
-                              fontSize: 11.5,
+                              fontSize: 11.5.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 110),
+                      constraints: BoxConstraints(maxWidth: 110.w),
                       child: Text(
                         chapter.surahNameArabic,
                         textAlign: TextAlign.end,
@@ -1173,13 +1174,13 @@ class _QuranSurahTile extends StatelessWidget {
                           color: glass.isDark
                               ? const Color(0xFFDDEBA8)
                               : const Color(0xFF2F5A60),
-                          fontSize: 40,
+                          fontSize: 40.sp,
                           fontWeight: FontWeight.w500,
                           height: 0.9,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     IconButton.filledTonal(
                       onPressed: onBookmarkTap,
                       style: IconButton.styleFrom(

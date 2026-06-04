@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:ponjika/ponjika.dart';
 
@@ -527,11 +528,11 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
         : (glass.isDark ? const Color(0x181A3345) : const Color(0x80FFFFFF));
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 9.h),
       decoration: BoxDecoration(
         color: rowColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: highlighted
               ? glass.accent.withValues(alpha: 0.65)
@@ -540,14 +541,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: glass.accent),
-          const SizedBox(width: 8),
+          Icon(icon, size: 18.sp, color: glass.accent),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               _prayerLabel(key),
               style: TextStyle(
                 color: glass.textPrimary,
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -556,7 +557,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             _formatTime(at.toLocal()),
             style: TextStyle(
               color: glass.textPrimary,
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -611,8 +612,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
 
   Widget _buildHeader(NoorifyGlassTheme glass) {
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(24),
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      radius: BorderRadius.circular(24.r),
+      padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
       boxShadow: _softShadow(glass),
       child: Row(
         children: [
@@ -632,14 +633,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
             icon: const Icon(Icons.arrow_back_rounded),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           Expanded(
             child: Text(
               _text('Hijri Calendar', 'হিজরি ক্যালেন্ডার'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: glass.textPrimary,
-                fontSize: 28,
+                fontSize: 28.sp,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -655,7 +656,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
             icon: const Icon(Icons.settings_rounded),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           IconButton(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -687,8 +688,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
         : 'Day ${_digits(hijri.hDay.toString())}';
 
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(22),
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      radius: BorderRadius.circular(22.r),
+      padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 14.h),
       boxShadow: _softShadow(glass),
       child: Row(
         children: [
@@ -700,25 +701,25 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   _hijriMonth(hijri.longMonthName),
                   style: TextStyle(
                     color: glass.textPrimary,
-                    fontSize: 20,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   dayLabel,
                   style: TextStyle(
                     color: glass.textSecondary,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   _moonPhaseLabel(),
                   style: TextStyle(
                     color: glass.accentSoft,
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -726,14 +727,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
           ),
           SizedBox(
-            width: 122,
-            height: 122,
+            width: 122.r,
+            height: 122.r,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 118,
-                  height: 118,
+                  width: 118.r,
+                  height: 118.r,
                   child: CircularProgressIndicator(
                     value: _moonProgress(),
                     strokeWidth: 8,
@@ -744,8 +745,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   ),
                 ),
                 Container(
-                  width: 92,
-                  height: 92,
+                  width: 92.r,
+                  height: 92.r,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -764,7 +765,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     _digits(hijri.hDay.toString()),
                     style: TextStyle(
                       color: glass.textPrimary,
-                      fontSize: 34,
+                      fontSize: 34.sp,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -783,8 +784,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     List<DateTime> visibleDays,
   ) {
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(22),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      radius: BorderRadius.circular(22.r),
+      padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
       boxShadow: _softShadow(glass),
       child: Column(
         children: [
@@ -804,7 +805,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                       _monthHeaderTitle(),
                       style: TextStyle(
                         color: glass.textPrimary,
-                        fontSize: 24,
+                        fontSize: 24.sp,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -812,7 +813,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                       _monthHeaderSubtitle(),
                       style: TextStyle(
                         color: glass.textSecondary,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -828,7 +829,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             children: List<Widget>.generate(
               7,
@@ -838,7 +839,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     _weekday(i),
                     style: TextStyle(
                       color: glass.textSecondary,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -846,7 +847,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -865,11 +866,11 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               final hasEvent = _eventsForDate(date).isNotEmpty;
 
               return InkWell(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 onTap: () => _onSelectDate(date),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     gradient: null,
                     color: selected
                         ? (glass.isDark
@@ -900,7 +901,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                                       : glass.textMuted.withValues(
                                           alpha: 0.58,
                                         )),
-                            fontSize: 20,
+                            fontSize: 20.sp,
                             fontWeight: selected
                                 ? FontWeight.w800
                                 : FontWeight.w700,
@@ -909,11 +910,11 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                       ),
                       if (hasEvent)
                         Positioned(
-                          top: 4,
-                          right: 4,
+                          top: 4.h,
+                          right: 4.w,
                           child: Icon(
                             Icons.circle,
-                            size: 6,
+                            size: 6.sp,
                             color: selected
                                 ? const Color(0xFF0B4A52)
                                 : glass.accent,
@@ -933,7 +934,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   Widget _buildEventChips(NoorifyGlassTheme glass, List<String> events) {
     if (events.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.only(top: 10),
+        padding: EdgeInsets.only(top: 10.h),
         child: Text(
           _text(
             'No highlighted event on this date',
@@ -941,7 +942,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           ),
           style: TextStyle(
             color: glass.textSecondary,
-            fontSize: 12.5,
+            fontSize: 12.5.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -949,7 +950,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: EdgeInsets.only(top: 10.h),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -957,15 +958,15 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             .take(3)
             .map((event) {
               return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 8.h,
                 ),
                 decoration: BoxDecoration(
                   color: glass.isDark
                       ? const Color(0xFF163244)
                       : const Color(0xFFDDF4FA),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
                     color: glass.accent.withValues(alpha: 0.55),
                   ),
@@ -975,18 +976,18 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   children: [
                     Icon(
                       Icons.event_available_rounded,
-                      size: 14,
+                      size: 14.sp,
                       color: glass.accent,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6.w),
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 180),
+                      constraints: BoxConstraints(maxWidth: 180.w),
                       child: Text(
                         event,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: glass.textPrimary,
-                          fontSize: 12.5,
+                          fontSize: 12.5.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1024,8 +1025,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     }
 
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(18),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      radius: BorderRadius.circular(18.r),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       boxShadow: _softShadow(glass),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1037,7 +1038,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   _text('Prayer Times', 'সালাতের সময়'),
                   style: TextStyle(
                     color: glass.textPrimary,
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1049,14 +1050,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   _text('View all', 'রেফারেন্স দেখুন'),
                   style: TextStyle(
                     color: glass.accent,
-                    fontSize: 12.5,
+                    fontSize: 12.5.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           ...rows.map(
             (row) => _buildPrayerTimeRow(
               glass,
@@ -1066,21 +1067,21 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               highlighted: row.key == nextKey,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2.h),
           Text(
             '${_text('Sehri ends', 'সেহরি শেষ')}: ${_formatTime(prayers.fajr.toLocal())}',
             style: TextStyle(
               color: glass.textSecondary,
-              fontSize: 12.2,
+              fontSize: 12.2.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2.h),
           Text(
             '${_text('Iftar starts', 'ইফতার শুরু')}: ${_formatTime(prayers.maghrib.toLocal())}',
             style: TextStyle(
               color: glass.textSecondary,
-              fontSize: 12.2,
+              fontSize: 12.2.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1098,8 +1099,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
         ? 176.0
         : 148.0;
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(18),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      radius: BorderRadius.circular(18.r),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       boxShadow: _softShadow(glass),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1108,18 +1109,18 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             _text('Important Events', 'গুরুত্বপূর্ণ তারিখসমূহ'),
             style: TextStyle(
               color: glass.textPrimary,
-              fontSize: 16,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: EdgeInsets.only(bottom: 6.h),
             child: Text(
               _eventSourceLabel(),
               style: TextStyle(
                 color: glass.textSecondary,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1129,7 +1130,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               _text('No major event today', 'আজ বড় কোনো ইভেন্ট নেই'),
               style: TextStyle(
                 color: glass.textSecondary,
-                fontSize: 12.5,
+                fontSize: 12.5.sp,
                 fontWeight: FontWeight.w600,
               ),
             )
@@ -1138,22 +1139,22 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 .take(4)
                 .map(
                   (event) => Padding(
-                    padding: const EdgeInsets.only(bottom: 9),
+                    padding: EdgeInsets.only(bottom: 9.h),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
                           Icons.check_circle_rounded,
-                          size: 14,
+                          size: 14.sp,
                           color: glass.accent,
                         ),
-                        const SizedBox(width: 7),
+                        SizedBox(width: 7.w),
                         Expanded(
                           child: Text(
                             event,
                             style: TextStyle(
                               color: glass.textPrimary,
-                              fontSize: 13,
+                              fontSize: 13.sp,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -1162,16 +1163,16 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     ),
                   ),
                 ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             _text('Nearby Events', 'আগে ও পরের ইভেন্ট'),
             style: TextStyle(
               color: glass.textPrimary,
-              fontSize: 12.5,
+              fontSize: 12.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           if (timelineItems.isEmpty)
             Text(
               _text(
@@ -1180,7 +1181,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               ),
               style: TextStyle(
                 color: glass.textSecondary,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
               ),
             )
@@ -1194,14 +1195,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 itemBuilder: (context, index) {
                   final item = timelineItems[index];
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 9),
+                    padding: EdgeInsets.only(bottom: 9.h),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          width: 7,
-                          height: 7,
+                          margin: EdgeInsets.only(top: 2.h),
+                          width: 7.r,
+                          height: 7.r,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: item.isSelectedDate
@@ -1209,7 +1210,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                                 : glass.textSecondary.withValues(alpha: 0.7),
                           ),
                         ),
-                        const SizedBox(width: 7),
+                        SizedBox(width: 7.w),
                         Expanded(
                           child: Text(
                             '${_timelineDateLabel(item.date)} • ${item.event}',
@@ -1219,7 +1220,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                               color: item.isSelectedDate
                                   ? glass.textPrimary
                                   : glass.textSecondary,
-                              fontSize: 12.7,
+                              fontSize: 12.7.sp,
                               height: 1.25,
                               fontWeight: item.isSelectedDate
                                   ? FontWeight.w700
@@ -1255,11 +1256,11 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             children: [
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                  padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 14.h),
                   children: [
                     _buildHeader(glass),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                      padding: EdgeInsets.fromLTRB(4.w, 8.h, 4.w, 8.h),
                       child: Text(
                         _text(
                           'Today: ${_formatGregorian(_selectedDate)} • ${_formatHijri(_selectedDate)}',
@@ -1270,20 +1271,20 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                         style: TextStyle(
                           color: glass.textPrimary,
                           fontWeight: FontWeight.w700,
-                          fontSize: 18,
+                          fontSize: 18.sp,
                         ),
                       ),
                     ),
                     _buildMoonCard(glass),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     _buildCalendarCard(glass, today, visibleDays),
                     _buildEventChips(glass, selectedEvents),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildPrayerCard(glass, prayerTimes),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         _buildImportantEventsCard(
                           glass,
                           selectedEvents,
@@ -1291,12 +1292,12 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     NoorifyGlassCard(
-                      radius: BorderRadius.circular(16),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                      radius: BorderRadius.circular(16.r),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
                       ),
                       boxShadow: _softShadow(glass),
                       child: Column(
@@ -1306,12 +1307,12 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                             label: _text('Gregorian', 'ইংরেজি'),
                             value: _formatGregorian(_selectedDate),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           _DateInfoRow(
                             label: _text('Hijri', 'হিজরি'),
                             value: _formatHijri(_selectedDate),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6.h),
                           _DateInfoRow(
                             label: _text('Bangla', 'বাংলা'),
                             value: _formatBanglaDate(_selectedDate),
@@ -1343,23 +1344,23 @@ class _DateInfoRow extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 78,
+          width: 78.w,
           child: Text(
             label,
             style: TextStyle(
               color: glass.textSecondary,
-              fontSize: 13,
+              fontSize: 13.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10.w),
         Expanded(
           child: Text(
             value,
             style: TextStyle(
               color: glass.textPrimary,
-              fontSize: 13.5,
+              fontSize: 13.5.sp,
               fontWeight: FontWeight.w700,
             ),
           ),

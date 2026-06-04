@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
@@ -63,11 +64,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: glass.textMuted, fontSize: 10),
+      labelStyle: TextStyle(color: glass.textMuted, fontSize: 10.sp),
       hintText: hint,
       hintStyle: TextStyle(
         color: glass.textSecondary,
-        fontSize: 12,
+        fontSize: 12.sp,
         fontWeight: FontWeight.w600,
       ),
       filled: true,
@@ -75,17 +76,17 @@ class _SignupScreenState extends State<SignupScreen> {
           ? const Color(0x3F122634)
           : const Color(0xDFFFFFFF),
       suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.accent.withValues(alpha: 0.7)),
       ),
     );
@@ -119,9 +120,9 @@ class _SignupScreenState extends State<SignupScreen> {
         SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.r),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
+                constraints: BoxConstraints(maxWidth: 360.w),
                 child: child,
               ),
             ),
@@ -136,12 +137,12 @@ class _SignupScreenState extends State<SignupScreen> {
       children: [
         Expanded(child: Divider(color: glass.glassBorder)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
           child: Text(
             _text('OR', '\u0985\u09a5\u09ac\u09be'),
             style: TextStyle(
               color: glass.textMuted,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -209,9 +210,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         'You can set these now and change later from Profile.',
                         '\u098f\u0997\u09c1\u09b2\u09cb \u098f\u0996\u09a8 \u09b8\u09c7\u099f \u0995\u09b0\u09c1\u09a8, \u09aa\u09b0\u09c7 \u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2 \u09a5\u09c7\u0995\u09c7 \u09ac\u09a6\u09b2\u09be\u09a4\u09c7 \u09aa\u09be\u09b0\u09ac\u09c7\u09a8\u0964',
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(fontSize: 13.sp),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     TextField(
                       controller: _guestNameController,
                       textInputAction: TextInputAction.next,
@@ -227,7 +228,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     DropdownButtonFormField<AppLanguage>(
                       initialValue: language,
                       decoration: InputDecoration(
@@ -251,7 +252,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         setDialogState(() => language = value);
                       },
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     SwitchListTile(
                       value: prayerAlerts,
                       contentPadding: EdgeInsets.zero,
@@ -452,8 +453,8 @@ class _SignupScreenState extends State<SignupScreen> {
       body: _authShell(
         context,
         NoorifyGlassCard(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-          radius: BorderRadius.circular(24),
+          padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 16.h),
+          radius: BorderRadius.circular(24.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -462,20 +463,20 @@ class _SignupScreenState extends State<SignupScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: glass.textPrimary,
-                  fontSize: 34,
+                  fontSize: 34.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Center(
                 child: SizedBox(
-                  width: 80,
+                  width: 80.w,
                   child: Divider(
                     color: glass.accent.withValues(alpha: 0.5),
                     thickness: 1,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -488,11 +489,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   suffixIcon: Icon(
                     Icons.email_outlined,
                     color: glass.accentSoft,
-                    size: 16,
+                    size: 16.sp,
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -514,12 +515,12 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       color: glass.accentSoft,
-                      size: 16,
+                      size: 16.sp,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirm,
@@ -545,19 +546,19 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       color: glass.accentSoft,
-                      size: 16,
+                      size: 16.sp,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               Row(
                 children: [
                   Switch.adaptive(
                     value: _saveInfo,
                     onChanged: (v) => setState(() => _saveInfo = v),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6.w),
                   Text(
                     _text(
                       'Save my info?',
@@ -565,15 +566,15 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     style: TextStyle(
                       color: glass.textSecondary,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               SizedBox(
-                height: 42,
+                height: 42.h,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: glass.accent,
@@ -581,14 +582,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         ? const Color(0xFF072734)
                         : Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   onPressed: _isLoading ? null : _signUp,
                   child: _isLoading
                       ? SizedBox(
-                          width: 18,
-                          height: 18,
+                          width: 18.w,
+                          height: 18.h,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: glass.isDark
@@ -608,11 +609,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14.h),
               _orDivider(glass),
-              const SizedBox(height: 14),
+              SizedBox(height: 14.h),
               SizedBox(
-                height: 40,
+                height: 40.h,
                 child: FilledButton.tonalIcon(
                   onPressed: () => _showMessage(
                     _text(
@@ -620,7 +621,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       '\u09ab\u09cb\u09a8 \u09b8\u09be\u0987\u09a8-\u0986\u09aa \u09aa\u09b0\u09c7 \u09af\u09cb\u0997 \u0995\u09b0\u09be \u09b9\u09ac\u09c7\u0964',
                     ),
                   ),
-                  icon: const Icon(Icons.phone_android, size: 18),
+                  icon: Icon(Icons.phone_android, size: 18.sp),
                   label: Text(
                     _text(
                       'Continue With Phone',
@@ -635,12 +636,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               SizedBox(
-                height: 40,
+                height: 40.h,
                 child: FilledButton.tonalIcon(
                   onPressed: _isLoading ? null : _signInWithGoogle,
-                  icon: const Icon(Icons.g_mobiledata, size: 20),
+                  icon: Icon(Icons.g_mobiledata, size: 20.sp),
                   label: Text(
                     _isLoading
                         ? _text(
@@ -660,7 +661,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -669,7 +670,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       'Already have an account? ',
                       '\u0986\u0997\u09c7 \u09a5\u09c7\u0995\u09c7 \u0985\u09cd\u09af\u09be\u0995\u09be\u0989\u09a8\u09cd\u099f \u0986\u099b\u09c7? ',
                     ),
-                    style: TextStyle(color: glass.textSecondary, fontSize: 12),
+                    style: TextStyle(color: glass.textSecondary, fontSize: 12.sp),
                   ),
                   GestureDetector(
                     onTap: () =>
@@ -678,14 +679,14 @@ class _SignupScreenState extends State<SignupScreen> {
                       _text('Sign In', '\u09b8\u09be\u0987\u09a8 \u0987\u09a8'),
                       style: TextStyle(
                         color: glass.accent,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               TextButton(
                 onPressed: _isLoading ? null : _continueWithoutSignIn,
                 child: Text(

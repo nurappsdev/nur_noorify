@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/features/hadith/models/hadith_item.dart';
 import 'package:first_project/features/hadith/services/hadith_service.dart';
@@ -169,7 +170,7 @@ class _HadithScreenState extends State<HadithScreen> {
       builder: (sheetContext) {
         final glass = NoorifyGlassTheme(sheetContext);
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,70 +178,70 @@ class _HadithScreenState extends State<HadithScreen> {
                 Text(
                   item.titleBn.isNotEmpty ? item.titleBn : item.titleEn,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
                     color: glass.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   item.reference,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: glass.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.r),
                   decoration: BoxDecoration(
                     color: glass.isDark
                         ? const Color(0x44112635)
                         : const Color(0xFFEAF3FA),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(color: glass.glassBorder),
                   ),
                   child: Text(
                     item.arabic,
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 24.sp,
                       fontWeight: FontWeight.w700,
                       color: glass.textPrimary,
                       height: 1.45,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 Text(
                   _text('English', 'ইংরেজি'),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: glass.textMuted,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   item.english,
-                  style: TextStyle(fontSize: 14, color: glass.textPrimary),
+                  style: TextStyle(fontSize: 14.sp, color: glass.textPrimary),
                 ),
                 if (item.bangla.trim().isNotEmpty) ...[
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   Text(
                     _text('Bangla', 'বাংলা'),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: glass.textMuted,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     item.bangla,
-                    style: TextStyle(fontSize: 14, color: glass.textPrimary),
+                    style: TextStyle(fontSize: 14.sp, color: glass.textPrimary),
                   ),
                 ],
               ],
@@ -276,10 +277,10 @@ class _HadithScreenState extends State<HadithScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+                padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 0.h),
                 child: NoorifyGlassCard(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                  radius: BorderRadius.circular(20),
+                  padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 14.h),
+                  radius: BorderRadius.circular(20.r),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -296,15 +297,15 @@ class _HadithScreenState extends State<HadithScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 5.h,
                             ),
                             decoration: BoxDecoration(
                               color: glass.isDark
                                   ? const Color(0x332EB8E6)
                                   : const Color(0x1F1EA8B8),
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(999.r),
                               border: Border.all(color: glass.glassBorder),
                             ),
                             child: Text(
@@ -312,13 +313,13 @@ class _HadithScreenState extends State<HadithScreen> {
                               style: TextStyle(
                                 color: glass.textPrimary,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 12,
+                                fontSize: 12.sp,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         _text(
                           'Lightweight offline hadith collection for initial release',
@@ -329,7 +330,7 @@ class _HadithScreenState extends State<HadithScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       TextField(
                         controller: _searchController,
                         style: TextStyle(color: glass.textPrimary),
@@ -348,16 +349,16 @@ class _HadithScreenState extends State<HadithScreen> {
                               ? const Color(0x4412272E)
                               : const Color(0xECFFFFFF),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             borderSide: BorderSide(color: glass.glassBorder),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             borderSide: BorderSide(color: glass.glassBorder),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 10.h,
                           ),
                         ),
                       ),
@@ -373,7 +374,7 @@ class _HadithScreenState extends State<HadithScreen> {
                     : _error != null
                     ? Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(20.r),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -382,7 +383,7 @@ class _HadithScreenState extends State<HadithScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: glass.textSecondary),
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: 10.h),
                               FilledButton(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: glass.accent,
@@ -398,17 +399,17 @@ class _HadithScreenState extends State<HadithScreen> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                        padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 10.h),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => SizedBox(height: 10.h),
                         itemBuilder: (context, index) {
                           final item = filtered[index];
                           final hasAudio = (item.audio ?? '').trim().isNotEmpty;
                           return InkWell(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(16.r),
                             onTap: () => _openHadithDetails(item),
                             child: NoorifyGlassCard(
-                              radius: BorderRadius.circular(16),
+                              radius: BorderRadius.circular(16.r),
                               padding: const EdgeInsets.fromLTRB(
                                 12,
                                 10,
@@ -421,9 +422,9 @@ class _HadithScreenState extends State<HadithScreen> {
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 9,
-                                          vertical: 5,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 9.w,
+                                          vertical: 5.h,
                                         ),
                                         decoration: BoxDecoration(
                                           color: glass.isDark
@@ -438,11 +439,11 @@ class _HadithScreenState extends State<HadithScreen> {
                                           style: TextStyle(
                                             color: glass.accent,
                                             fontWeight: FontWeight.w700,
-                                            fontSize: 11,
+                                            fontSize: 11.sp,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8.w),
                                       Expanded(
                                         child: Text(
                                           _categoryLabel(item.category),
@@ -450,7 +451,7 @@ class _HadithScreenState extends State<HadithScreen> {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: glass.textSecondary,
-                                            fontSize: 12,
+                                            fontSize: 12.sp,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -474,7 +475,7 @@ class _HadithScreenState extends State<HadithScreen> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4.h),
                                   Text(
                                     item.titleBn.isNotEmpty
                                         ? item.titleBn
@@ -482,28 +483,28 @@ class _HadithScreenState extends State<HadithScreen> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 15.sp,
                                       fontWeight: FontWeight.w700,
                                       color: glass.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  SizedBox(height: 6.h),
                                   Text(
                                     item.english,
                                     maxLines: 4,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 13.sp,
                                       color: glass.textSecondary,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  SizedBox(height: 6.h),
                                   Text(
                                     item.reference,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 12.sp,
                                       color: glass.accentSoft,
                                       fontWeight: FontWeight.w700,
                                     ),

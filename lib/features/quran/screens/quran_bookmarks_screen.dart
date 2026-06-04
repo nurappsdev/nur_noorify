@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/features/quran/services/quran_bookmarks_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
@@ -36,20 +37,20 @@ class QuranBookmarksScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                    padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back_rounded),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6.w),
                         Expanded(
                           child: Text(
                             t('Saved Bookmarks', 'সেভ করা বুকমার্ক'),
                             style: TextStyle(
                               color: glass.textPrimary,
-                              fontSize: 21,
+                              fontSize: 21.sp,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -58,7 +59,7 @@ class QuranBookmarksScreen extends StatelessWidget {
                           digits(bookmarks.length.toString()),
                           style: TextStyle(
                             color: glass.textSecondary,
-                            fontSize: 14,
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -67,9 +68,9 @@ class QuranBookmarksScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 14.h),
                       itemCount: bookmarks.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => SizedBox(height: 10.h),
                       itemBuilder: (context, index) {
                         final item = bookmarks[index];
                         final note = item.note.trim();
@@ -79,21 +80,21 @@ class QuranBookmarksScreen extends StatelessWidget {
                         return Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(16.r),
                             onTap: () => Navigator.of(context).pop(item),
                             child: NoorifyGlassCard(
-                              radius: BorderRadius.circular(16),
-                              padding: const EdgeInsets.fromLTRB(
-                                12,
-                                12,
-                                12,
-                                10,
+                              radius: BorderRadius.circular(16.r),
+                              padding: EdgeInsets.fromLTRB(
+                                12.w,
+                                12.h,
+                                12.w,
+                                10.h,
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 40,
-                                    height: 40,
+                                    width: 40.r,
+                                    height: 40.r,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: glass.accent.withValues(
@@ -107,11 +108,11 @@ class QuranBookmarksScreen extends StatelessWidget {
                                     ),
                                     child: Icon(
                                       Icons.bookmark_rounded,
-                                      size: 20,
+                                      size: 20.sp,
                                       color: glass.accent,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: 12.w),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -123,28 +124,28 @@ class QuranBookmarksScreen extends StatelessWidget {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: glass.textPrimary,
-                                            fontSize: 15,
+                                            fontSize: 15.sp,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: 2.h),
                                         Text(
                                           subtitle,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: glass.textSecondary,
-                                            fontSize: 12.5,
+                                            fontSize: 12.5.sp,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: 6.w),
                                   Icon(
                                     Icons.arrow_forward_ios_rounded,
-                                    size: 16,
+                                    size: 16.sp,
                                     color: glass.textSecondary,
                                   ),
                                 ],

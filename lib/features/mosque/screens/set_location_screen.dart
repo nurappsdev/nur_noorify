@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -235,7 +236,7 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+                padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 10.h),
                 child: Row(
                   children: [
                     Material(
@@ -248,16 +249,16 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                         onPressed: () => Navigator.of(context).maybePop(),
                         icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          size: 18,
+                          size: 18.sp,
                           color: glass.textPrimary,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Text(
                       _text('Location', 'লোকেশন'),
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.w700,
                         color: glass.textPrimary,
                       ),
@@ -266,13 +267,13 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                padding: EdgeInsets.fromLTRB(14.w, 0.h, 14.w, 10.h),
                 child: NoorifyGlassCard(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 8.h,
                   ),
-                  radius: BorderRadius.circular(18),
+                  radius: BorderRadius.circular(18.r),
                   child: TextField(
                     controller: _searchController,
                     style: TextStyle(color: glass.textPrimary),
@@ -281,13 +282,13 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                       hintStyle: TextStyle(color: glass.textMuted),
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 12.h,
                       ),
                       prefixIcon: Icon(
                         Icons.search_rounded,
-                        size: 20,
+                        size: 20.sp,
                         color: glass.textMuted,
                       ),
                     ),
@@ -295,15 +296,15 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                padding: EdgeInsets.fromLTRB(14.w, 0.h, 14.w, 8.h),
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
                     onPressed: _locatingCurrent ? null : _useCurrentLocation,
                     icon: _locatingCurrent
                         ? SizedBox(
-                            width: 14,
-                            height: 14,
+                            width: 14.r,
+                            height: 14.r,
                             child: CircularProgressIndicator(
                               strokeWidth: 1.8,
                               color: glass.accent,
@@ -311,7 +312,7 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                           )
                         : Icon(
                             Icons.my_location_rounded,
-                            size: 16,
+                            size: 16.sp,
                             color: glass.accent,
                           ),
                     label: Text(
@@ -321,14 +322,14 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                       ),
                       style: TextStyle(
                         color: glass.accent,
-                        fontSize: 12.5,
+                        fontSize: 12.5.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -340,7 +341,7 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                   children: [
                     Positioned.fill(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(22.r),
                         child: FlutterMap(
                           mapController: _mapController,
                           options: MapOptions(
@@ -362,8 +363,8 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                             MarkerLayer(
                               markers: [
                                 Marker(
-                                  width: 30,
-                                  height: 44,
+                                  width: 30.w,
+                                  height: 44.h,
                                   point: _selectedPoint,
                                   child: const _PinMarker(),
                                 ),
@@ -374,33 +375,33 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                       ),
                     ),
                     Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 170,
+                      left: 0.w,
+                      right: 0.w,
+                      top: 170.h,
                       child: Center(
                         child: NoorifyGlassCard(
-                          radius: BorderRadius.circular(12),
-                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                          radius: BorderRadius.circular(12.r),
+                          padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 8.h),
                           child: SizedBox(
-                            width: 196,
+                            width: 196.w,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.location_on_rounded,
-                                      size: 14,
+                                      size: 14.sp,
                                       color: Color(0xFFF05555),
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4.w),
                                     Expanded(
                                       child: Text(
                                         _selectedLabel,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 12.5,
+                                          fontSize: 12.5.sp,
                                           fontWeight: FontWeight.w700,
                                           color: glass.textPrimary,
                                         ),
@@ -408,7 +409,7 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2.h),
                                 Text(
                                   _text(
                                     'Lat: $latText, Long:$lngText',
@@ -417,17 +418,17 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 11.sp,
                                     color: glass.textSecondary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 if (_resolvingLabel)
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 4),
+                                    padding: EdgeInsets.only(top: 4.h),
                                     child: SizedBox(
-                                      width: 12,
-                                      height: 12,
+                                      width: 12.r,
+                                      height: 12.r,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 1.8,
                                         color: glass.accent,
@@ -441,11 +442,11 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                       ),
                     ),
                     Positioned(
-                      left: 20,
-                      right: 20,
-                      bottom: 84,
+                      left: 20.w,
+                      right: 20.w,
+                      bottom: 84.h,
                       child: SizedBox(
-                        height: 42,
+                        height: 42.h,
                         child: FilledButton(
                           onPressed: _confirmSelection,
                           style: FilledButton.styleFrom(
@@ -459,15 +460,15 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                             _text('Choose Location', 'লোকেশন নির্বাচন করুন'),
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              fontSize: 16 / 1.15,
+                              fontSize: 16.sp / 1.15,
                             ),
                           ),
                         ),
                       ),
                     ),
                     Positioned(
-                      right: 14,
-                      bottom: 76,
+                      right: 14.w,
+                      bottom: 76.h,
                       child: Material(
                         color: glass.isDark
                             ? const Color(0xEE112233)
@@ -479,7 +480,7 @@ class _SetLocationScreenState extends State<SetLocationScreen> {
                           icon: Icon(
                             Icons.my_location_rounded,
                             color: glass.accent,
-                            size: 21,
+                            size: 21.sp,
                           ),
                         ),
                       ),
@@ -502,37 +503,37 @@ class _PinMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 22,
-      height: 34,
+      width: 22.w,
+      height: 34.h,
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
           Positioned(
-            top: 0,
+            top: 0.h,
             child: Container(
-              width: 22,
-              height: 22,
+              width: 22.r,
+              height: 22.r,
               decoration: const BoxDecoration(
                 color: Color(0xFFF04444),
                 shape: BoxShape.circle,
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.location_on_rounded,
-                  size: 12,
+                  size: 12.sp,
                   color: Colors.white,
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: 0,
+            bottom: 0.h,
             child: Container(
-              width: 6,
-              height: 10,
-              decoration: const BoxDecoration(
+              width: 6.w,
+              height: 10.h,
+              decoration: BoxDecoration(
                 color: Color(0xFFF04444),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(8.r)),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -8,7 +9,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Privacy Policy')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         children: const [
           _PolicySection(
             title: 'What We Collect',
@@ -55,12 +56,12 @@ class _PolicySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.only(bottom: 14.h),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: const Color(0xFFE1E8EC)),
         ),
         child: Column(
@@ -68,14 +69,14 @@ class _PolicySection extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             Text(
               body,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF334155),
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: const Color(0xFF334155),
                 height: 1.4,
               ),
             ),

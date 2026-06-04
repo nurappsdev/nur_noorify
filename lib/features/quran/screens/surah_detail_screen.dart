@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'package:first_project/shared/services/app_globals.dart';
@@ -121,17 +122,20 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
 
   Widget _buildGlassPanel({
     required Widget child,
-    EdgeInsetsGeometry padding = const EdgeInsets.all(14),
-    BorderRadius borderRadius = const BorderRadius.all(Radius.circular(18)),
+    EdgeInsetsGeometry? padding,
+    BorderRadius? borderRadius,
   }) {
+    final resolvedPadding = padding ?? EdgeInsets.all(14.r);
+    final resolvedRadius =
+        borderRadius ?? BorderRadius.all(Radius.circular(18.r));
     return ClipRRect(
-      borderRadius: borderRadius,
+      borderRadius: resolvedRadius,
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          padding: padding,
+          padding: resolvedPadding,
           decoration: BoxDecoration(
-            borderRadius: borderRadius,
+            borderRadius: resolvedRadius,
             gradient: LinearGradient(
               colors: [_glassStart, _glassEnd],
               begin: Alignment.topLeft,
@@ -626,13 +630,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
             children: [
               Text(
                 '${_t('Ayah', 'আয়াত')} ${_toBanglaDigits(ayahNo.toString())} ${_t('Bookmark', 'বুকমার্ক')}',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w700,
                   color: BrandColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               TextField(
                 controller: noteController,
                 maxLines: 3,
@@ -644,16 +648,16 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   filled: true,
                   fillColor: const Color(0xFFF8FBFC),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     borderSide: const BorderSide(color: BrandColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     borderSide: const BorderSide(color: BrandColors.border),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Row(
                 children: [
                   if (existing != null) ...[
@@ -662,7 +666,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       icon: const Icon(Icons.delete_outline_rounded),
                       label: Text(_t('Remove', 'মুছুন')),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                   ],
                   Expanded(
                     child: FilledButton.icon(
@@ -749,7 +753,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     required int highlightedWordIndex,
   }) {
     final baseStyle = TextStyle(
-      fontSize: 33,
+      fontSize: 33.sp,
       height: 1.55,
       fontWeight: FontWeight.w500,
       color: _screenTextPrimary,
@@ -1063,20 +1067,20 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
         final sheetHeight = MediaQuery.of(sheetContext).size.height * 0.82;
         return Container(
           height: sheetHeight,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
           ),
           child: FutureBuilder<QuranAyahTafsir>(
             future: tafsirFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircularProgressIndicator(),
-                      SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       Text(
                         'Loading and saving Bangla tafsir...',
                         style: TextStyle(color: BrandColors.textSecondary),
@@ -1088,7 +1092,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
 
               if (snapshot.hasError || !snapshot.hasData) {
                 return Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20.r),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1096,8 +1100,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         children: [
                           Text(
                             'Ayah ${_toBanglaDigits(ayahNo.toString())} Tafsir',
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.w700,
                               color: BrandColors.textPrimary,
                             ),
@@ -1109,11 +1113,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
+                      SizedBox(height: 10.h),
+                      Text(
                         'Please check your internet connection and try again. After the first successful load, the tafsir will be saved offline for future access.',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           height: 1.5,
                           color: BrandColors.textSecondary,
                         ),
@@ -1128,13 +1132,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+                    padding: EdgeInsets.fromLTRB(16.w, 12.h, 12.w, 8.h),
                     child: Row(
                       children: [
                         Text(
                           'Ayah ${_toBanglaDigits(ayahNo.toString())} Tafsir',
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
                             color: BrandColors.textPrimary,
                           ),
@@ -1148,14 +1152,14 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                    padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 10.h),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
                             tafsir.resourceName,
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: 12.sp,
                               color: BrandColors.textMuted,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1163,18 +1167,18 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         ),
                         if (tafsir.fromOfflineCache)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 4.h,
                             ),
                             decoration: BoxDecoration(
                               color: BrandColors.tintBackgroundStrong,
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(999.r),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Downloaded',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 11.sp,
                                 color: BrandColors.primaryDark,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -1186,12 +1190,12 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   const Divider(height: 1),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 20.h),
                       children: [
                         SelectableText(
                           tafsir.text,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             height: 1.75,
                             color: BrandColors.textPrimary,
                           ),
@@ -1226,10 +1230,10 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     return SafeArea(
       top: false,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+        margin: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
         child: _buildGlassPanel(
-          borderRadius: const BorderRadius.all(Radius.circular(28)),
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          borderRadius: BorderRadius.all(Radius.circular(28.r)),
+          padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1241,7 +1245,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       '${detail.surahName} - ${_toBanglaDigits(detail.surahNo.toString())}',
                       style: TextStyle(
                         color: _screenTextPrimary,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -1255,35 +1259,35 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 ],
               ),
               if (_usingCachedContent) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: 2.h),
                 Text(
                   'Offline saved content',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 11.sp,
                     color: _screenTextMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
               if (hasReciters)
                 InputDecorator(
                   decoration: InputDecoration(
                     labelText: 'Reciter',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       borderSide: BorderSide(color: _glassBorder),
                     ),
                     labelStyle: TextStyle(
                       color: _screenTextMuted,
                       fontWeight: FontWeight.w600,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 4.h,
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -1294,7 +1298,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                           : Colors.white,
                       style: TextStyle(
                         color: _screenTextPrimary,
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.w600,
                       ),
                       value: _selectedReciter?.id,
@@ -1320,11 +1324,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     color: _isDarkTheme
                         ? const Color(0xFFDEA1A1)
                         : const Color(0xFF8F4343),
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 3,
@@ -1352,7 +1356,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   Text(
                     _formatDuration(_position),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: _screenTextSecondary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1361,25 +1365,25 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   Text(
                     _formatDuration(_duration),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: _screenTextSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2.h),
               Text(
                 hasExactTiming
                     ? 'Exact ayah timing sync enabled'
                     : 'Approximate sync for this reciter',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   color: _screenTextMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Row(
                 children: [
                   Expanded(
@@ -1394,9 +1398,9 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                             : Colors.white,
                       ),
                       icon: _isPreparingAudio
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
+                          ? SizedBox(
+                              width: 16.r,
+                              height: 16.r,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Icon(
@@ -1407,7 +1411,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       label: Text(_isPlaying ? 'Pause' : 'Play'),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   OutlinedButton.icon(
                     onPressed: _isPlaying || _position > Duration.zero
                         ? _stopAudio
@@ -1419,7 +1423,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     icon: const Icon(Icons.stop_rounded),
                     label: const Text('Stop'),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   FilledButton.tonalIcon(
                     onPressed: hasReciters && !_isDownloadingAudio
                         ? _downloadSelectedAudio
@@ -1431,9 +1435,9 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       foregroundColor: _screenTextPrimary,
                     ),
                     icon: _isDownloadingAudio
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
+                        ? SizedBox(
+                            width: 16.r,
+                            height: 16.r,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Icon(
@@ -1469,8 +1473,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     final bookmarkCount = _bookmarksByAyahNo.length;
 
     return _buildGlassPanel(
-      borderRadius: const BorderRadius.all(Radius.circular(18)),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      borderRadius: BorderRadius.all(Radius.circular(18.r)),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1481,25 +1485,25 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
             textDirection: TextDirection.rtl,
             style: TextStyle(
               color: _screenTextPrimary,
-              fontSize: 24,
+              fontSize: 24.sp,
               fontWeight: FontWeight.w600,
               height: 1.2,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             '${detail.surahName} \u2022 ${_toBanglaDigits(detail.surahNo.toString())}',
             style: TextStyle(
               color: _screenTextSecondary,
-              fontSize: 13,
+              fontSize: 13.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(999.r),
             child: LinearProgressIndicator(
-              minHeight: 5,
+              minHeight: 5.h,
               value: progressValue,
               backgroundColor: _isDarkTheme
                   ? const Color(0x263A7FA1)
@@ -1507,42 +1511,42 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
               valueColor: AlwaysStoppedAnimation<Color>(_accent),
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           Row(
             children: [
               Text(
                 'Ayah $currentAyahLabel/$ayahCountLabel',
                 style: TextStyle(
                   color: _screenTextPrimary,
-                  fontSize: 12.5,
+                  fontSize: 12.5.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const Spacer(),
               InkWell(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(999.r),
                 onTap: _openBookmarksScreen,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
                   ),
                   decoration: BoxDecoration(
                     color: _isDarkTheme
                         ? const Color(0x332EB8E6)
                         : const Color(0x1A1EA8B8),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(999.r),
                     border: Border.all(color: _glassBorder),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.bookmarks_rounded, size: 14, color: _accent),
-                      const SizedBox(width: 5),
+                      Icon(Icons.bookmarks_rounded, size: 14.sp, color: _accent),
+                      SizedBox(width: 5.w),
                       Text(
                         '$bookmarkCount',
                         style: TextStyle(
                           color: _screenTextPrimary,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1596,15 +1600,15 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: AnimatedContainer(
           key: itemKey,
           duration: const Duration(milliseconds: 260),
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 12.h),
           decoration: BoxDecoration(
             color: ayahContainerBg,
             gradient: ayahContainerGradient,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: ayahContainerBorder,
               width: highlighted ? 1.4 : 1,
@@ -1627,10 +1631,10 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   top: -28,
                   child: IgnorePointer(
                     child: Container(
-                      width: 180,
-                      height: 74,
+                      width: 180.w,
+                      height: 74.h,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(999.r),
                         gradient: const LinearGradient(
                           colors: [Color(0x45FFFFFF), Color(0x00FFFFFF)],
                         ),
@@ -1644,8 +1648,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 30,
-                        height: 30,
+                        width: 30.r,
+                        height: 30.r,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: ayahNumberBg,
@@ -1664,7 +1668,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                           _toBanglaDigits((index + 1).toString()),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 13.sp,
                             color: highlighted
                                 ? (_isDarkTheme
                                       ? const Color(0xFF082734)
@@ -1675,8 +1679,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       ),
                       const Spacer(),
                       Container(
-                        width: 34,
-                        height: 34,
+                        width: 34.r,
+                        height: 34.r,
                         decoration: BoxDecoration(
                           color: hasBookmark
                               ? (_isDarkTheme
@@ -1685,7 +1689,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                               : (_isDarkTheme
                                     ? const Color(0x221D3037)
                                     : const Color(0x120E3853)),
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(999.r),
                           border: Border.all(color: _glassBorder),
                         ),
                         child: IconButton(
@@ -1700,20 +1704,20 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                             hasBookmark
                                 ? Icons.bookmark_rounded
                                 : Icons.bookmark_border_rounded,
-                            size: 20,
+                            size: 20.sp,
                             color: hasBookmark ? _accent : _screenTextMuted,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       Container(
-                        width: 34,
-                        height: 34,
+                        width: 34.r,
+                        height: 34.r,
                         decoration: BoxDecoration(
                           color: _isDarkTheme
                               ? const Color(0x2D2EB8E6)
                               : const Color(0x251EA8B8),
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(999.r),
                           border: Border.all(color: _glassBorder),
                         ),
                         child: IconButton(
@@ -1728,7 +1732,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                             isSingleAyahPlaying
                                 ? Icons.pause_rounded
                                 : Icons.play_arrow_rounded,
-                            size: 21,
+                            size: 21.sp,
                             color: _accent,
                           ),
                         ),
@@ -1736,7 +1740,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     ],
                   ),
                   if (arabic.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Align(
                       alignment: Alignment.centerRight,
                       child: _buildArabicAyahText(
@@ -1748,29 +1752,29 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     ),
                   ],
                   if (bengali.isNotEmpty && !hideBanglaInHifz) ...[
-                    const SizedBox(height: 7),
+                    SizedBox(height: 7.h),
                     Text(
                       bengali,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         height: 1.62,
                         color: _screenTextPrimary,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Row(
                     children: [
                       Icon(
                         Icons.menu_book_rounded,
-                        size: 14,
+                        size: 14.sp,
                         color: _screenTextMuted,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         'Tap for Bangla tafsir (saved offline)',
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11.5.sp,
                           color: _screenTextMuted,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1778,18 +1782,18 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                     ],
                   ),
                   if (bookmarkNote.isNotEmpty) ...[
-                    const SizedBox(height: 7),
+                    SizedBox(height: 7.h),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 8.h,
                       ),
                       decoration: BoxDecoration(
                         color: _isDarkTheme
                             ? const Color(0x332EB8E6)
                             : const Color(0x221EA8B8),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10.r),
                         border: Border.all(color: _glassBorder),
                       ),
                       child: Text(
@@ -1797,7 +1801,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           color: _screenTextSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1846,8 +1850,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
           leading: IconButton(
             onPressed: () => Navigator.of(context).pop(_didDownloadAudio),
             icon: Container(
-              width: 36,
-              height: 36,
+              width: 36.r,
+              height: 36.r,
               decoration: BoxDecoration(
                 color: _isDarkTheme
                     ? const Color(0x332EB8E6)
@@ -1868,24 +1872,24 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 style: TextStyle(
                   color: _screenTextPrimary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 24,
+                  fontSize: 24.sp,
                   height: 1,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2.h),
               Text(
                 widget.chapter.surahName,
                 style: TextStyle(
                   color: _screenTextPrimary,
                   fontWeight: FontWeight.w700,
-                  fontSize: 18,
+                  fontSize: 18.sp,
                 ),
               ),
               Text(
                 'Ayah 1-$headerAyahTo',
                 style: TextStyle(
                   color: _screenTextMuted,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1894,15 +1898,15 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(14),
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.only(bottom: 6.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 88,
+                    width: 88.w,
                     height: 2.5,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(999.r),
                       gradient: LinearGradient(
                         colors: [
                           _accent.withValues(alpha: 0),
@@ -1925,8 +1929,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       clipBehavior: Clip.none,
                       children: [
                         Container(
-                          width: 36,
-                          height: 36,
+                          width: 36.r,
+                          height: 36.r,
                           decoration: BoxDecoration(
                             color: _isDarkTheme
                                 ? const Color(0x332EB8E6)
@@ -1942,8 +1946,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                           right: -2,
                           top: -2,
                           child: Container(
-                            width: 8,
-                            height: 8,
+                            width: 8.r,
+                            height: 8.r,
                             decoration: const BoxDecoration(
                               color: Color(0xFFFFD54F),
                               shape: BoxShape.circle,
@@ -1953,8 +1957,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                       ],
                     )
                   : Container(
-                      width: 36,
-                      height: 36,
+                      width: 36.r,
+                      height: 36.r,
                       decoration: BoxDecoration(
                         color: _isDarkTheme
                             ? const Color(0x332EB8E6)
@@ -1973,8 +1977,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   ? null
                   : () => setState(() => _showBottomPlayer = true),
               icon: Container(
-                width: 36,
-                height: 36,
+                width: 36.r,
+                height: 36.r,
                 decoration: BoxDecoration(
                   color: _isDarkTheme
                       ? const Color(0x332EB8E6)
@@ -2006,8 +2010,8 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 top: -120,
                 left: -90,
                 child: Container(
-                  width: 250,
-                  height: 250,
+                  width: 250.r,
+                  height: 250.r,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
@@ -2017,11 +2021,11 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 ),
               ),
               Positioned(
-                top: 220,
+                top: 220.h,
                 right: -110,
                 child: Container(
-                  width: 260,
-                  height: 260,
+                  width: 260.r,
+                  height: 260.r,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
@@ -2042,7 +2046,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(color: _screenTextPrimary),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       FilledButton(
                         onPressed: _loadSurahDetail,
                         style: FilledButton.styleFrom(

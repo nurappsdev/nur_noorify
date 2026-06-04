@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
@@ -244,7 +245,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   TextField(
                     controller: newPasswordController,
                     obscureText: obscureNew,
@@ -265,7 +266,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   TextField(
                     controller: confirmPasswordController,
                     obscureText: obscureConfirm,
@@ -302,9 +303,9 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                 FilledButton(
                   onPressed: submitting ? null : submitChange,
                   child: submitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
+                      ? SizedBox(
+                          width: 16.r,
+                          height: 16.r,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(_text('Update', '\u0986\u09aa\u09a1\u09c7\u099f')),
@@ -648,20 +649,20 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
         final hasPhotoUrl = (photoUrl ?? '').trim().isNotEmpty;
         if (bytes != null) {
           return CircleAvatar(
-            radius: 19,
+            radius: 19.r,
             backgroundImage: MemoryImage(bytes),
             backgroundColor: Colors.white,
           );
         }
         if (hasPhotoUrl) {
           return CircleAvatar(
-            radius: 19,
+            radius: 19.r,
             backgroundImage: NetworkImage(photoUrl!.trim()),
             backgroundColor: Colors.white,
           );
         }
         return CircleAvatar(
-          radius: 19,
+          radius: 19.r,
           backgroundColor: glass.isDark
               ? const Color(0xFF2A3A4A)
               : const Color(0xFFCCD7E2),
@@ -670,7 +671,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
             color: glass.isDark
                 ? const Color(0xFFB6C9D8)
                 : const Color(0xFF6B7A8A),
-            size: 19,
+            size: 19.sp,
           ),
         );
       },
@@ -682,7 +683,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
     EdgeInsetsGeometry padding = EdgeInsets.zero,
   }) {
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(14),
+      radius: BorderRadius.circular(14.r),
       padding: padding,
       child: child,
     );
@@ -691,13 +692,13 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
   Widget _sectionLabel(String text) {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 12, 6, 6),
+      padding: EdgeInsets.fromLTRB(6.w, 12.h, 6.w, 6.h),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
           text,
           style: TextStyle(
-            fontSize: 10.5,
+            fontSize: 10.5.sp,
             color: glass.textMuted,
             fontWeight: FontWeight.w700,
           ),
@@ -717,11 +718,11 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(vertical: -2),
-      leading: Icon(icon, size: 16, color: glass.textSecondary),
+      leading: Icon(icon, size: 16.sp, color: glass.textSecondary),
       title: Text(
         title,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.sp,
           fontWeight: FontWeight.w600,
           color: glass.textPrimary,
         ),
@@ -731,16 +732,16 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
           : Text(
               subtitle,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 10.sp,
                 color: glass.textMuted,
                 height: 1.2,
               ),
             ),
       trailing:
           trailing ??
-          Icon(Icons.chevron_right_rounded, color: glass.textMuted, size: 18),
+          Icon(Icons.chevron_right_rounded, color: glass.textMuted, size: 18.sp),
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
       horizontalTitleGap: 10,
       minVerticalPadding: 6,
     );
@@ -788,31 +789,31 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
             children: [
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                  padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 10.h),
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 6.h),
                       child: Text(
                         _text(
                           'Profile',
                           '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2',
                         ),
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.w700,
                           color: glass.textPrimary,
                         ),
                       ),
                     ),
                     _sectionCard(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 8.h,
                       ),
                       child: Row(
                         children: [
                           _avatar(),
-                          const SizedBox(width: 11),
+                          SizedBox(width: 11.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,30 +834,30 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         color: glass.textPrimary,
-                                        fontSize: 13,
+                                        fontSize: 13.sp,
                                       ),
                                     );
                                   },
                                 ),
-                                const SizedBox(height: 1),
+                                SizedBox(height: 1.h),
                                 ValueListenableBuilder<String>(
                                   valueListenable: profileLocationNotifier,
                                   builder: (context, location, _) {
                                     return Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.location_on_rounded,
                                           color: _teal,
-                                          size: 12,
+                                          size: 12.sp,
                                         ),
-                                        const SizedBox(width: 3),
+                                        SizedBox(width: 3.w),
                                         Expanded(
                                           child: Text(
                                             location,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 10.5,
+                                            style: TextStyle(
+                                              fontSize: 10.5.sp,
                                               color: _teal,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -865,7 +866,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                                         Icon(
                                           Icons.chevron_right_rounded,
                                           color: glass.textMuted,
-                                          size: 16,
+                                          size: 16.sp,
                                         ),
                                       ],
                                     );
@@ -878,7 +879,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                             onPressed: _openEditProfile,
                             icon: Icon(
                               Icons.edit_outlined,
-                              size: 17,
+                              size: 17.sp,
                               color: glass.textMuted,
                             ),
                           ),
@@ -1358,7 +1359,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Align(
                       alignment: Alignment.center,
                       child: FilledButton.icon(
@@ -1366,19 +1367,19 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFFE64C5B),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 9,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 9.h,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius: BorderRadius.circular(22.r),
                           ),
                         ),
-                        icon: const Icon(Icons.logout_rounded, size: 14),
+                        icon: Icon(Icons.logout_rounded, size: 14.sp),
                         label: Text(
                           _text('Log Out', '\u09b2\u0997 \u0986\u0989\u099f'),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 12.sp,
                             fontWeight: FontWeight.w700,
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -108,7 +109,7 @@ class DiscoverScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                      padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 12.h),
                       children: [
                         _DiscoverHeaderCard(
                           title: t(
@@ -124,12 +125,12 @@ class DiscoverScreen extends StatelessWidget {
                           onSettingsTap: () =>
                               openRoute(RouteNames.preferences),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         NoorifyGlassCard(
-                          radius: BorderRadius.circular(16),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
+                          radius: BorderRadius.circular(16.r),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 4.h,
                           ),
                           child: TextField(
                             style: TextStyle(color: glass.textPrimary),
@@ -147,7 +148,7 @@ class DiscoverScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         _SectionTitle(
                           title: t(
                             'Quick Access',
@@ -267,7 +268,7 @@ class DiscoverScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         _SectionTitle(
                           title: t(
                             'Daily Picks',
@@ -286,7 +287,7 @@ class DiscoverScreen extends StatelessWidget {
                           icon: Icons.menu_book_rounded,
                           onTap: () => openRoute(RouteNames.asma),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         _FeatureListTile(
                           title: t(
                             'Hadith Collection',
@@ -299,7 +300,7 @@ class DiscoverScreen extends StatelessWidget {
                           icon: Icons.auto_stories_rounded,
                           onTap: () => openRoute(RouteNames.hadith),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         _FeatureListTile(
                           title: t(
                             'Dua & Zikr',
@@ -312,7 +313,7 @@ class DiscoverScreen extends StatelessWidget {
                           icon: Icons.favorite_outline_rounded,
                           onTap: () => openRoute(RouteNames.dua),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         _SectionTitle(
                           title: t('Tools', '\u099f\u09c1\u09b2\u09b8'),
                         ),
@@ -382,8 +383,8 @@ class _DiscoverHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(24),
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+      radius: BorderRadius.circular(24.r),
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 12.w, 12.h),
       child: Column(
         children: [
           Row(
@@ -395,17 +396,17 @@ class _DiscoverHeaderCard extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 30.sp,
                         fontWeight: FontWeight.w800,
                         color: glass.textPrimary,
                         height: 1.05,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         color: glass.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -423,7 +424,7 @@ class _DiscoverHeaderCard extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.calendar_today_rounded),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
               IconButton.filledTonal(
                 onPressed: onSettingsTap,
                 style: IconButton.styleFrom(
@@ -436,15 +437,15 @@ class _DiscoverHeaderCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Align(
             alignment: Alignment.centerLeft,
             child: Container(
-              width: 88,
-              height: 3,
+              width: 88.w,
+              height: 3.h,
               decoration: BoxDecoration(
                 color: glass.accent.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(999.r),
               ),
             ),
           ),
@@ -463,11 +464,11 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 6),
+      padding: EdgeInsets.only(left: 4.w, bottom: 6.h),
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.sp,
           fontWeight: FontWeight.w700,
           color: glass.textSecondary,
         ),
@@ -496,17 +497,17 @@ class _ActionCard extends StatelessWidget {
     final glass = NoorifyGlassTheme(context);
     final accent = accentColor ?? glass.accent;
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       onTap: onTap,
       child: NoorifyGlassCard(
-        radius: BorderRadius.circular(16),
-        padding: const EdgeInsets.fromLTRB(11, 10, 10, 10),
+        radius: BorderRadius.circular(16.r),
+        padding: EdgeInsets.fromLTRB(11.w, 10.h, 10.w, 10.h),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 38.r,
+              height: 38.r,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -516,14 +517,14 @@ class _ActionCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(11),
+                borderRadius: BorderRadius.circular(11.r),
                 border: Border.all(
                   color: accent.withValues(alpha: glass.isDark ? 0.45 : 0.35),
                 ),
               ),
-              child: Icon(icon, size: 20, color: accent),
+              child: Icon(icon, size: 20.sp, color: accent),
             ),
-            const SizedBox(width: 9),
+            SizedBox(width: 9.w),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -535,29 +536,29 @@ class _ActionCard extends StatelessWidget {
                     overflow: TextOverflow.fade,
                     style: TextStyle(
                       color: glass.textPrimary,
-                      fontSize: 14.3,
+                      fontSize: 14.3.sp,
                       fontWeight: FontWeight.w700,
                       height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: glass.textSecondary,
-                      fontSize: 11.3,
+                      fontSize: 11.3.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6.w),
             Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 12,
+              size: 12.sp,
               color: glass.textMuted,
             ),
           ],
@@ -584,15 +585,15 @@ class _FeatureListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       onTap: onTap,
       child: NoorifyGlassCard(
-        radius: BorderRadius.circular(16),
-        padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+        radius: BorderRadius.circular(16.r),
+        padding: EdgeInsets.fromLTRB(12.w, 11.h, 12.w, 11.h),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: glass.accent),
-            const SizedBox(width: 10),
+            Icon(icon, size: 20.sp, color: glass.accent),
+            SizedBox(width: 10.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,18 +604,18 @@ class _FeatureListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: glass.textPrimary,
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  SizedBox(height: 1.h),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: glass.textSecondary,
-                      fontSize: 11.8,
+                      fontSize: 11.8.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -623,7 +624,7 @@ class _FeatureListTile extends StatelessWidget {
             ),
             Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 14,
+              size: 14.sp,
               color: glass.textMuted,
             ),
           ],
@@ -648,27 +649,27 @@ class _MiniToolChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: glass.isDark
               ? const Color(0x1F1A3348)
               : const Color(0xAFFFFFFF),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: glass.glassBorder),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: glass.accent),
-            const SizedBox(width: 6),
+            Icon(icon, size: 16.sp, color: glass.accent),
+            SizedBox(width: 6.w),
             Text(
               title,
               style: TextStyle(
                 color: glass.textPrimary,
-                fontSize: 12.5,
+                fontSize: 12.5.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),

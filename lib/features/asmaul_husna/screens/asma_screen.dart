@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/features/asmaul_husna/models/asma_name.dart';
 import 'package:first_project/features/asmaul_husna/services/asma_service.dart';
@@ -107,9 +108,9 @@ class _AsmaScreenState extends State<AsmaScreen> {
                     : _error != null
                     ? _AsmaErrorView(error: _error!, onRetry: _loadAsmaNames)
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                        padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 10.h),
                         itemCount: filteredNames.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => SizedBox(height: 10.h),
                         itemBuilder: (context, index) {
                           final item = filteredNames[index];
                           final hasAudio = (item.audio ?? '').trim().isNotEmpty;
@@ -145,10 +146,10 @@ class _AsmaHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+      padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 0),
       child: NoorifyGlassCard(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-        radius: BorderRadius.circular(20),
+        padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 14.h),
+        radius: BorderRadius.circular(20.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -164,15 +165,15 @@ class _AsmaHeader extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 5.h,
                   ),
                   decoration: BoxDecoration(
                     color: glass.isDark
                         ? const Color(0x332EB8E6)
                         : const Color(0x1F1EA8B8),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(999.r),
                     border: Border.all(color: glass.glassBorder),
                   ),
                   child: Text(
@@ -180,13 +181,13 @@ class _AsmaHeader extends StatelessWidget {
                     style: TextStyle(
                       color: glass.textPrimary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                      fontSize: 12.sp,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               '99 Beautiful Names of Allah',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -194,7 +195,7 @@ class _AsmaHeader extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             TextField(
               controller: searchController,
               style: TextStyle(color: glass.textPrimary),
@@ -207,16 +208,16 @@ class _AsmaHeader extends StatelessWidget {
                     ? const Color(0x4412272E)
                     : const Color(0xECFFFFFF),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide(color: glass.glassBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide(color: glass.glassBorder),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 10.h,
                 ),
               ),
             ),
@@ -238,7 +239,7 @@ class _AsmaErrorView extends StatelessWidget {
     final glass = NoorifyGlassTheme(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.r),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -247,7 +248,7 @@ class _AsmaErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(color: glass.textSecondary),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10.h),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: glass.accent,
@@ -280,22 +281,22 @@ class _AsmaNameCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return NoorifyGlassCard(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      radius: BorderRadius.circular(16),
+      padding: EdgeInsets.all(12.r),
+      radius: BorderRadius.circular(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 34.r,
+                height: 34.r,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: glass.isDark
                       ? const Color(0x332EB8E6)
                       : const Color(0x221EA8B8),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Text(
                   item.id.toString(),
@@ -319,13 +320,13 @@ class _AsmaNameCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Center(
             child: Text(
               item.arabic,
               textDirection: TextDirection.rtl,
               style: TextStyle(
-                fontSize: 31,
+                fontSize: 31.sp,
                 fontWeight: FontWeight.w600,
                 color: glass.isDark
                     ? const Color(0xFFEAF5FF)
@@ -334,24 +335,24 @@ class _AsmaNameCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             item.transliteration,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 15.sp,
               fontWeight: FontWeight.w700,
               color: glass.accentSoft,
             ),
           ),
-          const SizedBox(height: 3),
+          SizedBox(height: 3.h),
           Text(
             item.englishMeaning,
-            style: TextStyle(fontSize: 13, color: glass.textSecondary),
+            style: TextStyle(fontSize: 13.sp, color: glass.textSecondary),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2.h),
           Text(
             '${item.banglaName} - ${item.banglaMeaning}',
-            style: TextStyle(fontSize: 13, color: glass.textMuted),
+            style: TextStyle(fontSize: 13.sp, color: glass.textMuted),
           ),
         ],
       ),

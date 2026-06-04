@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
@@ -157,11 +158,11 @@ class _PrayerTimesView extends StatelessWidget {
                   onRefresh: provider.refresh,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                    padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 14.h),
                     children: [
                       NoorifyGlassCard(
-                        radius: BorderRadius.circular(24),
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                        radius: BorderRadius.circular(24.r),
+                        padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
                         child: Row(
                           children: [
                             IconButton(
@@ -182,7 +183,7 @@ class _PrayerTimesView extends StatelessWidget {
                               ),
                               icon: const Icon(Icons.arrow_back_rounded),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,23 +192,23 @@ class _PrayerTimesView extends StatelessWidget {
                                     t('Prayer Times', 'নামাজের সময়'),
                                     style: TextStyle(
                                       color: glass.textPrimary,
-                                      fontSize: 22,
+                                      fontSize: 22.sp,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2.h),
                                   Text(
                                     provider.locationLabel,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: glass.textSecondary,
-                                      fontSize: 12.5,
+                                      fontSize: 12.5.sp,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   if (provider.isSyncing) ...[
-                                    const SizedBox(height: 2),
+                                    SizedBox(height: 2.h),
                                     Text(
                                       t(
                                         'Syncing location and online data...',
@@ -217,7 +218,7 @@ class _PrayerTimesView extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: glass.accentSoft,
-                                        fontSize: 10.8,
+                                        fontSize: 10.8.sp,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -242,7 +243,7 @@ class _PrayerTimesView extends StatelessWidget {
                                     Icons.calendar_today_rounded,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4.w),
                                 IconButton(
                                   onPressed: provider.isRefreshing
                                       ? null
@@ -255,8 +256,8 @@ class _PrayerTimesView extends StatelessWidget {
                                   ),
                                   icon: provider.isRefreshing
                                       ? SizedBox(
-                                          width: 16,
-                                          height: 16,
+                                          width: 16.r,
+                                          height: 16.r,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             color: glass.accent,
@@ -269,13 +270,13 @@ class _PrayerTimesView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       NoorifyGlassCard(
-                        radius: BorderRadius.circular(24),
-                        padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+                        radius: BorderRadius.circular(24.r),
+                        padding: EdgeInsets.fromLTRB(14.w, 16.h, 14.w, 16.h),
                         child: provider.isLoading
                             ? SizedBox(
-                                height: 130,
+                                height: 130.h,
                                 child: Center(
                                   child: CircularProgressIndicator(
                                     color: glass.accent,
@@ -292,15 +293,15 @@ class _PrayerTimesView extends StatelessWidget {
                                           t('Next Prayer', 'পরবর্তী সালাত'),
                                           style: TextStyle(
                                             color: glass.textSecondary,
-                                            fontSize: 13,
+                                            fontSize: 13.sp,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 4,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.w,
+                                          vertical: 4.h,
                                         ),
                                         decoration: BoxDecoration(
                                           color: glass.isDark
@@ -320,19 +321,19 @@ class _PrayerTimesView extends StatelessWidget {
                                           ),
                                           style: TextStyle(
                                             color: glass.textPrimary,
-                                            fontSize: 12,
+                                            fontSize: 12.sp,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8.h),
                                   Text(
                                     _formatRemaining(provider.remaining, isBangla),
                                     style: TextStyle(
                                       color: glass.accentSoft,
-                                      fontSize: 34,
+                                      fontSize: 34.sp,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5,
                                     ),
@@ -341,16 +342,16 @@ class _PrayerTimesView extends StatelessWidget {
                                     t('remaining', 'বাকি'),
                                     style: TextStyle(
                                       color: glass.textMuted,
-                                      fontSize: 12,
+                                      fontSize: 12.sp,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
+                                  SizedBox(height: 10.h),
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(99),
+                                    borderRadius: BorderRadius.circular(99.r),
                                     child: LinearProgressIndicator(
                                       value: ringProgress,
-                                      minHeight: 8,
+                                      minHeight: 8.h,
                                       backgroundColor: glass.isDark
                                           ? const Color(0x2A9EE7F4)
                                           : const Color(0x331EA8B8),
@@ -359,7 +360,7 @@ class _PrayerTimesView extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8.h),
                                   Row(
                                     children: [
                                       Expanded(
@@ -367,22 +368,22 @@ class _PrayerTimesView extends StatelessWidget {
                                           '${t('At', 'সময়')}: ${_formatTime(provider.nextPrayerAt, isBangla)}',
                                           style: TextStyle(
                                             color: glass.textPrimary,
-                                            fontSize: 13,
+                                            fontSize: 13.sp,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4.h),
                                   Row(
                                     children: [
                                       Icon(
                                         Icons.location_on_outlined,
-                                        size: 15,
+                                        size: 15.sp,
                                         color: glass.textMuted,
                                       ),
-                                      const SizedBox(width: 4),
+                                      SizedBox(width: 4.w),
                                       Expanded(
                                         child: Text(
                                           provider.locationLabel,
@@ -390,14 +391,14 @@ class _PrayerTimesView extends StatelessWidget {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: glass.textSecondary,
-                                            fontSize: 11.5,
+                                            fontSize: 11.5.sp,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
+                                  SizedBox(height: 6.h),
                                   if (provider.usingFallbackLocation ||
                                       provider.usingOfflineCalculation)
                                     Text(
@@ -412,17 +413,17 @@ class _PrayerTimesView extends StatelessWidget {
                                             ),
                                       style: TextStyle(
                                         color: glass.textSecondary,
-                                        fontSize: 11.5,
+                                        fontSize: 11.5.sp,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                 ],
                               ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       NoorifyGlassCard(
-                        radius: BorderRadius.circular(20),
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                        radius: BorderRadius.circular(20.r),
+                        padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 10.h),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -430,11 +431,11 @@ class _PrayerTimesView extends StatelessWidget {
                               t("Today's Schedule", 'আজকের সময়সূচি'),
                               style: TextStyle(
                                 color: glass.textPrimary,
-                                fontSize: 16,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10.h),
                             ..._prayerCards(provider, t).map((item) {
                               final isActive = item.key == provider.activePrayer;
                               return _PrayerTimeCard(
@@ -448,10 +449,10 @@ class _PrayerTimesView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       NoorifyGlassCard(
-                        radius: BorderRadius.circular(20),
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                        radius: BorderRadius.circular(20.r),
+                        padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 10.h),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -459,11 +460,11 @@ class _PrayerTimesView extends StatelessWidget {
                               t("Today's Highlights", 'আজকের গুরুত্বপূর্ণ সময়'),
                               style: TextStyle(
                                 color: glass.textPrimary,
-                                fontSize: 16,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10.h),
                             ..._dayHighlights(provider, t).map(
                               (item) => _PrayerHighlightTile(
                                 label: item.label,
@@ -475,7 +476,7 @@ class _PrayerTimesView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       Row(
                         children: [
                           Expanded(
@@ -496,7 +497,7 @@ class _PrayerTimesView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
@@ -515,7 +516,7 @@ class _PrayerTimesView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: FilledButton.icon(
                               style: FilledButton.styleFrom(
@@ -563,9 +564,9 @@ class _PrayerHighlightTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
         color: emphasized
             ? (glass.isDark ? const Color(0x2038D4C7) : const Color(0x1A1EA8B8))
             : (glass.isDark
@@ -577,17 +578,17 @@ class _PrayerHighlightTile extends StatelessWidget {
               : glass.glassBorder.withValues(alpha: 0.7),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 9.h),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: glass.accent),
-          const SizedBox(width: 8),
+          Icon(icon, size: 18.sp, color: glass.accent),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               label,
               style: TextStyle(
                 color: glass.textPrimary,
-                fontSize: 14,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -596,7 +597,7 @@ class _PrayerHighlightTile extends StatelessWidget {
             time,
             style: TextStyle(
               color: emphasized ? glass.accent : glass.textPrimary,
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -625,9 +626,9 @@ class _PrayerTimeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
         color: isActive
             ? (glass.isDark ? const Color(0x2038D4C7) : const Color(0x1A1EA8B8))
             : (glass.isDark
@@ -640,19 +641,19 @@ class _PrayerTimeCard extends StatelessWidget {
           width: isActive ? 1.2 : 1,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 10.h),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 34.r,
+            height: 34.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: glass.accent.withValues(alpha: isActive ? 0.22 : 0.14),
             ),
-            child: Icon(icon, size: 19, color: glass.accent),
+            child: Icon(icon, size: 19.sp, color: glass.accent),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,18 +662,18 @@ class _PrayerTimeCard extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: glass.textPrimary,
-                    fontSize: 15,
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2.h),
                 Text(
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: glass.textSecondary,
-                    fontSize: 11.4,
+                    fontSize: 11.4.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -683,13 +684,13 @@ class _PrayerTimeCard extends StatelessWidget {
             time,
             style: TextStyle(
               color: isActive ? glass.accent : glass.textPrimary,
-              fontSize: 16,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
           if (isActive) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.check_circle_rounded, size: 16, color: glass.accent),
+            SizedBox(width: 8.w),
+            Icon(Icons.check_circle_rounded, size: 16.sp, color: glass.accent),
           ],
         ],
       ),

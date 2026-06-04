@@ -111,21 +111,21 @@ mixin DailyActivityViewMixin
                           _buildPrayerStrip(),
 
                           SizedBox(height: 12.h),
+                          _buildAmolTrackCard(),
+                          SizedBox(height: 12.h),
                           _buildForbiddenTimesCard(),
 
                           SizedBox(height: 12.h),
                           _buildQiblaAndCountdownRow(),
 
                           SizedBox(height: 12.h),
+                          _buildBoyosZacaiCard(),
 
                           SizedBox(height: 12.h),
                           _buildQuickActions(),
 
                           SizedBox(height: 12.h),
-                          _buildAmolTrackCard(),
 
-                          SizedBox(height: 12.h),
-                          _buildBoyosZacaiCard(),
 
                           if (kQuranFeatureEnabled) ...[
                             SizedBox(height: 12.h),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -496,15 +497,15 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
   }) {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: EdgeInsets.only(top: 14.h),
       child: NoorifyGlassCard(
-        padding: const EdgeInsets.all(16),
-        radius: BorderRadius.circular(16),
+        padding: EdgeInsets.all(16.r),
+        radius: BorderRadius.circular(16.r),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: glass.textSecondary),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,24 +513,24 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
                       color: glass.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: glass.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   if (onRetry != null) ...[
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     SizedBox(
-                      height: 30,
+                      height: 30.h,
                       child: FilledButton(
                         onPressed: onRetry,
                         style: FilledButton.styleFrom(
@@ -537,9 +538,9 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                           foregroundColor: glass.isDark
                               ? const Color(0xFF072734)
                               : Colors.white,
-                          textStyle: const TextStyle(
+                          textStyle: TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                           ),
                           shape: const StadiumBorder(),
                         ),
@@ -559,10 +560,10 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
   Widget _buildMosqueThumbnail() {
     final glass = NoorifyGlassTheme(context);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: SizedBox(
-        width: 64,
-        height: 64,
+        width: 64.r,
+        height: 64.r,
         child: Image.asset(
           'assets/images/header-bg.png',
           fit: BoxFit.cover,
@@ -586,12 +587,12 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
   Widget _buildMosqueRow(MosqueItem item) {
     final glass = NoorifyGlassTheme(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: 12.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildMosqueThumbnail(),
-          const SizedBox(width: 11),
+          SizedBox(width: 11.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -601,38 +602,38 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
                     color: glass.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2.h),
                 Text(
                   item.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: glass.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 7),
+                SizedBox(height: 7.h),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8.w,
+                    vertical: 3.h,
                   ),
                   decoration: BoxDecoration(
                     color: glass.isDark
                         ? const Color(0x2A2EB8E6)
                         : const Color(0x221EA8B8),
-                    borderRadius: BorderRadius.circular(1000),
+                    borderRadius: BorderRadius.circular(1000.r),
                   ),
                   child: Text(
                     _distanceText(item.distanceKm),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       color: glass.accentSoft,
                       fontWeight: FontWeight.w700,
                     ),
@@ -641,9 +642,9 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           SizedBox(
-            height: 34,
+            height: 34.h,
             child: FilledButton.icon(
               onPressed: () => _onTapDirection(item),
               style: FilledButton.styleFrom(
@@ -652,14 +653,14 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                     ? const Color(0xFF072734)
                     : Colors.white,
                 shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                minimumSize: const Size(0, 34),
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                minimumSize: Size(0.w, 34.h),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              icon: const Icon(Icons.near_me_rounded, size: 14),
+              icon: Icon(Icons.near_me_rounded, size: 14.sp),
               label: Text(
                 _text('Direction', 'দিকনির্দেশ'),
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 12.5.sp, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -673,11 +674,11 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
     final items = _visibleMosques;
     if (_isLoading) {
       return Padding(
-        padding: EdgeInsets.only(top: 28),
+        padding: EdgeInsets.only(top: 28.h),
         child: Center(
           child: SizedBox(
-            width: 24,
-            height: 24,
+            width: 24.r,
+            height: 24.r,
             child: CircularProgressIndicator(
               strokeWidth: 2.2,
               color: glass.accent,
@@ -724,7 +725,7 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,
       separatorBuilder: (context, index) =>
-          Divider(height: 1, thickness: 1, color: glass.glassBorder),
+          Divider(height: 1.h, thickness: 1, color: glass.glassBorder),
       itemBuilder: (context, index) => _buildMosqueRow(items[index]),
     );
   }
@@ -737,11 +738,11 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(top: 2, bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      margin: EdgeInsets.only(top: 2.h, bottom: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: glass.isDark ? const Color(0x2E8E6A1E) : const Color(0xFFFFF8E8),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: glass.isDark
               ? const Color(0x4FB58B34)
@@ -753,17 +754,17 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
         children: [
           Icon(
             Icons.info_outline_rounded,
-            size: 16,
+            size: 16.sp,
             color: glass.isDark
                 ? const Color(0xFFE5BE70)
                 : const Color(0xFF9A7A27),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               message,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: glass.isDark
                     ? const Color(0xFFF2D8A1)
                     : const Color(0xFF8A6B24),
@@ -778,12 +779,12 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                 foregroundColor: glass.isDark
                     ? const Color(0xFFE5BE70)
                     : const Color(0xFF8A6B24),
-                textStyle: const TextStyle(
-                  fontSize: 12,
+                textStyle: TextStyle(
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w700,
                 ),
-                minimumSize: const Size(0, 24),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                minimumSize: Size(0.w, 24.h),
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 0.h),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(_text('Retry', 'আবার চেষ্টা করুন')),
@@ -812,18 +813,18 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
         ? _text('Last updated (cached)', 'সর্বশেষ আপডেট (ক্যাশড)')
         : _text('Last updated', 'সর্বশেষ আপডেট');
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
         children: [
-          Icon(Icons.update_rounded, size: 14, color: glass.textMuted),
-          const SizedBox(width: 6),
+          Icon(Icons.update_rounded, size: 14.sp, color: glass.textMuted),
+          SizedBox(width: 6.w),
           Expanded(
             child: Text(
               '$prefix: ${_lastUpdatedLabel(updatedAt)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 11.5.sp,
                 color: glass.textMuted,
                 fontWeight: FontWeight.w600,
               ),
@@ -852,7 +853,7 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                           _refreshMosques(forceResolveLocation: true),
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 94),
+                        padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 94.h),
                         children: [
                           Row(
                             children: [
@@ -867,29 +868,29 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                                       Navigator.of(context).maybePop(),
                                   icon: Icon(
                                     Icons.arrow_back_ios_new_rounded,
-                                    size: 18,
+                                    size: 18.sp,
                                     color: glass.textPrimary,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8.w),
                               Text(
                                 _text('Nearest Mosque', 'নিকটবর্তী মসজিদ'),
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 20.sp,
                                   fontWeight: FontWeight.w700,
                                   color: glass.textPrimary,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8.h),
                           NoorifyGlassCard(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 8.h,
                             ),
-                            radius: BorderRadius.circular(18),
+                            radius: BorderRadius.circular(18.r),
                             child: Row(
                               children: [
                                 Expanded(
@@ -904,19 +905,19 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                                       border: InputBorder.none,
                                       isDense: true,
                                       contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 10,
+                                          EdgeInsets.symmetric(
+                                            horizontal: 10.w,
+                                            vertical: 10.h,
                                           ),
                                       prefixIcon: Icon(
                                         Icons.search_rounded,
-                                        size: 20,
+                                        size: 20.sp,
                                         color: glass.textMuted,
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8.w),
                                 IconButton.filledTonal(
                                   tooltip: _text(
                                     'Set location',
@@ -929,15 +930,15 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                                         : const Color(0x221EA8B8),
                                     foregroundColor: glass.accent,
                                   ),
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.map_outlined,
-                                    size: 20,
+                                    size: 20.sp,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14.h),
                           _buildLastUpdatedHeader(),
                           _buildNoticeBanner(),
                           _buildMosqueList(),
@@ -945,8 +946,8 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                       ),
                     ),
                     Positioned(
-                      right: 10,
-                      bottom: 10,
+                      right: 10.w,
+                      bottom: 10.h,
                       child: Material(
                         color: glass.isDark
                             ? const Color(0xEE112233)
@@ -959,7 +960,7 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
                           icon: Icon(
                             Icons.my_location_rounded,
                             color: glass.accent,
-                            size: 21,
+                            size: 21.sp,
                           ),
                         ),
                       ),

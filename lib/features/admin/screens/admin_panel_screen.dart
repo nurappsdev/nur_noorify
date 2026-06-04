@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/features/announcements/models/announcement_item.dart';
@@ -101,7 +102,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             return AlertDialog(
               title: Text(title),
               content: SizedBox(
-                width: 420,
+                width: 420.w,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -112,7 +113,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           labelText: 'Title (Bangla)',
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       TextField(
                         controller: messageBnController,
                         minLines: 2,
@@ -121,14 +122,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           labelText: 'Message (Bangla)',
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       TextField(
                         controller: titleEnController,
                         decoration: const InputDecoration(
                           labelText: 'Title (English)',
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       TextField(
                         controller: messageEnController,
                         minLines: 2,
@@ -137,7 +138,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           labelText: 'Message (English)',
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       TextField(
                         controller: posterUrlController,
                         decoration: const InputDecoration(
@@ -145,7 +146,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           hintText: 'https://...',
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('Active'),
@@ -174,7 +175,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           'Use Firebase Console -> Messaging -> Topic noorify_all',
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Row(
                         children: [
                           Expanded(
@@ -192,7 +193,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           IconButton(
                             tooltip: 'Clear start',
                             onPressed: startAt == null
@@ -202,7 +203,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Row(
                         children: [
                           Expanded(
@@ -220,7 +221,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           IconButton(
                             tooltip: 'Clear end',
                             onPressed: endAt == null
@@ -244,9 +245,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 FilledButton(
                   onPressed: submitting ? null : submit,
                   child: submitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
+                      ? SizedBox(
+                          width: 16.r,
+                          height: 16.r,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Text('Save'),
@@ -343,16 +344,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     required Color textColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         color: color,
       ),
       child: Text(
         label,
         style: TextStyle(
           color: textColor,
-          fontSize: 10.5,
+          fontSize: 10.5.sp,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -368,8 +369,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         '${_formatDateTime(item.endAt)}';
 
     return NoorifyGlassCard(
-      radius: BorderRadius.circular(16),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      radius: BorderRadius.circular(16.r),
+      padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 10.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -380,13 +381,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 child: Text(
                   title.isEmpty ? '(Untitled)' : title,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w700,
                     color: glass.textPrimary,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10.w),
               Flexible(
                 child: Wrap(
                   spacing: 6,
@@ -422,44 +423,44 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ],
           ),
           if (message.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               message,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: glass.textSecondary, fontSize: 12),
+              style: TextStyle(color: glass.textSecondary, fontSize: 12.sp),
             ),
           ],
           if ((item.posterUrl ?? '').isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Row(
               children: [
-                Icon(Icons.image_outlined, size: 15, color: glass.textMuted),
-                const SizedBox(width: 6),
+                Icon(Icons.image_outlined, size: 15.sp, color: glass.textMuted),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     item.posterUrl!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: glass.textMuted, fontSize: 11),
+                    style: TextStyle(color: glass.textMuted, fontSize: 11.sp),
                   ),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             windowText,
-            style: TextStyle(color: glass.textMuted, fontSize: 10.5),
+            style: TextStyle(color: glass.textMuted, fontSize: 10.5.sp),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: [
               OutlinedButton.icon(
                 onPressed: () => _openEditor(existing: item),
-                icon: const Icon(Icons.edit_outlined, size: 16),
+                icon: Icon(Icons.edit_outlined, size: 16.sp),
                 label: const Text('Edit'),
               ),
               OutlinedButton.icon(
@@ -475,7 +476,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     _showMessage('Status update failed: $e');
                   }
                 },
-                icon: const Icon(Icons.toggle_on_rounded, size: 16),
+                icon: Icon(Icons.toggle_on_rounded, size: 16.sp),
                 label: Text(item.active ? 'Disable' : 'Enable'),
               ),
               OutlinedButton.icon(
@@ -492,7 +493,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     _showMessage('Modal status update failed: $e');
                   }
                 },
-                icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                icon: Icon(Icons.open_in_new_rounded, size: 16.sp),
                 label: Text(item.showModal ? 'Disable Modal' : 'Enable Modal'),
               ),
               OutlinedButton.icon(
@@ -500,7 +501,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFE75F6D),
                 ),
-                icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                icon: Icon(Icons.delete_outline_rounded, size: 16.sp),
                 label: const Text('Delete'),
               ),
             ],
@@ -521,7 +522,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         if (snapshot.hasError) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24.r),
               child: Text(
                 'Failed to load announcements.\n${snapshot.error}',
                 textAlign: TextAlign.center,
@@ -534,7 +535,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         if (announcements.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24.r),
               child: Text(
                 'No announcements yet.\nTap "Add Announcement" to create one.',
                 textAlign: TextAlign.center,
@@ -544,32 +545,32 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 90),
+          padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 90.h),
           itemBuilder: (context, index) {
             if (index == 0) {
               return Column(
                 children: [
                   NoorifyGlassCard(
-                    radius: BorderRadius.circular(14),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                    radius: BorderRadius.circular(14.r),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 10.h,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
                           Icons.info_outline_rounded,
-                          size: 16,
+                          size: 16.sp,
                           color: glass.accent,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
                             'Free mode: in-app modal works directly. For push, use Firebase Console -> Messaging -> Topic noorify_all.',
                             style: TextStyle(
                               color: glass.textSecondary,
-                              fontSize: 11.5,
+                              fontSize: 11.5.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -577,14 +578,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   _buildAnnouncementCard(context, announcements[index]),
                 ],
               );
             }
             return _buildAnnouncementCard(context, announcements[index]);
           },
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => SizedBox(height: 10.h),
           itemCount: announcements.length,
         );
       },
@@ -595,32 +596,32 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final glass = NoorifyGlassTheme(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(18.r),
         child: NoorifyGlassCard(
-          radius: BorderRadius.circular(18),
-          padding: const EdgeInsets.all(18),
+          radius: BorderRadius.circular(18.r),
+          padding: EdgeInsets.all(18.r),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.admin_panel_settings_outlined,
-                size: 40,
+                size: 40.sp,
                 color: glass.accent,
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               Text(
                 'Admin access required',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
                   color: glass.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Text(
                 'Set your Firestore user role to "admin" in users/{uid}.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: glass.textSecondary, fontSize: 12.5),
+                style: TextStyle(color: glass.textSecondary, fontSize: 12.5.sp),
               ),
             ],
           ),
@@ -654,7 +655,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+                    padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 8.h),
                     child: Row(
                       children: [
                         IconButton(
@@ -664,7 +665,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         Text(
                           'Admin Panel',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 20.sp,
                             fontWeight: FontWeight.w700,
                             color: glass.textPrimary,
                           ),
