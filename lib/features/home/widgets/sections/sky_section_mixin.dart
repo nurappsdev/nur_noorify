@@ -106,6 +106,24 @@ mixin DailySkySectionMixin
     return '${fmt(start)} - ${fmt(end)}';
   }
 
+  /// The prayer currently *in progress* during the daytime strip. [_activePrayer]
+  /// always holds the next/upcoming prayer, so the ongoing one is the previous
+  /// slot — e.g. between Zuhr and Asr the ongoing prayer is Zuhr, spanning
+  /// Zuhr → Asr. Returns null for the Fajr→Zuhr forenoon, which is shown as
+  /// Chasht instead.
+  ({String key, DateTime start, DateTime end})? _ongoingDayPrayer() {
+    final schedule = _todaySchedule;
+    if (schedule == null) return null;
+    switch (_activePrayer) {
+      case 'Asr':
+        return (key: 'Zuhr', start: schedule.dzuhr, end: schedule.ashr);
+      case 'Maghrib':
+        return (key: 'Asr', start: schedule.ashr, end: schedule.maghrib);
+      default:
+        return null;
+    }
+  }
+
   /// Chasht (Duha) has no dedicated entry in the schedule, so it is taken as
   /// the midpoint between sunrise and Zuhr.
   DateTime? _chashtTime() {
@@ -542,15 +560,23 @@ mixin DailySkySectionMixin
     final chasht = _chashtTime();
     // The progress strip presents the forenoon window as the Chasht period.
     final isChasht = _activePrayer == 'Zuhr';
+    // Outside the forenoon, name the prayer currently in progress (e.g. Zuhr
+    // between Zuhr and Asr) and show its matching Zuhr→Asr window, rather than
+    // the upcoming prayer.
+    final ongoing = _ongoingDayPrayer();
     final segmentName = isChasht
         ? _text('Chasht', 'চাশত')
-        : _localizedPrayerName(_activePrayer);
+        : _localizedPrayerName(ongoing?.key ?? _activePrayer);
     final segmentWindow = isChasht
         ? _windowLabel(chasht, dzuhr)
-        : _activePrayerWindowLabel();
+        : (ongoing != null
+              ? _windowLabel(ongoing.start, ongoing.end)
+              : _activePrayerWindowLabel());
     final segmentProgress = isChasht
         ? _segmentProgress(chasht, dzuhr)
-        : _activeProgress.clamp(0.0, 1.0);
+        : (ongoing != null
+              ? _segmentProgress(ongoing.start, ongoing.end)
+              : _activeProgress.clamp(0.0, 1.0));
 
     return [
       Row(

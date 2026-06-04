@@ -121,6 +121,9 @@ mixin DailyActivityViewMixin
                           SizedBox(height: 12.h),
                           _buildQuickActions(),
 
+                          SizedBox(height: 12.h),
+                          _buildBoyosZacaiCard(),
+
                           if (kQuranFeatureEnabled) ...[
                             SizedBox(height: 12.h),
                             _buildLastReadCard(),
