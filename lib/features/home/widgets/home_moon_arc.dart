@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// A single twinkling star, with positions expressed as fractions of the
 /// painting area so the field scales with the card.
@@ -32,6 +33,7 @@ class MoonArcArea extends StatefulWidget {
     required this.maghribClock,
     required this.fajrClock,
     required this.tahajjudClock,
+    this.replayTick = 0,
   });
 
   final double progress;
@@ -44,6 +46,10 @@ class MoonArcArea extends StatefulWidget {
   final String fajrClock;
   final String tahajjudClock;
 
+  /// Bumped by the host whenever the home screen becomes visible again (e.g.
+  /// returning from another tab) to replay the Maghrib→now sweep.
+  final int replayTick;
+
   @override
   State<MoonArcArea> createState() => _MoonArcAreaState();
 }
@@ -51,7 +57,6 @@ class MoonArcArea extends StatefulWidget {
 class _MoonArcAreaState extends State<MoonArcArea>
     with TickerProviderStateMixin {
   late final AnimationController _progressController;
-  late final Animation<double> _progressAnimation;
   late final AnimationController _twinkleController;
   late final List<NightStar> _stars;
 
@@ -67,11 +72,12 @@ class _MoonArcAreaState extends State<MoonArcArea>
       vsync: this,
       duration: const Duration(milliseconds: 3500),
     );
-    _progressAnimation = CurvedAnimation(
-      parent: _progressController,
+    // Ease only the sweep's timing; the controller still settles exactly on
+    // the true progress (a CurvedAnimation would distort the resting position).
+    _progressController.animateTo(
+      widget.progress.clamp(0.0, 1.0),
       curve: Curves.easeInOutCubic,
     );
-    _progressController.animateTo(widget.progress.clamp(0.0, 1.0));
     _twinkleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -92,7 +98,9 @@ class _MoonArcAreaState extends State<MoonArcArea>
   @override
   void didUpdateWidget(MoonArcArea old) {
     super.didUpdateWidget(old);
-    if (!_progressController.isAnimating &&
+    if (old.replayTick != widget.replayTick) {
+      _replay();
+    } else if (!_progressController.isAnimating &&
         old.progress != widget.progress) {
       _progressController.value = widget.progress.clamp(0.0, 1.0);
     }
@@ -109,7 +117,10 @@ class _MoonArcAreaState extends State<MoonArcArea>
     _progressController
       ..stop()
       ..value = 0.0
-      ..animateTo(widget.progress.clamp(0.0, 1.0));
+      ..animateTo(
+        widget.progress.clamp(0.0, 1.0),
+        curve: Curves.easeInOutCubic,
+      );
   }
 
   @override
@@ -130,11 +141,11 @@ class _MoonArcAreaState extends State<MoonArcArea>
 
             return AnimatedBuilder(
               animation: Listenable.merge([
-                _progressAnimation,
+                _progressController,
                 _twinkleController,
               ]),
               builder: (context, _) {
-                final progress = _progressAnimation.value.clamp(0.0, 1.0);
+                final progress = _progressController.value.clamp(0.0, 1.0);
                 final angle = math.pi * (1 - progress);
                 final moonDx = cx + radius * math.cos(angle);
                 final moonDy = baseY - radius * math.sin(angle);
@@ -158,14 +169,14 @@ class _MoonArcAreaState extends State<MoonArcArea>
                     ),
                     Positioned(
                       left: cx,
-                      top: apexY - 16,
+                      top: apexY - 16.h,
                       child: FractionalTranslation(
                         translation: const Offset(-0.5, 0),
                         child: Text(
                           widget.midnightLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: _silver,
-                            fontSize: 10.5,
+                            fontSize: 10.5.sp,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -192,16 +203,16 @@ class _MoonArcAreaState extends State<MoonArcArea>
                             widget.tahajjudLabel,
                             style: TextStyle(
                               color: widget.isLastThird ? _gold : _silverSoft,
-                              fontSize: 10,
+                              fontSize: 10.sp,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 1),
+                          SizedBox(height: 1.h),
                           Text(
                             widget.tahajjudClock,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: _silverSoft,
-                              fontSize: 9.5,
+                              fontSize: 9.5.sp,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -258,22 +269,22 @@ class MoonMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = highlight ? gold : silver;
     return Container(
-      width: 20,
-      height: 20,
+      width: 20.w,
+      height: 20.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: base,
         boxShadow: [
           BoxShadow(
             color: base.withValues(alpha: highlight ? 0.7 : 0.5),
-            blurRadius: highlight ? 18 : 12,
-            spreadRadius: highlight ? 2 : 1,
+            blurRadius: (highlight ? 18 : 12).r,
+            spreadRadius: (highlight ? 2 : 1).r,
           ),
         ],
       ),
       child: Icon(
         Icons.nightlight_round,
-        size: 13,
+        size: 13.sp,
         color: const Color(0xFF101A36),
       ),
     );
@@ -309,13 +320,13 @@ class MoonEndpoint extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 3),
+            Icon(icon, size: 12.sp, color: color),
+            SizedBox(width: 3.w),
             Text(
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 10,
+                fontSize: 10.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -325,7 +336,7 @@ class MoonEndpoint extends StatelessWidget {
           time,
           style: TextStyle(
             color: subColor,
-            fontSize: 9.5,
+            fontSize: 9.5.sp,
             fontWeight: FontWeight.w700,
           ),
         ),

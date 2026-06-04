@@ -187,7 +187,7 @@ mixin DailySkySectionMixin
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _formattedTime,
+              _formattedTimeWithSeconds,
               style: TextStyle(
                 color: _textPrimary,
                 fontSize: 14.sp,
@@ -226,30 +226,23 @@ mixin DailySkySectionMixin
 
   /// Position of the sun along the arc, where 0.5 is the apex.
   ///
-  /// The apex is anchored to Dhuhr (solar noon) so the sun crests exactly at
-  /// midday: the Fajr→Dhuhr span fills the first half of the arc and the
-  /// Dhuhr→Maghrib span fills the second half.
+  /// Progress is linear in real time across daylight: 0 at sunrise, 1 at
+  /// sunset, so the sun moves at a steady pace and crests (0.5) at the midpoint
+  /// of the day. The actual sunrise is used when available — Fajr (dawn) is
+  /// ~1.5h earlier and would skew the whole morning half.
   double _sunPathProgress() {
     final schedule = _todaySchedule;
     if (schedule == null) return 0.5;
-    final sunrise = schedule.fajr;
-    final noon = schedule.dzuhr;
+    final sunrise = schedule.sunrise ?? schedule.fajr;
     final sunset = schedule.maghrib;
 
     if (!_now.isAfter(sunrise)) return 0.0;
     if (!_now.isBefore(sunset)) return 1.0;
 
-    if (_now.isBefore(noon)) {
-      final total = noon.difference(sunrise).inSeconds;
-      if (total <= 0) return 0.5;
-      final elapsed = _now.difference(sunrise).inSeconds;
-      return (elapsed / total * 0.5).clamp(0.0, 0.5);
-    }
-
-    final total = sunset.difference(noon).inSeconds;
+    final total = sunset.difference(sunrise).inSeconds;
     if (total <= 0) return 0.5;
-    final elapsed = _now.difference(noon).inSeconds;
-    return (0.5 + elapsed / total * 0.5).clamp(0.5, 1.0);
+    final elapsed = _now.difference(sunrise).inSeconds;
+    return (elapsed / total).clamp(0.0, 1.0);
   }
 
   ImageProvider<Object>? _profileAvatarImage({
@@ -526,24 +519,37 @@ mixin DailySkySectionMixin
   Widget _buildSunArcArea() {
     final schedule = _todaySchedule;
     final dzuhr = schedule?.dzuhr;
+    final ashr = schedule?.ashr;
     final chasht = _chashtTime();
-    final isForenoon = dzuhr == null ? _now.hour < 12 : _now.isBefore(dzuhr);
 
-    // The two arc shoulder labels follow the half of the day: the forenoon
-    // shows Chasht (rising) and Zuhr (apex); the afternoon shows Asr and
-    // Maghrib (descending toward sunset).
-    final leadingTitle = isForenoon
-        ? _text('Chasht', 'চাশত')
-        : _text('Asr', 'আসর');
-    final leadingTimeLabel = isForenoon
-        ? _skyClock(chasht)
-        : _skyClock(schedule?.ashr);
-    final trailingTitle = isForenoon
-        ? _text('Zuhr', 'যুহর')
-        : _text('Maghrib', 'মাগরিব');
-    final trailingTimeLabel = isForenoon
-        ? _skyClock(schedule?.dzuhr)
-        : _skyClock(schedule?.maghrib);
+    // The two arc shoulders name the prayer currently in progress (leading,
+    // rising side) and the one coming next (trailing). Daylight passes through
+    // three windows: the forenoon shown as Chasht→Zuhr, then Zuhr→Asr, then
+    // Asr→Maghrib. At e.g. 1pm — past Zuhr but before Asr — Zuhr is ongoing and
+    // Asr is next, so those two are shown rather than Asr→Maghrib.
+    final beforeZuhr = dzuhr == null ? _now.hour < 12 : _now.isBefore(dzuhr);
+    final beforeAsr = ashr == null ? _now.hour < 16 : _now.isBefore(ashr);
+
+    final String leadingTitle;
+    final String leadingTimeLabel;
+    final String trailingTitle;
+    final String trailingTimeLabel;
+    if (beforeZuhr) {
+      leadingTitle = _text('Chasht', 'চাশত');
+      leadingTimeLabel = _skyClock(chasht);
+      trailingTitle = _text('Zuhr', 'যুহর');
+      trailingTimeLabel = _skyClock(dzuhr);
+    } else if (beforeAsr) {
+      leadingTitle = _text('Zuhr', 'যুহর');
+      leadingTimeLabel = _skyClock(dzuhr);
+      trailingTitle = _text('Asr', 'আসর');
+      trailingTimeLabel = _skyClock(ashr);
+    } else {
+      leadingTitle = _text('Asr', 'আসর');
+      leadingTimeLabel = _skyClock(ashr);
+      trailingTitle = _text('Maghrib', 'মাগরিব');
+      trailingTimeLabel = _skyClock(schedule?.maghrib);
+    }
 
     return SunArcArea(
       currentProgress: _sunPathProgress(),
@@ -561,9 +567,10 @@ mixin DailySkySectionMixin
       leadingTimeLabel: leadingTimeLabel,
       trailingTitle: trailingTitle,
       trailingTimeLabel: trailingTimeLabel,
-      sunriseClockText: _skyClock(schedule?.fajr),
+      sunriseClockText: _skyClock(schedule?.sunrise ?? schedule?.fajr),
       sunsetClockText: _skyClock(schedule?.maghrib),
       currentTimeLabel: _skyClock(_now),
+      replayTick: _arcReplayTick,
     );
   }
 
@@ -827,6 +834,7 @@ mixin DailySkySectionMixin
           maghribClock: _skyClock(schedule?.maghrib),
           fajrClock: _skyClock(window?.end),
           tahajjudClock: _skyClock(_tahajjudTime()),
+          replayTick: _arcReplayTick,
         ),
       ),
     );

@@ -14,6 +14,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:ponjika/ponjika.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -35,6 +36,7 @@ import 'package:first_project/features/home/widgets/home_moon_arc.dart';
 import 'package:first_project/features/home/widgets/home_mini_compass.dart';
 import 'package:first_project/features/mosque/models/mosque_item.dart';
 import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
+import 'package:first_project/shared/providers/bottom_nav_provider.dart';
 
 part '../controllers/daily_activity_controller_mixin.dart';
 part '../widgets/sections/daily_activity_view_base_mixin.dart';

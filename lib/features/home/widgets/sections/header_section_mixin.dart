@@ -336,7 +336,7 @@ mixin DailyHeaderSectionMixin
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         onTap: () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => CalendarWaqtScreen(
@@ -348,7 +348,7 @@ mixin DailyHeaderSectionMixin
         ),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 11),
+          padding: EdgeInsets.symmetric(vertical: 11.h),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isDarkTheme
@@ -357,7 +357,7 @@ mixin DailyHeaderSectionMixin
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: _isDarkTheme
                   ? const Color(0x3359C8E4)
@@ -369,15 +369,15 @@ mixin DailyHeaderSectionMixin
             children: [
               Icon(
                 Icons.calendar_month_rounded,
-                size: 17,
+                size: 17.sp,
                 color: _accentStrong,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Text(
                 _text('Calendar & Waqt', 'ক্যালেন্ডার ও ওয়াক্ত'),
                 style: TextStyle(
                   color: _accentStrong,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.2,
                 ),

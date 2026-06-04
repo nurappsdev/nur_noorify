@@ -1,6 +1,20 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+/// Maps a time-based progress (fraction of the Fajr→Maghrib span elapsed) to
+/// the geometric sweep used to place the sun on the elliptical arc.
+///
+/// The naive mapping `angle = π·(1 − p)` makes horizontal motion fastest at the
+/// apex (its speed is `∝ sin(π·p)`), so the sun lurches far toward the edge just
+/// before/after solar noon. Remapping through `acos` makes the sun's horizontal
+/// position move linearly with elapsed time, so e.g. shortly after Dhuhr it sits
+/// just slightly past the middle rather than jumping well to the right.
+double _linearArcProgress(double timeProgress) {
+  final clamped = timeProgress.clamp(0.0, 1.0);
+  return math.acos((1 - 2 * clamped).clamp(-1.0, 1.0)) / math.pi;
+}
 
 /// Daytime sun-path arc for the home hero card. A sun rides the Fajr→Maghrib
 /// arc with shoulder labels and endpoint clocks, all supplied via constructor
@@ -24,6 +38,7 @@ class SunArcArea extends StatefulWidget {
     required this.sunriseClockText,
     required this.sunsetClockText,
     required this.currentTimeLabel,
+    this.replayTick = 0,
   });
 
   final double currentProgress;
@@ -45,6 +60,10 @@ class SunArcArea extends StatefulWidget {
   /// Live clock shown riding with the sun marker along the arc.
   final String currentTimeLabel;
 
+  /// Bumped by the host whenever the home screen becomes visible again (e.g.
+  /// returning from another tab) to replay the sunrise→now sweep.
+  final int replayTick;
+
   @override
   State<SunArcArea> createState() => _SunArcAreaState();
 }
@@ -52,7 +71,6 @@ class SunArcArea extends StatefulWidget {
 class _SunArcAreaState extends State<SunArcArea>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _animation;
 
   @override
   void initState() {
@@ -61,17 +79,23 @@ class _SunArcAreaState extends State<SunArcArea>
       vsync: this,
       duration: const Duration(milliseconds: 3500),
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
+    // Sweep from sunrise (0) up to the current position on first appearance.
+    // The easing is applied to the sweep's *timing* via animateTo's curve so
+    // the controller still settles exactly on currentProgress — wrapping it in
+    // a CurvedAnimation instead would distort the resting position.
+    _controller.value = 0.0;
+    _controller.animateTo(
+      widget.currentProgress.clamp(0.0, 1.0),
       curve: Curves.easeInOutCubic,
     );
-    _controller.value = widget.currentProgress.clamp(0.0, 1.0);
   }
 
   @override
   void didUpdateWidget(SunArcArea old) {
     super.didUpdateWidget(old);
-    if (!_controller.isAnimating &&
+    if (old.replayTick != widget.replayTick) {
+      _replay();
+    } else if (!_controller.isAnimating &&
         old.currentProgress != widget.currentProgress) {
       _controller.value = widget.currentProgress.clamp(0.0, 1.0);
     }
@@ -86,7 +110,10 @@ class _SunArcAreaState extends State<SunArcArea>
   void _replay() {
     _controller.stop();
     _controller.value = 0.0;
-    _controller.animateTo(widget.currentProgress.clamp(0.0, 1.0));
+    _controller.animateTo(
+      widget.currentProgress.clamp(0.0, 1.0),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   double _sunIconScale(double progress) {
@@ -114,9 +141,11 @@ class _SunArcAreaState extends State<SunArcArea>
             final ry = h - 14;
 
             return AnimatedBuilder(
-              animation: _animation,
+              animation: _controller,
               builder: (context, _) {
-                final progress = _animation.value.clamp(0.0, 1.0);
+                // Remap so the sun travels at a uniform horizontal pace; the
+                // raw value accelerates the marker near the midday apex.
+                final progress = _linearArcProgress(_controller.value);
                 final angle = math.pi * (1 - progress);
                 final sunDx = cx + rx * math.cos(angle);
                 final sunDy = baseY - ry * math.sin(angle);
@@ -225,8 +254,8 @@ class SunMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emojiSize = 16.0 * scale;
-    final haloSize = emojiSize + 18;
+    final emojiSize = 16.sp * scale;
+    final haloSize = emojiSize + 18.w;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -253,16 +282,16 @@ class SunMarker extends StatelessWidget {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
           decoration: BoxDecoration(
             color: glowColor.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(999.r),
           ),
           child: Text(
             timeLabel,
             style: TextStyle(
               color: timeColor,
-              fontSize: 10,
+              fontSize: 10.sp,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
             ),
@@ -294,10 +323,10 @@ class ArcLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: chipColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -306,25 +335,25 @@ class ArcLabel extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (emoji != null) ...[
-                Text(emoji!, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 3),
+                Text(emoji!, style: TextStyle(fontSize: 12.sp)),
+                SizedBox(width: 3.w),
               ],
               Text(
                 title,
                 style: TextStyle(
                   color: titleColor,
-                  fontSize: 10.5,
+                  fontSize: 10.5.sp,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 1),
+          SizedBox(height: 1.h),
           Text(
             time,
             style: TextStyle(
               color: timeColor,
-              fontSize: 10,
+              fontSize: 10.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -353,22 +382,22 @@ class ArcEndpoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final children = [
-      Text(emoji, style: const TextStyle(fontSize: 12)),
-      const SizedBox(width: 4),
+      Text(emoji, style: TextStyle(fontSize: 12.sp)),
+      SizedBox(width: 4.w),
       Text(
         time,
         style: TextStyle(
           color: textColor,
-          fontSize: 10,
+          fontSize: 10.sp,
           fontWeight: FontWeight.w700,
         ),
       ),
     ];
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
         color: chipColor,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

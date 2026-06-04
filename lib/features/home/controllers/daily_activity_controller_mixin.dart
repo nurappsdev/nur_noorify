@@ -13,6 +13,10 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
 
   late final Timer _clockTimer;
   DateTime _now = DateTime.now();
+  // Incremented each time the home tab becomes visible again so the sun/moon
+  // arc replays its sunrise/Maghrib → now sweep.
+  int _arcReplayTick = 0;
+  BottomNavProvider? _bottomNavProvider;
   double? _latitude;
   double? _longitude;
   bool _isFetchingPrayerSchedule = false;
@@ -82,8 +86,16 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     _setBaitulMukarramLocation();
     _seedInitialPrayerPreview();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _selectedPrayer != null) return;
-      _syncPrayerPageToActive(animate: false);
+      if (!mounted) return;
+      // The home screen lives in an always-alive IndexedStack, so initState
+      // never re-runs when switching tabs. Listen to the bottom-nav index and
+      // replay the sky arc each time the home tab (index 0) is reopened.
+      final navProvider = context.read<BottomNavProvider>();
+      _bottomNavProvider = navProvider;
+      navProvider.addListener(_onBottomNavChanged);
+      if (_selectedPrayer == null) {
+        _syncPrayerPageToActive(animate: false);
+      }
     });
     appLanguageNotifier.addListener(_onLanguageChanged);
     useDeviceLocationNotifier.addListener(_onUseDeviceLocationChanged);
@@ -166,9 +178,17 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     iftarAlertEnabledNotifier.removeListener(_onIftarAlertToggleChanged);
     tahajjudAlertEnabledNotifier.removeListener(_onTahajjudAlertToggleChanged);
     alertToneNotifier.removeListener(_onAlertToneChanged);
+    _bottomNavProvider?.removeListener(_onBottomNavChanged);
     _homeCompassSub?.cancel();
     _clockTimer.cancel();
     _prayerPageController.dispose();
+  }
+
+  void _onBottomNavChanged() {
+    // Home is index 0. Replaying only when it becomes active keeps the sweep
+    // tied to "opening" the screen rather than every tab change.
+    if (_bottomNavProvider?.currentIndex != 0) return;
+    _safeSetState(() => _arcReplayTick++);
   }
 
   void _safeSetState(VoidCallback fn) {
@@ -493,6 +513,17 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     final minute = _now.minute.toString().padLeft(2, '0');
     final meridiem = _localizedMeridiem(_now.hour < 12);
     final value = '$hour12:$minute';
+    return _isBangla ? '${_toBanglaDigits(value)} $meridiem' : '$value $meridiem';
+  }
+
+  /// Same as [_formattedTime] but with a live, ticking seconds component. The
+  /// clock timer rebuilds every second, so the seconds advance in real time.
+  String get _formattedTimeWithSeconds {
+    final hour12 = (_now.hour % 12 == 0) ? 12 : _now.hour % 12;
+    final minute = _now.minute.toString().padLeft(2, '0');
+    final second = _now.second.toString().padLeft(2, '0');
+    final meridiem = _localizedMeridiem(_now.hour < 12);
+    final value = '$hour12:$minute:$second';
     return _isBangla ? '${_toBanglaDigits(value)} $meridiem' : '$value $meridiem';
   }
 
