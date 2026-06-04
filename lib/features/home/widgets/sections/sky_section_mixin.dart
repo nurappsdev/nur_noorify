@@ -54,24 +54,37 @@ mixin DailySkySectionMixin
     return 'বসন্তকাল';
   }
 
+  /// Formats a remaining duration as a live countdown that ticks down to the
+  /// second. Hours and minutes are dropped once they reach zero so the label
+  /// stays compact (e.g. `1h 04m 09s` → `04m 09s` → `09s`).
+  String _liveCountdownLabel(Duration value) {
+    final safe = value.isNegative ? Duration.zero : value;
+    final hours = safe.inHours;
+    final minutes = safe.inMinutes % 60;
+    final seconds = safe.inSeconds % 60;
+    if (_isBangla) {
+      final hh = _toBanglaDigits(hours.toString().padLeft(2, '0'));
+      final mm = _toBanglaDigits(minutes.toString().padLeft(2, '0'));
+      final ss = _toBanglaDigits(seconds.toString().padLeft(2, '0'));
+      if (hours > 0) return '$hh ঘণ্টা $mm মিনিট $ss সেকেন্ড';
+      if (minutes > 0) return '$mm মিনিট $ss সেকেন্ড';
+      return '$ss সেকেন্ড';
+    }
+    final hh = hours.toString().padLeft(2, '0');
+    final mm = minutes.toString().padLeft(2, '0');
+    final ss = seconds.toString().padLeft(2, '0');
+    if (hours > 0) return '${hh}h ${mm}m ${ss}s';
+    if (minutes > 0) return '${mm}m ${ss}s';
+    return '${ss}s';
+  }
+
   String _activePrayerProgressLabel() {
     final remaining = _activeRemaining.isNegative
         ? Duration.zero
         : _activeRemaining;
-    final totalMinutes = remaining.inMinutes;
-    final hours = totalMinutes ~/ 60;
-    final minutes = totalMinutes % 60;
-    if (_isBangla) {
-      if (hours > 0) {
-        return '${_toBanglaDigits(hours.toString())} ঘণ্টা '
-            '${_toBanglaDigits(minutes.toString())} মিনিট বাকি';
-      }
-      return '${_toBanglaDigits(minutes.toString())} মিনিট বাকি';
-    }
-    if (hours > 0) {
-      return '${hours}h ${minutes}m left';
-    }
-    return '$minutes min left';
+    return _isBangla
+        ? '${_liveCountdownLabel(remaining)} বাকি'
+        : '${_liveCountdownLabel(remaining)} left';
   }
 
   String _activePrayerWindowLabel() {
@@ -821,8 +834,12 @@ mixin DailySkySectionMixin
 
   List<Widget> _buildNightProgressSection() {
     final isLastThird = _isLastThirdOfNight();
-    final pct = (_nightProgress() * 100).round();
-    final pctText = _isBangla ? '${_toBanglaDigits(pct.toString())}%' : '$pct%';
+    final window = _currentNightWindow();
+    // Live time remaining until dawn (Fajr), ticking down each second.
+    final fajrRemaining = window == null
+        ? Duration.zero
+        : window.end.difference(_now);
+    final fajrCountdown = _liveCountdownLabel(fajrRemaining);
     final label = isLastThird
         ? _text('Last third of the night', 'রাতের শেষ তৃতীয়াংশ')
         : _text('Night in progress', 'রাত চলছে');
@@ -888,7 +905,7 @@ mixin DailySkySectionMixin
           ),
           const Spacer(),
           Text(
-            '${_text('Night', 'রাত')} $pctText',
+            '${_text('Fajr in', 'ফজর বাকি')} $fajrCountdown',
             style: TextStyle(
               color: _textSecondary,
               fontSize: 10.5.sp,
