@@ -122,6 +122,9 @@ mixin DailyActivityViewMixin
                           _buildQuickActions(),
 
                           SizedBox(height: 12.h),
+                          _buildAmolTrackCard(),
+
+                          SizedBox(height: 12.h),
                           _buildBoyosZacaiCard(),
 
                           if (kQuranFeatureEnabled) ...[

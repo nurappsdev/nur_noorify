@@ -72,6 +72,8 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     ActivityItem(title: 'Alms', done: 4, total: 10),
     ActivityItem(title: 'Recite the Al Quran', done: 8, total: 10),
   ];
+  final AmolTrackService _amolTrackService = AmolTrackService();
+  int _amolCompletedToday = 0;
   List<MosqueItem> _nearbyMosquePreview = const [];
   DateTime? _nearbyMosquePreviewUpdatedAt;
   bool _announcementModalChecked = false;
@@ -113,6 +115,8 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     }
     unawaited(_loadNearbyMosquePreview());
     unawaited(_showAnnouncementModalIfNeeded());
+    _amolTrackService.revision.addListener(_onAmolProgressChanged);
+    unawaited(_loadAmolProgress());
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       _safeSetState(() => _now = DateTime.now());
@@ -178,6 +182,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     iftarAlertEnabledNotifier.removeListener(_onIftarAlertToggleChanged);
     tahajjudAlertEnabledNotifier.removeListener(_onTahajjudAlertToggleChanged);
     alertToneNotifier.removeListener(_onAlertToneChanged);
+    _amolTrackService.revision.removeListener(_onAmolProgressChanged);
     _bottomNavProvider?.removeListener(_onBottomNavChanged);
     _homeCompassSub?.cancel();
     _clockTimer.cancel();
@@ -506,6 +511,23 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     final code = _isBangla ? 'bn' : 'en';
     final labels = _meridiemLabels[code] ?? _meridiemLabels['en']!;
     return isAm ? labels.am : labels.pm;
+  }
+
+  /// Loads today's tracked-deed count from local storage so the home card
+  /// reflects progress made on the Amol tracker. Safe to call repeatedly.
+  Future<void> _loadAmolProgress() async {
+    await _amolTrackService.load();
+    _onAmolProgressChanged();
+  }
+
+  /// Syncs the home card with the shared tracker store. Invoked instantly
+  /// whenever a deed is toggled (on the tracker or anywhere) via the service's
+  /// [AmolTrackService.revision] notifier.
+  void _onAmolProgressChanged() {
+    if (!mounted) return;
+    final count = _amolTrackService.completedCountFor(DateTime.now());
+    if (count == _amolCompletedToday) return;
+    setState(() => _amolCompletedToday = count);
   }
 
   String get _formattedTime {

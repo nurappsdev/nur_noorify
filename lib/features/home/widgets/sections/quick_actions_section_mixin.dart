@@ -210,6 +210,148 @@ mixin DailyQuickActionsSectionMixin
     );
   }
 
+  /// Maps each time-bound deed id to the moment it becomes trackable today,
+  /// taken from today's prayer schedule. The Amol tracker uses this to block
+  /// marking a deed (e.g. Maghrib or Isha) before its time has arrived.
+  Map<String, DateTime> _amolAvailableFromTimes() {
+    final schedule = _todaySchedule;
+    if (schedule == null) return const {};
+    final times = <String, DateTime>{
+      'fajr': schedule.fajr,
+      'zuhr': schedule.dzuhr,
+      'asr': schedule.ashr,
+      'maghrib': schedule.maghrib,
+      'isha': schedule.isha,
+      'tahajjud': schedule.isha,
+      'witr': schedule.isha,
+      'morning_adhkar': schedule.fajr,
+      'evening_adhkar': schedule.ashr,
+    };
+    final sunrise = schedule.sunrise;
+    if (sunrise != null) {
+      times['ishraq'] = sunrise;
+      times['chasht'] = sunrise;
+    }
+    return times;
+  }
+
+  Future<void> _openAmolTrackScreen() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => AmolTrackScreen(
+          availableFrom: _amolAvailableFromTimes(),
+        ),
+      ),
+    );
+    // Pick up any deeds the user toggled while on the tracker.
+    await _loadAmolProgress();
+  }
+
+  /// A compact card that opens the "Today Amol Track" daily deeds tracker and
+  /// shows today's completion percentage.
+  Widget _buildAmolTrackCard() {
+    final total = kAmolTotalCount;
+    final done = _amolCompletedToday.clamp(0, total);
+    final progress = total == 0 ? 0.0 : done / total;
+    final percent = (progress * 100).round();
+
+    return _buildGlassCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18.r),
+          onTap: () => unawaited(_openAmolTrackScreen()),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
+            child: Row(
+              children: [
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    color: _surfaceStrong,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.checklist_rtl_rounded,
+                    color: _accentSoft,
+                    size: 21.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _text('Today Amol Track', 'আজকের আমল ট্র্যাক'),
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(999.r),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 6.h,
+                                backgroundColor: _isDarkTheme
+                                    ? const Color(0xFF1B2D3E)
+                                    : const Color(0xFFD8E7F1),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _accentStrong,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            '${_localizedCountLabel(done)}/${_localizedCountLabel(total)}',
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  _isBangla
+                      ? '${_toBanglaDigits(percent.toString())}%'
+                      : '$percent%',
+                  style: TextStyle(
+                    color: _accentStrong,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13.sp,
+                  color: _textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _localizedCountLabel(int value) =>
+      _isBangla ? _toBanglaDigits(value.toString()) : value.toString();
+
   /// A compact card that opens the "Boyos Zacai" age calculator screen.
   Widget _buildBoyosZacaiCard() {
     return _buildGlassCard(
