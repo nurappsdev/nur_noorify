@@ -82,7 +82,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
 
   void initializeDailyActivityController() {
     _prayerPageController = PageController(
-      viewportFraction: 0.23,
+      viewportFraction: 0.34,
       initialPage: _carouselIndexForPrayer(_activePrayer),
     );
     _setBaitulMukarramLocation();
@@ -535,7 +535,9 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     final minute = _now.minute.toString().padLeft(2, '0');
     final meridiem = _localizedMeridiem(_now.hour < 12);
     final value = '$hour12:$minute';
-    return _isBangla ? '${_toBanglaDigits(value)} $meridiem' : '$value $meridiem';
+    return _isBangla
+        ? '${_toBanglaDigits(value)} $meridiem'
+        : '$value $meridiem';
   }
 
   /// Same as [_formattedTime] but with a live, ticking seconds component. The
@@ -546,7 +548,9 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     final second = _now.second.toString().padLeft(2, '0');
     final meridiem = _localizedMeridiem(_now.hour < 12);
     final value = '$hour12:$minute:$second';
-    return _isBangla ? '${_toBanglaDigits(value)} $meridiem' : '$value $meridiem';
+    return _isBangla
+        ? '${_toBanglaDigits(value)} $meridiem'
+        : '$value $meridiem';
   }
 
   String get _formattedHijriDate {
@@ -677,7 +681,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
       'Ramadan',
       'Shawwal',
       'Zilkad',
-      'Zilhajj'
+      'Zilhajj',
     ],
     'ar': [
       'محرم',
@@ -704,12 +708,16 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
   }
 
   String _localizedCountdownLabel() {
-    if (!_isBangla) return _countdownLabel;
     final parts = _countdownLabel.split(' in ');
     if (parts.length == 2) {
-      return '${_localizedPrayerName(parts[0])} \u09ac\u09be\u0995\u09bf ${_toBanglaDigits(parts[1])}';
+      final name = _localizedPrayerName(parts[0]);
+      final value = _isBangla ? _toBanglaDigits(parts[1]) : parts[1];
+      // The countdown now tracks the end of the current prayer window.
+      return _isBangla
+          ? '$name \u09b6\u09c7\u09b7 \u09b9\u09a4\u09c7 $value'
+          : '$name ends in $value';
     }
-    return _toBanglaDigits(_countdownLabel);
+    return _isBangla ? _toBanglaDigits(_countdownLabel) : _countdownLabel;
   }
 
   String _localizedActiveRemainingLabel() => _isBangla
@@ -1643,28 +1651,29 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
       MapEntry('Isha', isha),
     ];
 
-    MapEntry<String, DateTime>? activePrayer;
-    int activeIndex = -1;
-    for (int i = 0; i < schedule.length; i++) {
-      if (schedule[i].value.isAfter(now)) {
-        activePrayer = schedule[i];
-        activeIndex = i;
-        break;
-      }
-    }
-
-    DateTime previousBoundary;
-    if (activePrayer == null) {
-      activePrayer = MapEntry('Fajr', fajr.add(const Duration(days: 1)));
-      previousBoundary = isha;
-    } else if (activeIndex == 0) {
-      previousBoundary = ishaBefore;
+    // The "active" prayer is the one currently in progress: the most recent
+    // prayer whose time has already begun. The next prayer's time marks when
+    // the current window closes, which drives the countdown and progress bar.
+    MapEntry<String, DateTime> currentPrayer;
+    DateTime windowEnd;
+    if (now.isBefore(fajr)) {
+      // After midnight but before dawn: last night's Isha is still ongoing.
+      currentPrayer = MapEntry('Isha', ishaBefore);
+      windowEnd = fajr;
     } else {
-      previousBoundary = schedule[activeIndex - 1].value;
+      int currentIndex = 0;
+      for (int i = 0; i < schedule.length; i++) {
+        if (schedule[i].value.isAfter(now)) break;
+        currentIndex = i;
+      }
+      currentPrayer = schedule[currentIndex];
+      windowEnd = currentIndex + 1 < schedule.length
+          ? schedule[currentIndex + 1].value
+          : fajr.add(const Duration(days: 1));
     }
 
-    final remaining = activePrayer.value.difference(now);
-    final totalWindow = activePrayer.value.difference(previousBoundary);
+    final remaining = windowEnd.difference(now);
+    final totalWindow = windowEnd.difference(currentPrayer.value);
     final elapsed = totalWindow - remaining;
     final progress = totalWindow.inMilliseconds <= 0
         ? 0.0
@@ -1673,8 +1682,8 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     final mm = (remaining.inMinutes % 60).toString().padLeft(2, '0');
     final ss = (remaining.inSeconds % 60).toString().padLeft(2, '0');
     return ActivePrayerData(
-      name: activePrayer.key,
-      countdownLabel: '${activePrayer.key} in $hh:$mm:$ss',
+      name: currentPrayer.key,
+      countdownLabel: '${currentPrayer.key} in $hh:$mm:$ss',
       remaining: remaining.isNegative ? Duration.zero : remaining,
       progress: progress,
     );

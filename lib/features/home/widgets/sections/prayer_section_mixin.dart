@@ -9,11 +9,114 @@ mixin DailyPrayerSectionMixin
         DailyActivityViewBaseMixin {
   String _activePrayerShortCountdown() {
     final value = _formattedActiveRemaining();
-    return _isBangla ? '$value বাকি' : 'in $value';
+    return _isBangla ? '$value বাকি' : 'ends in $value';
   }
 
   String _prayerMeridiem(String prayer) {
     return prayer == 'Fajr' ? 'AM' : 'PM';
+  }
+
+  DateTime? _prayerDateTime(String prayer) {
+    final schedule = _todaySchedule;
+    if (schedule == null) return null;
+    switch (prayer) {
+      case 'Fajr':
+        return schedule.fajr;
+      case 'Zuhr':
+        return schedule.dzuhr;
+      case 'Asr':
+        return schedule.ashr;
+      case 'Maghrib':
+        return schedule.maghrib;
+      case 'Isha':
+        return schedule.isha;
+      default:
+        return null;
+    }
+  }
+
+  /// When a prayer's window closes — i.e. when the next prayer begins. This
+  /// mirrors the `windowEnd` logic in [_buildActivePrayerData], so the ranges
+  /// shown on the cards match the countdown/progress behaviour. Isha runs until
+  /// tomorrow's Fajr.
+  DateTime? _prayerEndDateTime(String prayer) {
+    final schedule = _todaySchedule;
+    if (schedule == null) return null;
+    switch (prayer) {
+      case 'Fajr':
+        return schedule.dzuhr;
+      case 'Zuhr':
+        return schedule.ashr;
+      case 'Asr':
+        return schedule.maghrib;
+      case 'Maghrib':
+        return schedule.isha;
+      case 'Isha':
+        return _tomorrowSchedule?.fajr ??
+            schedule.fajr.add(const Duration(days: 1));
+      default:
+        return null;
+    }
+  }
+
+  /// Localized "start – end" range for a prayer, e.g. `11:57 – 04:38`.
+  String _prayerTimeRangeLabel(String prayer) {
+    final start = _localizedPrayerTime(_prayerTimes[prayer] ?? '--:--');
+    final end = _prayerEndDateTime(prayer);
+    final endLabel = _localizedPrayerTime(
+      end == null ? '--:--' : _formatPrayerTime(end),
+    );
+    return '$start – $endLabel';
+  }
+
+  String _compactDuration(Duration duration) {
+    final safe = duration.isNegative ? Duration.zero : duration;
+    final hours = safe.inHours;
+    final minutes = safe.inMinutes % 60;
+    final value = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+    return _isBangla ? _toBanglaDigits(value) : value;
+  }
+
+  String _prayerStatusLabel(String prayer) {
+    if (prayer == _activePrayer) {
+      return _text('Now', 'এখন');
+    }
+    final time = _prayerDateTime(prayer);
+    if (time == null) return _text('Scheduled', 'নির্ধারিত');
+    final diff = time.difference(_now);
+    if (diff.inMinutes > 0) {
+      return _isBangla
+          ? '${_compactDuration(diff)} পরে'
+          : 'in ${_compactDuration(diff)}';
+    }
+    return _text('Passed', 'শেষ হয়েছে');
+  }
+
+  String _displayPrayerSummary() {
+    final time = _prayerDateTime(_displayPrayer);
+    if (time == null) {
+      return _text('Calculated prayer schedule', 'নির্ধারিত নামাজের সময়সূচি');
+    }
+    final diff = time.difference(_now);
+    if (_displayPrayer == _activePrayer) {
+      return _localizedCountdownLabel();
+    }
+    if (diff.isNegative) {
+      return _isBangla
+          ? '${_localizedPrayerName(_displayPrayer)} আজ সম্পন্ন হয়েছে'
+          : '${_localizedPrayerName(_displayPrayer)} has passed today';
+    }
+    return _isBangla
+        ? '${_localizedPrayerName(_displayPrayer)} শুরু হতে ${_compactDuration(diff)}'
+        : '${_localizedPrayerName(_displayPrayer)} starts in ${_compactDuration(diff)}';
+  }
+
+  String _locationContextLabel() {
+    final label = _locationLabel.trim();
+    final location = label.isEmpty ? 'Baitul Mukarram, Dhaka' : label;
+    return _isBangla
+        ? '${_toBanglaDigits(_formattedBritishDate)} · $location'
+        : 'Today · $location';
   }
 
   Widget _buildCalendarWaqtButton() {
@@ -75,108 +178,159 @@ mixin DailyPrayerSectionMixin
 
   Widget _buildPrayerStrip() {
     return _buildGlassCard(
-      padding: EdgeInsets.fromLTRB(10.w, 12.h, 10.w, 10.h),
+      padding: EdgeInsets.fromLTRB(12.w, 13.h, 12.w, 11.h),
       ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.brightness_5_outlined,
-                size: 13.sp,
-                color: _accentGold,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                _text('Prayer Times', 'নামাজের সময়'),
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const Spacer(),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+                width: 34.w,
+                height: 34.h,
                 decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: _isDarkTheme
-                        ? const [Color(0x55E6C77A), Color(0x3320D3BF)]
-                        : const [Color(0x33B78A2E), Color(0x1F1EA8B8)],
+                        ? const [Color(0xFF1E5362), Color(0xFF12313D)]
+                        : const [Color(0xFFE4F8FB), Color(0xFFCFEFF4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(999.r),
-                  border: Border.all(color: _accentGoldSoft),
+                  border: Border.all(color: _surfaceBorder),
                 ),
-                child: Text(
-                  _isShowingActivePrayer
-                      ? '${_localizedActiveRemainingLabel()}: ${_activePrayerShortCountdown()}'
-                      : '${_localizedPrayerTimeLabel()}: ${_localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--')}',
-                  style: TextStyle(
-                    color: _isDarkTheme
-                        ? const Color(0xFFF5E2B8)
-                        : const Color(0xFF7A5A1F),
-                    fontSize: 10.8.sp,
-                    fontWeight: FontWeight.w800,
+                child: Icon(
+                  Icons.mosque_rounded,
+                  size: 17.sp,
+                  color: _accentStrong,
+                ),
+              ),
+              SizedBox(width: 9.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _text('Prayer Times', 'নামাজের সময়'),
+                      style: TextStyle(
+                        color: _textPrimary,
+                        fontSize: 14.5.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 3.h),
+                    Text(
+                      _locationContextLabel(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _textSecondary,
+                        fontSize: 10.2.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Tooltip(
+                message: _isShowingActivePrayer
+                    ? '${_localizedActiveRemainingLabel()}: ${_activePrayerShortCountdown()}'
+                    : '${_localizedPrayerTimeLabel()}: ${_localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--')}',
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isDarkTheme
+                          ? const [Color(0x55E6C77A), Color(0x3320D3BF)]
+                          : const [Color(0x33B78A2E), Color(0x1F1EA8B8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(999.r),
+                    border: Border.all(color: _accentGoldSoft),
+                  ),
+                  child: Text(
+                    _isShowingActivePrayer
+                        ? _activePrayerShortCountdown()
+                        : _prayerStatusLabel(_displayPrayer),
+                    style: TextStyle(
+                      color: _isDarkTheme
+                          ? const Color(0xFFF5E2B8)
+                          : const Color(0xFF7A5A1F),
+                      fontSize: 10.5.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 6.h),
-          Text(
-            _localizedCountdownLabel(),
-            style: TextStyle(
-              color: _textSecondary,
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 9.h),
-          Row(
-            children: [
-              Icon(
-                Icons.access_time_filled_rounded,
-                size: 14.sp,
-                color: _accentSoft,
-              ),
-              SizedBox(width: 5.w),
-              Text(
-                '${_localizedPrayerName(_displayPrayer)} · ',
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 11.2.sp,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                _arabicPrayerName(_displayPrayer),
-                style: TextStyle(
-                  color: _accentGold,
-                  fontSize: 12.5.sp,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
-                ),
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                _localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--'),
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+          SizedBox(height: 12.h),
+          // Container(
+          //   padding: EdgeInsets.all(10.r),
+          //   decoration: BoxDecoration(
+          //     color: _isDarkTheme
+          //         ? const Color(0x66101F2C)
+          //         : const Color(0xCCF6FBFE),
+          //     borderRadius: BorderRadius.circular(14.r),
+          //     border: Border.all(color: _surfaceBorder),
+          //   ),
+          //   child: Column(
+          //     children: [
+          //       Row(
+          //         children: [
+          //           Icon(
+          //             _prayerIcon(_displayPrayer),
+          //             size: 17.sp,
+          //             color: _accentStrong,
+          //           ),
+          //           SizedBox(width: 7.w),
+          //           Expanded(
+          //             child: Text(
+          //               _displayPrayerSummary(),
+          //               maxLines: 1,
+          //               overflow: TextOverflow.ellipsis,
+          //               style: TextStyle(
+          //                 color: _textPrimary,
+          //                 fontSize: 12.sp,
+          //                 fontWeight: FontWeight.w800,
+          //               ),
+          //             ),
+          //           ),
+          //           Text(
+          //             _localizedPrayerTime(
+          //               _prayerTimes[_displayPrayer] ?? '--:--',
+          //             ),
+          //             style: TextStyle(
+          //               color: _accentGold,
+          //               fontSize: 13.sp,
+          //               fontWeight: FontWeight.w900,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //       SizedBox(height: 9.h),
+          //       ClipRRect(
+          //         borderRadius: BorderRadius.circular(999.r),
+          //         child: LinearProgressIndicator(
+          //           minHeight: 5.h,
+          //           value: _isShowingActivePrayer ? _activeProgress : null,
+          //           backgroundColor: _isDarkTheme
+          //               ? const Color(0xFF223545)
+          //               : const Color(0xFFE0EDF5),
+          //           valueColor: AlwaysStoppedAnimation<Color>(_accentStrong),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           _ornamentDivider(
             padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
           ),
           SizedBox(
-            height: 104.h,
+            height: 116.h,
             child: PageView.builder(
               controller: _prayerPageController,
               itemCount: _prayerCarouselItemsCount,
@@ -228,7 +382,8 @@ mixin DailyPrayerSectionMixin
 
   Widget _buildPrayerTimeChip(String prayer, {required int pageIndex}) {
     final isActive = prayer == _displayPrayer;
-    final time = _localizedPrayerTime(_prayerTimes[prayer] ?? '--:--');
+    final isCurrent = prayer == _activePrayer;
+    final timeRange = _prayerTimeRangeLabel(prayer);
     final icon = _prayerIcon(prayer);
 
     return InkWell(
@@ -246,16 +401,16 @@ mixin DailyPrayerSectionMixin
           );
         }
       },
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(14.r),
       child: AnimatedScale(
         scale: isActive ? 1.02 : 1,
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 9.h),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(14.r),
             gradient: isActive
                 ? const LinearGradient(
                     colors: [Color(0xFF1FD5C0), Color(0xFF1EA8B8)],
@@ -291,16 +446,28 @@ mixin DailyPrayerSectionMixin
             children: [
               Row(
                 children: [
-                  Icon(
-                    icon,
-                    size: 12.5.sp,
-                    color: isActive
-                        ? const Color(0xDD032F35)
-                        : (_isDarkTheme
-                              ? const Color(0xFF9BC1D8)
-                              : const Color(0xFF56758A)),
+                  Container(
+                    width: 24.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isActive
+                          ? const Color(0x22032F35)
+                          : (_isDarkTheme
+                                ? const Color(0x332D5167)
+                                : const Color(0xFFEFF7FB)),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 13.sp,
+                      color: isActive
+                          ? const Color(0xDD032F35)
+                          : (_isDarkTheme
+                                ? const Color(0xFF9BC1D8)
+                                : const Color(0xFF56758A)),
+                    ),
                   ),
-                  SizedBox(width: 4.w),
+                  SizedBox(width: 6.w),
                   Expanded(
                     child: Text(
                       _localizedPrayerName(prayer),
@@ -317,30 +484,40 @@ mixin DailyPrayerSectionMixin
                       ),
                     ),
                   ),
-                  Text(
-                    _arabicPrayerName(prayer),
-                    style: TextStyle(
-                      color: isActive ? const Color(0xCC032F35) : _accentGold,
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
                 ],
               ),
-              SizedBox(height: 5.h),
+              SizedBox(height: 7.h),
               Text(
-                time,
+                _arabicPrayerName(prayer),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: isActive
-                      ? const Color(0xFF032F35)
-                      : (_isDarkTheme ? Colors.white : const Color(0xFF214259)),
-                  fontSize: 15.5.sp,
+                  color: isActive ? const Color(0xCC032F35) : _accentGold,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.w700,
-                  height: 1,
+                  height: 1.05,
                 ),
               ),
-              SizedBox(height: 3.h),
+              SizedBox(height: 6.h),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  timeRange,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: isActive
+                        ? const Color(0xFF032F35)
+                        : (_isDarkTheme
+                              ? Colors.white
+                              : const Color(0xFF214259)),
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const Spacer(),
               Row(
                 children: [
                   Text(
@@ -356,17 +533,40 @@ mixin DailyPrayerSectionMixin
                     ),
                   ),
                   const Spacer(),
-                  if (isActive)
-                    Transform.rotate(
-                      angle: 0.785398,
-                      child: Container(
-                        width: 6.w,
-                        height: 6.h,
-                        decoration: const BoxDecoration(
-                          color: Color(0xDD032F35),
-                        ),
+                  Container(
+                    constraints: BoxConstraints(maxWidth: 58.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.5.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? const Color(0x22032F35)
+                          : (isCurrent
+                                ? _accentStrong.withValues(alpha: 0.14)
+                                : Colors.transparent),
+                      borderRadius: BorderRadius.circular(999.r),
+                      border: Border.all(
+                        color: isActive
+                            ? const Color(0x33032F35)
+                            : (isCurrent
+                                  ? _accentStrong.withValues(alpha: 0.42)
+                                  : _surfaceBorder.withValues(alpha: 0.55)),
                       ),
                     ),
+                    child: Text(
+                      _prayerStatusLabel(prayer),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isActive
+                            ? const Color(0xDD032F35)
+                            : (isCurrent ? _accentStrong : _textWeak),
+                        fontSize: 8.4.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],

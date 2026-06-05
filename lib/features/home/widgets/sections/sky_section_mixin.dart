@@ -120,17 +120,16 @@ mixin DailySkySectionMixin
   }
 
   /// The prayer currently *in progress* during the daytime strip. [_activePrayer]
-  /// always holds the next/upcoming prayer, so the ongoing one is the previous
-  /// slot — e.g. between Zuhr and Asr the ongoing prayer is Zuhr, spanning
-  /// Zuhr → Asr. Returns null for the Fajr→Zuhr forenoon, which is shown as
-  /// Chasht instead.
+  /// now holds the prayer currently in progress — e.g. between Zuhr and Asr it
+  /// is Zuhr, spanning Zuhr → Asr. Returns null for the Fajr→Zuhr forenoon
+  /// (where [_activePrayer] is Fajr), which is shown as Chasht instead.
   ({String key, DateTime start, DateTime end})? _ongoingDayPrayer() {
     final schedule = _todaySchedule;
     if (schedule == null) return null;
     switch (_activePrayer) {
-      case 'Asr':
+      case 'Zuhr':
         return (key: 'Zuhr', start: schedule.dzuhr, end: schedule.ashr);
-      case 'Maghrib':
+      case 'Asr':
         return (key: 'Asr', start: schedule.ashr, end: schedule.maghrib);
       default:
         return null;
@@ -579,7 +578,8 @@ mixin DailySkySectionMixin
     final dzuhr = schedule?.dzuhr;
     final chasht = _chashtTime();
     // The progress strip presents the forenoon window as the Chasht period.
-    final isChasht = _activePrayer == 'Zuhr';
+    // The forenoon runs Fajr→Zuhr, so the in-progress prayer is Fajr.
+    final isChasht = _activePrayer == 'Fajr';
     // Outside the forenoon, name the prayer currently in progress (e.g. Zuhr
     // between Zuhr and Asr) and show its matching Zuhr→Asr window, rather than
     // the upcoming prayer.
