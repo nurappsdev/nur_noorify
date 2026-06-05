@@ -122,6 +122,9 @@ mixin DailyActivityViewMixin
                           _buildBoyosZacaiCard(),
 
                           SizedBox(height: 12.h),
+                          _buildDuaJikirCard(),
+
+                          SizedBox(height: 12.h),
                           _buildQuickActions(),
 
                           SizedBox(height: 12.h),

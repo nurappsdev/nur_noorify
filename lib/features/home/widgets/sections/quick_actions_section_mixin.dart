@@ -423,6 +423,78 @@ mixin DailyQuickActionsSectionMixin
     );
   }
 
+  /// A compact card that opens the "Dua o Jikir" hub of dhikr and dua
+  /// categories.
+  Widget _buildDuaJikirCard() {
+    return _buildGlassCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18.r),
+          onTap: () => Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => const DuaJikirScreen(),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
+            child: Row(
+              children: [
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    color: _surfaceStrong,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.self_improvement_rounded,
+                    color: _accentSoft,
+                    size: 21.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _text('Dua o Jikir', 'দোয়া ও জিকির'),
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        _text(
+                          'Jikir, daily duas & more',
+                          'জিকির, দৈনন্দিন দোয়া ও আরও',
+                        ),
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 11.5.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13.sp,
+                  color: _textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildQuickActionCard({
     required String title,
     required IconData icon,
