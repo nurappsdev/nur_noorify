@@ -35,8 +35,8 @@ Widget bottomNav(
         routeName: RouteNames.quran,
       ),
     (
-      label: t('Prayer', '\u09a8\u09be\u09ae\u09be\u099c'),
-      icon: Icons.calendar_month_outlined,
+      label: t('Dua Jikir', '\u09a6\u09cb\u09df\u09be \u099c\u09bf\u0995\u09bf\u09b0'),
+      icon: Icons.self_improvement_outlined,
       routeName: RouteNames.prayerTimes,
     ),
     (

@@ -5,7 +5,7 @@ import 'package:hijri/hijri_calendar.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 
 /// Which calendar a date field is entered/displayed in.
-enum _CalendarType { gregorian, hijri }
+enum _CalendarType { gregorian, hijri, bengali }
 
 /// "Boyos Zacai" — an age calculator. The user picks a present date and a date
 /// of birth, each in either the English (Gregorian) or Arabic (Hijri) calendar,
@@ -81,6 +81,38 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     'জিলহজ',
   ];
 
+  // Bangla (Bengali) calendar month names — Latin transliteration for the
+  // English UI, native script for the Bangla UI.
+  static const _banglaMonthsEn = <String>[
+    'Boishakh',
+    'Joishtho',
+    'Asharh',
+    'Srabon',
+    'Bhadro',
+    'Ashwin',
+    'Kartik',
+    'Ogrohayon',
+    'Poush',
+    'Magh',
+    'Falgun',
+    'Choitro',
+  ];
+
+  static const _banglaMonthsBn = <String>[
+    'বৈশাখ',
+    'জ্যৈষ্ঠ',
+    'আষাঢ়',
+    'শ্রাবণ',
+    'ভাদ্র',
+    'আশ্বিন',
+    'কার্তিক',
+    'অগ্রহায়ণ',
+    'পৌষ',
+    'মাঘ',
+    'ফাল্গুন',
+    'চৈত্র',
+  ];
+
   DateTime _presentDate = DateTime.now();
   DateTime? _birthDate;
 
@@ -124,6 +156,55 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
   String _hijriMonthName(int month) =>
       (_isBangla ? _hijriMonthsBn : _hijriMonthsEn)[month - 1];
 
+  String _banglaMonthName(int month) =>
+      (_isBangla ? _banglaMonthsBn : _banglaMonthsEn)[month - 1];
+
+  // ---------------------------------------------------------------------------
+  // Bangla (Bengali) calendar conversion
+  //
+  // The Bangla year begins on Pohela Boishakh = 14 April. The months are sized
+  // so they tile the underlying Gregorian span [14 Apr, 14 Apr next year)
+  // exactly; in a 366-day span the extra day lands in Falgun. This keeps the
+  // conversion a precise day-for-day bijection so [_toBangla] and [_fromBangla]
+  // are exact inverses.
+  // ---------------------------------------------------------------------------
+
+  List<int> _banglaMonthDays(int startGregYear) {
+    final days = <int>[31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30, 30];
+    final spanDays = DateTime(startGregYear + 1, 4, 14)
+        .difference(DateTime(startGregYear, 4, 14))
+        .inDays;
+    if (spanDays == 366) days[10] = 31; // extra day → Falgun
+    return days;
+  }
+
+  /// Converts an absolute Gregorian [date] to its Bangla calendar parts.
+  ({int year, int month, int day}) _toBangla(DateTime date) {
+    final g = DateTime(date.year, date.month, date.day);
+    final beforeNewYear = g.month < 4 || (g.month == 4 && g.day < 14);
+    final startGregYear = beforeNewYear ? g.year - 1 : g.year;
+    final monthDays = _banglaMonthDays(startGregYear);
+    var offset = g.difference(DateTime(startGregYear, 4, 14)).inDays;
+    var monthIndex = 0;
+    while (monthIndex < 11 && offset >= monthDays[monthIndex]) {
+      offset -= monthDays[monthIndex];
+      monthIndex++;
+    }
+    return (year: startGregYear - 593, month: monthIndex + 1, day: offset + 1);
+  }
+
+  /// Inverse of [_toBangla]: the absolute Gregorian date for a Bangla
+  /// year/month/day.
+  DateTime _fromBangla(int year, int month, int day) {
+    final startGregYear = year + 593;
+    final monthDays = _banglaMonthDays(startGregYear);
+    var offset = day - 1;
+    for (var i = 0; i < month - 1; i++) {
+      offset += monthDays[i];
+    }
+    return DateTime(startGregYear, 4, 14).add(Duration(days: offset));
+  }
+
   /// Formats [date] in the requested [calendar]. Hijri dates are derived from
   /// the absolute Gregorian value and suffixed with "AH".
   String _formatDate(DateTime date, _CalendarType calendar) {
@@ -131,6 +212,11 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
       final h = HijriCalendar.fromDate(date);
       return '${_digits(h.hDay.toString())} ${_hijriMonthName(h.hMonth)} '
           '${_digits(h.hYear.toString())} ${_text('AH', 'হিজরি')}';
+    }
+    if (calendar == _CalendarType.bengali) {
+      final b = _toBangla(date);
+      return '${_digits(b.day.toString())} ${_banglaMonthName(b.month)} '
+          '${_digits(b.year.toString())} ${_text('BS', 'বঙ্গাব্দ')}';
     }
     return '${_digits(date.day.toString())} ${_gregorianMonthName(date.month)} '
         '${_digits(date.year.toString())}';
@@ -191,24 +277,30 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     final calendar = isBirth ? _birthCalendar : _presentCalendar;
     final initial = isBirth ? (_birthDate ?? DateTime(2000, 1, 1)) : _presentDate;
 
-    final picked = calendar == _CalendarType.hijri
-        ? await _pickHijriDate(isBirth: isBirth, initial: initial)
-        : await showDatePicker(
-            context: context,
-            initialDate: initial,
-            firstDate: DateTime(1900),
-            lastDate: DateTime(2100, 12, 31),
-            helpText: isBirth
-                ? _text('Select date of birth', 'জন্ম তারিখ নির্বাচন করুন')
-                : _text('Select present date', 'বর্তমান তারিখ নির্বাচন করুন'),
-          );
+    final DateTime? picked;
+    if (calendar == _CalendarType.hijri) {
+      picked = await _pickHijriDate(isBirth: isBirth, initial: initial);
+    } else if (calendar == _CalendarType.bengali) {
+      picked = await _pickBanglaDate(isBirth: isBirth, initial: initial);
+    } else {
+      picked = await showDatePicker(
+        context: context,
+        initialDate: initial,
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100, 12, 31),
+        helpText: isBirth
+            ? _text('Select date of birth', 'জন্ম তারিখ নির্বাচন করুন')
+            : _text('Select present date', 'বর্তমান তারিখ নির্বাচন করুন'),
+      );
+    }
 
     if (picked == null) return;
+    final result = picked;
     setState(() {
       if (isBirth) {
-        _birthDate = picked;
+        _birthDate = result;
       } else {
-        _presentDate = picked;
+        _presentDate = result;
       }
     });
   }
@@ -342,6 +434,134 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     );
   }
 
+  /// A Bangla date picker built from three dropdowns, mirroring
+  /// [_pickHijriDate]. Returns the chosen date converted to an absolute
+  /// Gregorian [DateTime].
+  Future<DateTime?> _pickBanglaDate({
+    required bool isBirth,
+    required DateTime initial,
+  }) {
+    final start = _toBangla(initial);
+    var year = start.year;
+    var month = start.month;
+    var day = start.day;
+
+    // Bangla years spanning the Gregorian 1900–2100 window.
+    const minYear = 1306;
+    const maxYear = 1507;
+    year = year.clamp(minYear, maxYear);
+
+    return showDialog<DateTime>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final daysInMonth = _banglaMonthDays(year + 593)[month - 1];
+            if (day > daysInMonth) day = daysInMonth;
+
+            return AlertDialog(
+              backgroundColor: _cardBg,
+              title: Text(
+                isBirth
+                    ? _text('Date of birth (Bengali)', 'জন্ম তারিখ (বাংলা)')
+                    : _text('Present date (Bengali)', 'বর্তমান তারিখ (বাংলা)'),
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _hijriDropdown<int>(
+                      label: _text('Day', 'দিন'),
+                      value: day,
+                      items: [
+                        for (var d = 1; d <= daysInMonth; d++)
+                          DropdownMenuItem(
+                            value: d,
+                            child: Text(
+                              _digits(d.toString()),
+                              style: TextStyle(color: _textPrimary),
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) => setDialogState(() => day = v!),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    flex: 5,
+                    child: _hijriDropdown<int>(
+                      label: _text('Month', 'মাস'),
+                      value: month,
+                      items: [
+                        for (var m = 1; m <= 12; m++)
+                          DropdownMenuItem(
+                            value: m,
+                            child: Text(
+                              _banglaMonthName(m),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textPrimary),
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) => setDialogState(() => month = v!),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    flex: 4,
+                    child: _hijriDropdown<int>(
+                      label: _text('Year', 'বছর'),
+                      value: year,
+                      items: [
+                        for (var y = maxYear; y >= minYear; y--)
+                          DropdownMenuItem(
+                            value: y,
+                            child: Text(
+                              _digits(y.toString()),
+                              style: TextStyle(color: _textPrimary),
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) => setDialogState(() => year = v!),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    _text('Cancel', 'বাতিল'),
+                    style: TextStyle(color: _textSecondary),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(
+                      dialogContext,
+                    ).pop(_fromBangla(year, month, day));
+                  },
+                  child: Text(
+                    _text('OK', 'ঠিক আছে'),
+                    style: TextStyle(
+                      color: _accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _hijriDropdown<T>({
     required String label,
     required T value,
@@ -454,15 +674,19 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
         children: [
           Row(
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 11.5.sp,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textSecondary,
+                    fontSize: 11.5.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              const Spacer(),
+              SizedBox(width: 8.w),
               _buildCalendarToggle(calendar, onCalendarChanged),
             ],
           ),
@@ -520,7 +744,7 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
           borderRadius: BorderRadius.circular(9.r),
           onTap: isActive ? null : () => onChanged(type),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+            padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
             decoration: BoxDecoration(
               color: isActive ? _accent : Colors.transparent,
               borderRadius: BorderRadius.circular(9.r),
@@ -550,6 +774,7 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
         children: [
           segment(_CalendarType.gregorian, _text('English', 'ইংরেজি')),
           segment(_CalendarType.hijri, _text('Arabic', 'আরবি')),
+          segment(_CalendarType.bengali, _text('Bengali', 'বাংলা')),
         ],
       ),
     );
