@@ -2,30 +2,37 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/features/hadith/models/hadith_item.dart';
-import 'package:first_project/features/hadith/services/hadith_service.dart';
-import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/features/hadith/providers/hadith_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class HadithScreen extends StatefulWidget {
+class HadithScreen extends StatelessWidget {
   const HadithScreen({super.key});
 
   @override
-  State<HadithScreen> createState() => _HadithScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<HadithProvider>(
+      create: (_) => HadithProvider(),
+      child: const _HadithView(),
+    );
+  }
 }
 
-class _HadithScreenState extends State<HadithScreen> {
-  final HadithService _hadithService = HadithService();
+class _HadithView extends StatefulWidget {
+  const _HadithView();
+
+  @override
+  State<_HadithView> createState() => _HadithViewState();
+}
+
+class _HadithViewState extends State<_HadithView> {
   final TextEditingController _searchController = TextEditingController();
 
-  bool _isLoading = true;
-  String? _error;
-  String _query = '';
-  List<HadithItem> _hadiths = const [];
-
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
 
   bool _looksMojibake(String value) {
     for (final unit in value.codeUnits) {
@@ -71,66 +78,19 @@ class _HadithScreenState extends State<HadithScreen> {
   @override
   void initState() {
     super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
     _searchController.addListener(_onSearchChanged);
-    _loadHadiths();
   }
 
   @override
   void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
     _searchController
       ..removeListener(_onSearchChanged)
       ..dispose();
     super.dispose();
   }
 
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
   void _onSearchChanged() {
-    if (!mounted) return;
-    setState(() => _query = _searchController.text.trim().toLowerCase());
-  }
-
-  Future<void> _loadHadiths() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final hadiths = await _hadithService.loadHadiths();
-      if (!mounted) return;
-      setState(() {
-        _hadiths = hadiths;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  List<HadithItem> get _filteredHadiths {
-    if (_query.isEmpty) return _hadiths;
-    return _hadiths
-        .where((item) {
-          return item.id.toString().contains(_query) ||
-              item.category.toLowerCase().contains(_query) ||
-              item.titleEn.toLowerCase().contains(_query) ||
-              item.titleBn.toLowerCase().contains(_query) ||
-              item.arabic.contains(_query) ||
-              item.english.toLowerCase().contains(_query) ||
-              item.bangla.toLowerCase().contains(_query) ||
-              item.reference.toLowerCase().contains(_query);
-        })
-        .toList(growable: false);
+    context.read<HadithProvider>().setQuery(_searchController.text);
   }
 
   String _categoryLabel(String value) {
@@ -267,7 +227,9 @@ class _HadithScreenState extends State<HadithScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredHadiths;
+    context.watch<LanguageProvider>();
+    final provider = context.watch<HadithProvider>();
+    final filtered = provider.filteredHadiths;
     final glass = NoorifyGlassTheme(context);
 
     return Scaffold(
@@ -309,7 +271,7 @@ class _HadithScreenState extends State<HadithScreen> {
                               border: Border.all(color: glass.glassBorder),
                             ),
                             child: Text(
-                              '${filtered.length}/${_hadiths.length}',
+                              '${filtered.length}/${provider.hadiths.length}',
                               style: TextStyle(
                                 color: glass.textPrimary,
                                 fontWeight: FontWeight.w700,
@@ -367,11 +329,11 @@ class _HadithScreenState extends State<HadithScreen> {
                 ),
               ),
               Expanded(
-                child: _isLoading
+                child: provider.isLoading
                     ? Center(
                         child: CircularProgressIndicator(color: glass.accent),
                       )
-                    : _error != null
+                    : provider.error != null
                     ? Center(
                         child: Padding(
                           padding: EdgeInsets.all(20.r),
@@ -379,7 +341,7 @@ class _HadithScreenState extends State<HadithScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _error!,
+                                provider.error!,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: glass.textSecondary),
                               ),
@@ -391,7 +353,8 @@ class _HadithScreenState extends State<HadithScreen> {
                                       ? const Color(0xFF032F35)
                                       : Colors.white,
                                 ),
-                                onPressed: _loadHadiths,
+                                onPressed: () =>
+                                    context.read<HadithProvider>().loadHadiths(),
                                 child: Text(_text('Retry', 'পুনরায় চেষ্টা')),
                               ),
                             ],

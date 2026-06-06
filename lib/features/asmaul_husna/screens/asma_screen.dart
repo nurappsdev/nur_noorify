@@ -1,32 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/features/asmaul_husna/models/asma_name.dart';
-import 'package:first_project/features/asmaul_husna/services/asma_service.dart';
+import 'package:first_project/features/asmaul_husna/providers/asma_provider.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 import 'package:first_project/shared/widgets/bottom_nav.dart';
 
-class AsmaScreen extends StatefulWidget {
+class AsmaScreen extends StatelessWidget {
   const AsmaScreen({super.key});
 
   @override
-  State<AsmaScreen> createState() => _AsmaScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<AsmaProvider>(
+      create: (_) => AsmaProvider(),
+      child: const _AsmaView(),
+    );
+  }
 }
 
-class _AsmaScreenState extends State<AsmaScreen> {
-  final AsmaService _asmaService = AsmaService();
-  final TextEditingController _searchController = TextEditingController();
+class _AsmaView extends StatefulWidget {
+  const _AsmaView();
 
-  bool _isLoading = true;
-  String? _error;
-  String _query = '';
-  List<AsmaName> _names = const [];
+  @override
+  State<_AsmaView> createState() => _AsmaViewState();
+}
+
+class _AsmaViewState extends State<_AsmaView> {
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _loadAsmaNames();
   }
 
   @override
@@ -38,44 +44,7 @@ class _AsmaScreenState extends State<AsmaScreen> {
   }
 
   void _onSearchChanged() {
-    if (!mounted) return;
-    setState(() => _query = _searchController.text.trim().toLowerCase());
-  }
-
-  Future<void> _loadAsmaNames() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final names = await _asmaService.loadAsmaNames();
-      if (!mounted) return;
-      setState(() {
-        _names = names;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  List<AsmaName> get _filteredNames {
-    if (_query.isEmpty) return _names;
-    return _names
-        .where((item) {
-          return item.id.toString().contains(_query) ||
-              item.arabic.contains(_query) ||
-              item.transliteration.toLowerCase().contains(_query) ||
-              item.englishMeaning.toLowerCase().contains(_query) ||
-              item.banglaName.toLowerCase().contains(_query) ||
-              item.banglaMeaning.toLowerCase().contains(_query);
-        })
-        .toList(growable: false);
+    context.read<AsmaProvider>().setQuery(_searchController.text);
   }
 
   void _onTapPlay(AsmaName item) {
@@ -86,7 +55,8 @@ class _AsmaScreenState extends State<AsmaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredNames = _filteredNames;
+    final provider = context.watch<AsmaProvider>();
+    final filteredNames = provider.filteredNames;
     final glass = NoorifyGlassTheme(context);
 
     return Scaffold(
@@ -97,16 +67,20 @@ class _AsmaScreenState extends State<AsmaScreen> {
             children: [
               _AsmaHeader(
                 searchController: _searchController,
-                total: _names.length,
+                total: provider.names.length,
                 shown: filteredNames.length,
               ),
               Expanded(
-                child: _isLoading
+                child: provider.isLoading
                     ? Center(
                         child: CircularProgressIndicator(color: glass.accent),
                       )
-                    : _error != null
-                    ? _AsmaErrorView(error: _error!, onRetry: _loadAsmaNames)
+                    : provider.error != null
+                    ? _AsmaErrorView(
+                        error: provider.error!,
+                        onRetry: () =>
+                            context.read<AsmaProvider>().loadAsmaNames(),
+                      )
                     : ListView.separated(
                         padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 10.h),
                         itemCount: filteredNames.length,

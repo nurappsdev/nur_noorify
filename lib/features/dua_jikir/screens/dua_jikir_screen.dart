@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
-import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 
 /// A single Dua o Jikir category shown as a tappable card on the hub screen.
 class _DuaJikirCategory {
@@ -68,24 +69,8 @@ class _DuaJikirScreenState extends State<DuaJikirScreen> {
     ),
   ];
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-
-  @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  @override
-  void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
-    super.dispose();
-  }
-
-  void _onLanguageChanged() {
-    if (mounted) setState(() {});
-  }
 
   String _text(String en, String bn) => _isBangla ? bn : en;
 
@@ -117,6 +102,7 @@ class _DuaJikirScreenState extends State<DuaJikirScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
@@ -220,7 +206,7 @@ class _DuaJikirCategoryScreen extends StatelessWidget {
     final textPrimary = isDark ? Colors.white : const Color(0xFF143349);
     final textSecondary =
         isDark ? const Color(0xFF9BC1D8) : const Color(0xFF5F7E94);
-    final isBangla = appLanguageNotifier.value == AppLanguage.bangla;
+    final isBangla = context.watch<LanguageProvider>().isBangla;
 
     return Scaffold(
       backgroundColor: bg,

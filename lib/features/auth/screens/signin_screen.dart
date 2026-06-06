@@ -5,46 +5,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:provider/provider.dart';
+
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
+import 'package:first_project/features/auth/providers/sign_in_provider.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<SignInProvider>(
+      create: (_) => SignInProvider(),
+      child: const _SignInView(),
+    );
+  }
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInView extends StatefulWidget {
+  const _SignInView();
+
+  @override
+  State<_SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<_SignInView> {
   static const _bgPath = 'assets/images/Login.jpg';
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _guestNameController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _isLoading = false;
+  SignInProvider get _auth => context.read<SignInProvider>();
+  bool get _isLoading => _auth.isLoading;
+  bool get _obscurePassword => _auth.obscurePassword;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   String _text(String en, String bn) => _isBangla ? bn : en;
 
   @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  @override
   void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _guestNameController.dispose();
@@ -363,7 +368,7 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signInWithEmail(
         email: email,
@@ -385,7 +390,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
@@ -425,7 +430,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> _signInWithGoogle() async {
     if (!await _ensureInternetOrShowMessage()) return;
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signInWithGoogle();
       await _setSkipAuthGate(false);
@@ -446,13 +451,15 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
+    context.watch<SignInProvider>();
     final glass = NoorifyGlassTheme(context);
 
     return Scaffold(
@@ -519,7 +526,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   hint: '........',
                   suffixIcon: IconButton(
                     onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
+                      _auth.toggleObscurePassword();
                     },
                     icon: Icon(
                       _obscurePassword

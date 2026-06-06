@@ -1,56 +1,51 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_compass/flutter_compass.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 
-import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/features/qibla/providers/qibla_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-enum _QiblaSource { none, api, basic }
-
-class QiblaCompassScreen extends StatefulWidget {
+class QiblaCompassScreen extends StatelessWidget {
   const QiblaCompassScreen({super.key});
 
   @override
-  State<QiblaCompassScreen> createState() => _QiblaCompassScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<QiblaProvider>(
+      create: (ctx) =>
+          QiblaProvider(isBangla: ctx.read<LanguageProvider>().isBangla),
+      child: const _QiblaCompassView(),
+    );
+  }
 }
 
-class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
-  static const _kaabaLat = 21.422487;
-  static const _kaabaLng = 39.826206;
-  static const _baitulMukarramLat = 23.7286;
-  static const _baitulMukarramLng = 90.4106;
+class _QiblaCompassView extends StatefulWidget {
+  const _QiblaCompassView();
+
+  @override
+  State<_QiblaCompassView> createState() => _QiblaCompassViewState();
+}
+
+class _QiblaCompassViewState extends State<_QiblaCompassView> {
   static const _deg = '\u00B0';
 
-  final Dio _qiblaApi = Dio(
-    BaseOptions(
-      baseUrl: 'https://api.aladhan.com/v1',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
-      responseType: ResponseType.json,
-    ),
-  );
+  QiblaProvider get _qibla => context.read<QiblaProvider>();
 
-  StreamSubscription<CompassEvent>? _compassSub;
-  double? _heading;
-  double? _qiblaBearing;
-  double? _distanceKm;
-  String? _sensorError;
-  bool _isListening = false;
-  bool _isLoadingQibla = true;
-  bool _usingFallbackLocation = false;
-  String _locationLabel = 'Locating...';
-  _QiblaSource _qiblaSource = _QiblaSource.none;
+  double? get _heading => _qibla.heading;
+  double? get _qiblaBearing => _qibla.qiblaBearing;
+  double? get _distanceKm => _qibla.distanceKm;
+  bool get _isListening => _qibla.isListening;
+  bool get _isLoadingQibla => _qibla.isLoadingQibla;
+  bool get _usingFallbackLocation => _qibla.usingFallbackLocation;
+  String get _locationLabel => _qibla.locationLabel;
+  QiblaSource get _qiblaSource => _qibla.qiblaSource;
+  QiblaSensorError get _sensorError => _qibla.sensorError;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
 
   bool _looksMojibake(String value) {
     for (final unit in value.codeUnits) {
@@ -93,236 +88,7 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
     return english;
   }
 
-  String _fallbackLocationLabel() =>
-      _text('Baitul Mukarram, Dhaka', 'বায়তুল মুকাররম, ঢাকা');
-
-  @override
-  void initState() {
-    super.initState();
-    useDeviceLocationNotifier.addListener(_onLocationModeChanged);
-    appLanguageNotifier.addListener(_onLanguageChanged);
-    _startCompassListener();
-    unawaited(_loadQiblaDirection());
-  }
-
-  @override
-  void dispose() {
-    useDeviceLocationNotifier.removeListener(_onLocationModeChanged);
-    appLanguageNotifier.removeListener(_onLanguageChanged);
-    _compassSub?.cancel();
-    super.dispose();
-  }
-
-  void _onLocationModeChanged() {
-    unawaited(_loadQiblaDirection());
-  }
-
-  void _onLanguageChanged() {
-    _safeSetState(() {});
-  }
-
-  void _safeSetState(VoidCallback fn) {
-    if (!mounted) return;
-    setState(fn);
-  }
-
-  void _startCompassListener() {
-    _compassSub?.cancel();
-    final stream = FlutterCompass.events;
-    if (stream == null) {
-      _safeSetState(() {
-        _sensorError = _text(
-          'Compass is not available on this device.',
-          'এই ডিভাইসে কম্পাস সেন্সর নেই।',
-        );
-        _isListening = false;
-      });
-      return;
-    }
-
-    _safeSetState(() {
-      _sensorError = null;
-      _isListening = true;
-    });
-
-    _compassSub = stream.listen(
-      (event) {
-        final heading = event.heading;
-        if (heading == null || heading.isNaN) return;
-        _safeSetState(() {
-          _heading = _normalizeAngle(heading);
-          _sensorError = null;
-          _isListening = true;
-        });
-      },
-      onError: (_) {
-        _safeSetState(() {
-          _sensorError = _text(
-            'Could not read compass sensor.',
-            'কম্পাস সেন্সর থেকে ডাটা পাওয়া যায়নি।',
-          );
-          _isListening = false;
-        });
-      },
-      onDone: () {
-        _safeSetState(() => _isListening = false);
-      },
-    );
-  }
-
-  Future<void> _refreshAll() async {
-    _startCompassListener();
-    await _loadQiblaDirection();
-  }
-
-  Future<void> _loadQiblaDirection() async {
-    _safeSetState(() => _isLoadingQibla = true);
-
-    final resolved = await _resolveCoordinates();
-    final lat = resolved.lat;
-    final lng = resolved.lng;
-    final locationLabel = resolved.label;
-    final usingFallbackLocation = resolved.usingFallbackLocation;
-
-    final apiBearing = await _fetchQiblaBearingFromApi(lat: lat, lng: lng);
-    final basicBearing = _calculateBasicQiblaBearing(lat: lat, lng: lng);
-    final distanceKm =
-        Geolocator.distanceBetween(lat, lng, _kaabaLat, _kaabaLng) / 1000;
-
-    _safeSetState(() {
-      _qiblaBearing = apiBearing ?? basicBearing;
-      _qiblaSource = apiBearing != null ? _QiblaSource.api : _QiblaSource.basic;
-      _distanceKm = distanceKm;
-      _locationLabel = locationLabel;
-      _usingFallbackLocation = usingFallbackLocation;
-      _isLoadingQibla = false;
-    });
-  }
-
-  Future<double?> _fetchQiblaBearingFromApi({
-    required double lat,
-    required double lng,
-  }) async {
-    try {
-      final response = await _qiblaApi.get('/qibla/$lat/$lng');
-      final root = response.data;
-      if (root is! Map) return null;
-      final data = root['data'];
-      if (data is! Map) return null;
-      final direction = data['direction'];
-      if (direction is! num) return null;
-      return _normalizeAngle(direction.toDouble());
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<({double lat, double lng, String label, bool usingFallbackLocation})>
-  _resolveCoordinates() async {
-    if (!useDeviceLocationNotifier.value) {
-      return (
-        lat: _baitulMukarramLat,
-        lng: _baitulMukarramLng,
-        label: _fallbackLocationLabel(),
-        usingFallbackLocation: true,
-      );
-    }
-
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return (
-          lat: _baitulMukarramLat,
-          lng: _baitulMukarramLng,
-          label: _fallbackLocationLabel(),
-          usingFallbackLocation: true,
-        );
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        return (
-          lat: _baitulMukarramLat,
-          lng: _baitulMukarramLng,
-          label: _fallbackLocationLabel(),
-          usingFallbackLocation: true,
-        );
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-      final label = await _resolveLocationLabel(
-        position.latitude,
-        position.longitude,
-      );
-      return (
-        lat: position.latitude,
-        lng: position.longitude,
-        label: label,
-        usingFallbackLocation: false,
-      );
-    } catch (_) {
-      return (
-        lat: _baitulMukarramLat,
-        lng: _baitulMukarramLng,
-        label: _fallbackLocationLabel(),
-        usingFallbackLocation: true,
-      );
-    }
-  }
-
-  Future<String> _resolveLocationLabel(double lat, double lng) async {
-    try {
-      final placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isEmpty) {
-        return _text('Current location', 'বর্তমান অবস্থান');
-      }
-      final place = placemarks.first;
-
-      final city =
-          place.locality ??
-          place.subAdministrativeArea ??
-          place.administrativeArea ??
-          _text('Current location', 'বর্তমান অবস্থান');
-      final region = place.subAdministrativeArea ?? place.administrativeArea;
-      final country = place.country;
-
-      final trailing = <String>[];
-      if (region != null && region.isNotEmpty && region != city) {
-        trailing.add(region);
-      }
-      if (country != null && country.isNotEmpty) {
-        trailing.add(country);
-      }
-
-      if (trailing.isEmpty) return city;
-      return '$city, ${trailing.join(', ')}';
-    } catch (_) {
-      return _text('Current location', 'বর্তমান অবস্থান');
-    }
-  }
-
-  double _calculateBasicQiblaBearing({
-    required double lat,
-    required double lng,
-  }) {
-    final latRad = lat * math.pi / 180;
-    final lngRad = lng * math.pi / 180;
-    final kaabaLatRad = _kaabaLat * math.pi / 180;
-    final kaabaLngRad = _kaabaLng * math.pi / 180;
-    final dLng = kaabaLngRad - lngRad;
-
-    final y = math.sin(dLng);
-    final x =
-        math.cos(latRad) * math.tan(kaabaLatRad) -
-        math.sin(latRad) * math.cos(dLng);
-    final bearing = math.atan2(y, x) * 180 / math.pi;
-    return _normalizeAngle(bearing);
-  }
+  Future<void> _refreshAll() => _qibla.refreshAll(isBangla: _isBangla);
 
   double _normalizeAngle(double degrees) {
     final normalized = degrees % 360;
@@ -361,20 +127,38 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
 
   String _qiblaSourceText() {
     switch (_qiblaSource) {
-      case _QiblaSource.api:
+      case QiblaSource.api:
         return _text('Qibla source: API', 'কিবলা সোর্স: API');
-      case _QiblaSource.basic:
+      case QiblaSource.basic:
         return _text(
           'Qibla source: Basic fallback',
           'কিবলা সোর্স: বেসিক ফলব্যাক',
         );
-      case _QiblaSource.none:
+      case QiblaSource.none:
         return _text('Qibla source: --', 'কিবলা সোর্স: --');
     }
   }
 
+  String? _sensorErrorText() {
+    switch (_sensorError) {
+      case QiblaSensorError.none:
+        return null;
+      case QiblaSensorError.unavailable:
+        return _text(
+          'Compass is not available on this device.',
+          'এই ডিভাইসে কম্পাস সেন্সর নেই।',
+        );
+      case QiblaSensorError.readError:
+        return _text(
+          'Could not read compass sensor.',
+          'কম্পাস সেন্সর থেকে ডাটা পাওয়া যায়নি।',
+        );
+    }
+  }
+
   String _statusHint() {
-    if (_sensorError != null) return _sensorError!;
+    final sensorError = _sensorErrorText();
+    if (sensorError != null) return sensorError;
     if (_heading == null) {
       return _text(
         'Move your phone in a figure-8 to calibrate the compass.',
@@ -422,6 +206,8 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<QiblaProvider>();
+    context.watch<LanguageProvider>();
     final glass = NoorifyGlassTheme(context);
     final dialTurns = _heading == null ? 0.0 : -_heading! / 360;
     final qiblaTurns = (_heading != null && _qiblaBearing != null)
@@ -738,7 +524,7 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                               ),
                             ),
                             if ((_isLoadingQibla || !_isListening) &&
-                                _sensorError == null) ...[
+                                _sensorError == QiblaSensorError.none) ...[
                               SizedBox(height: 12.h),
                               SizedBox(
                                 width: 22.r,
@@ -755,7 +541,7 @@ class _QiblaCompassScreenState extends State<QiblaCompassScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13.sp,
-                                color: _sensorError == null
+                                color: _sensorError == QiblaSensorError.none
                                     ? glass.textSecondary
                                     : const Color(0xFFB65757),
                                 fontWeight: FontWeight.w600,

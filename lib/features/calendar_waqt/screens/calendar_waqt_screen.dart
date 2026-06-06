@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:ponjika/ponjika.dart';
+import 'package:provider/provider.dart';
 
-import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/features/calendar_waqt/providers/calendar_waqt_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 
 /// A month-at-a-glance "Calendar & Waqt" screen. For every day of the selected
 /// month it lists the five daily prayers plus sunrise/sunset, sahri/iftar, and
@@ -14,7 +16,7 @@ import 'package:first_project/shared/services/app_globals.dart';
 /// Islamic Sciences, Karachi method + Hanafi madhab) so the whole month renders
 /// without any network call. Coordinates default to Baitul Mukarram (Dhaka) but
 /// the caller can pass the home screen's resolved location.
-class CalendarWaqtScreen extends StatefulWidget {
+class CalendarWaqtScreen extends StatelessWidget {
   const CalendarWaqtScreen({
     super.key,
     this.latitude,
@@ -32,10 +34,34 @@ class CalendarWaqtScreen extends StatefulWidget {
   final String? locationLabel;
 
   @override
-  State<CalendarWaqtScreen> createState() => _CalendarWaqtScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<CalendarWaqtProvider>(
+      create: (_) => CalendarWaqtProvider(),
+      child: _CalendarWaqtView(
+        latitude: latitude,
+        longitude: longitude,
+        locationLabel: locationLabel,
+      ),
+    );
+  }
 }
 
-class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
+class _CalendarWaqtView extends StatefulWidget {
+  const _CalendarWaqtView({
+    this.latitude,
+    this.longitude,
+    this.locationLabel,
+  });
+
+  final double? latitude;
+  final double? longitude;
+  final String? locationLabel;
+
+  @override
+  State<_CalendarWaqtView> createState() => _CalendarWaqtViewState();
+}
+
+class _CalendarWaqtViewState extends State<_CalendarWaqtView> {
   static const _baitulMukarramLat = 23.7286;
   static const _baitulMukarramLng = 90.4106;
 
@@ -94,9 +120,6 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
     'রবিবার',
   ];
 
-  late int _selectedMonth;
-  late int _selectedYear;
-
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _todayKey = GlobalKey();
 
@@ -104,23 +127,23 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
   // before refining the position with [Scrollable.ensureVisible].
   static const double _estimatedCardExtent = 316;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  int get _selectedMonth => context.read<CalendarWaqtProvider>().selectedMonth;
+  int get _selectedYear => context.read<CalendarWaqtProvider>().selectedYear;
+
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedMonth = now.month;
-    _selectedYear = now.year;
-    appLanguageNotifier.addListener(_onLanguageChanged);
     // After the first layout, bring today's card into view.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday(now));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollToToday(DateTime.now()),
+    );
   }
 
   @override
   void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
     _scrollController.dispose();
     super.dispose();
   }
@@ -149,10 +172,6 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
         alignment: 0.1,
       );
     });
-  }
-
-  void _onLanguageChanged() {
-    if (mounted) setState(() {});
   }
 
   // ---------------------------------------------------------------------------
@@ -236,8 +255,10 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
+    final calendar = context.watch<CalendarWaqtProvider>();
     final now = DateTime.now();
-    final dayCount = _daysInMonth(_selectedYear, _selectedMonth);
+    final dayCount = _daysInMonth(calendar.selectedYear, calendar.selectedMonth);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -343,7 +364,9 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                     ),
                 ],
                 onChanged: (value) {
-                  if (value != null) setState(() => _selectedMonth = value);
+                  if (value != null) {
+                    context.read<CalendarWaqtProvider>().setMonth(value);
+                  }
                 },
               ),
             ),
@@ -370,7 +393,9 @@ class _CalendarWaqtScreenState extends State<CalendarWaqtScreen> {
                     ),
                 ],
                 onChanged: (value) {
-                  if (value != null) setState(() => _selectedYear = value);
+                  if (value != null) {
+                    context.read<CalendarWaqtProvider>().setYear(value);
+                  }
                 },
               ),
             ),

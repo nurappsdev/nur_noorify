@@ -1,26 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/features/dua/models/dua_item.dart';
-import 'package:first_project/features/dua/services/dua_service.dart';
-import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/features/dua/providers/dua_category_provider.dart';
+import 'package:first_project/features/dua/providers/dua_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class DuaScreen extends StatefulWidget {
+class DuaScreen extends StatelessWidget {
   const DuaScreen({super.key});
 
   @override
-  State<DuaScreen> createState() => _DuaScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<DuaProvider>(
+      create: (_) => DuaProvider(),
+      child: const _DuaView(),
+    );
+  }
 }
 
-class _DuaScreenState extends State<DuaScreen> {
-  final DuaService _duaService = DuaService();
+class _DuaView extends StatefulWidget {
+  const _DuaView();
 
-  bool _isLoading = true;
-  String? _error;
-  List<DuaItem> _duas = const [];
+  @override
+  State<_DuaView> createState() => _DuaViewState();
+}
+
+class _DuaViewState extends State<_DuaView> {
+  DuaProvider get _dua => context.read<DuaProvider>();
+
+  List<DuaItem> get _duas => _dua.duas;
 
   static const List<String> _mainCategoryOrder = [
     'namaj',
@@ -191,34 +203,6 @@ class _DuaScreenState extends State<DuaScreen> {
       _subCategoryMetas[i].key: i,
   };
 
-  @override
-  void initState() {
-    super.initState();
-    _loadDuas();
-  }
-
-  Future<void> _loadDuas() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final duas = await _duaService.loadDuas();
-      if (!mounted) return;
-      setState(() {
-        _duas = duas;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
   List<_MainCategoryTileData> _buildMainTiles() {
     final group = <String, List<DuaItem>>{};
     for (final dua in _duas) {
@@ -273,10 +257,9 @@ class _DuaScreenState extends State<DuaScreen> {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
 
-    return ValueListenableBuilder<AppLanguage>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, language, _) {
-        final isBangla = language == AppLanguage.bangla;
+    return Consumer2<LanguageProvider, DuaProvider>(
+      builder: (context, lang, dua, _) {
+        final isBangla = lang.isBangla;
         final mainTiles = _buildMainTiles();
 
         return Scaffold(
@@ -328,17 +311,18 @@ class _DuaScreenState extends State<DuaScreen> {
                     ),
                   ),
                   Expanded(
-                    child: _isLoading
+                    child: dua.isLoading
                         ? Center(
                             child: CircularProgressIndicator(
                               color: glass.accent,
                             ),
                           )
-                        : _error != null
+                        : dua.error != null
                         ? _ErrorView(
                             glass: glass,
-                            error: _error!,
-                            onRetry: _loadDuas,
+                            error: dua.error!,
+                            onRetry: () =>
+                                context.read<DuaProvider>().loadDuas(),
                             retryText: isBangla
                                 ? '\u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8'
                                 : 'Retry',
@@ -426,10 +410,9 @@ class _MainCategoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
 
-    return ValueListenableBuilder<AppLanguage>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, language, _) {
-        final isBangla = language == AppLanguage.bangla;
+    return Consumer<LanguageProvider>(
+      builder: (context, lang, _) {
+        final isBangla = lang.isBangla;
         final tiles = _subTiles();
 
         return Scaffold(
@@ -529,7 +512,7 @@ class _MainCategoryScreen extends StatelessWidget {
   }
 }
 
-class _DuaCategoryScreen extends StatefulWidget {
+class _DuaCategoryScreen extends StatelessWidget {
   const _DuaCategoryScreen({
     required this.categoryKey,
     required this.categoryTitleEn,
@@ -543,15 +526,42 @@ class _DuaCategoryScreen extends StatefulWidget {
   final List<DuaItem> allDuas;
 
   @override
-  State<_DuaCategoryScreen> createState() => _DuaCategoryScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<DuaCategoryProvider>(
+      create: (_) => DuaCategoryProvider(),
+      child: _DuaCategoryView(
+        categoryKey: categoryKey,
+        categoryTitleEn: categoryTitleEn,
+        categoryTitleBn: categoryTitleBn,
+        allDuas: allDuas,
+      ),
+    );
+  }
 }
 
-class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
+class _DuaCategoryView extends StatefulWidget {
+  const _DuaCategoryView({
+    required this.categoryKey,
+    required this.categoryTitleEn,
+    required this.categoryTitleBn,
+    required this.allDuas,
+  });
+
+  final String categoryKey;
+  final String categoryTitleEn;
+  final String categoryTitleBn;
+  final List<DuaItem> allDuas;
+
+  @override
+  State<_DuaCategoryView> createState() => _DuaCategoryViewState();
+}
+
+class _DuaCategoryViewState extends State<_DuaCategoryView> {
   final TextEditingController _searchController = TextEditingController();
   static const String _indoPakArabicFont = 'Lateef';
 
-  bool _showSearch = false;
-  String _query = '';
+  String get _query => context.read<DuaCategoryProvider>().query;
+  bool get _showSearch => context.read<DuaCategoryProvider>().showSearch;
 
   @override
   void initState() {
@@ -568,8 +578,7 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
   }
 
   void _onSearchChanged() {
-    if (!mounted) return;
-    setState(() => _query = _searchController.text.trim().toLowerCase());
+    context.read<DuaCategoryProvider>().setQuery(_searchController.text);
   }
 
   static String _sanitizeTitle(String value) {
@@ -706,10 +715,9 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
 
-    return ValueListenableBuilder<AppLanguage>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, language, _) {
-        final isBangla = language == AppLanguage.bangla;
+    return Consumer2<LanguageProvider, DuaCategoryProvider>(
+      builder: (context, lang, category, _) {
+        final isBangla = lang.isBangla;
         final filtered = _filtered();
 
         return Scaffold(
@@ -749,12 +757,12 @@ class _DuaCategoryScreenState extends State<_DuaCategoryScreen> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  setState(() {
-                                    _showSearch = !_showSearch;
-                                    if (!_showSearch) {
-                                      _searchController.clear();
-                                    }
-                                  });
+                                  final category =
+                                      context.read<DuaCategoryProvider>();
+                                  category.toggleSearch();
+                                  if (!category.showSearch) {
+                                    _searchController.clear();
+                                  }
                                 },
                                 icon: Icon(
                                   _showSearch

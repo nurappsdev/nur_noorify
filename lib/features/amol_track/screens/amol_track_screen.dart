@@ -2,15 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
-import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/features/amol_track/models/amol_track_models.dart';
-import 'package:first_project/features/amol_track/services/amol_track_service.dart';
+import 'package:first_project/features/amol_track/providers/amol_track_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 
 /// "Today Amol Track" — a daily deeds tracker. The user can mark fardh prayers
 /// and other deeds done for any day in the visible week; progress is shown as
 /// an overall ring plus per-section bars, and persists locally on device.
-class AmolTrackScreen extends StatefulWidget {
+class AmolTrackScreen extends StatelessWidget {
   const AmolTrackScreen({super.key, this.availableFrom = const {}});
 
   /// For today, the earliest time each deed (by id) can be tracked — typically
@@ -19,41 +20,32 @@ class AmolTrackScreen extends StatefulWidget {
   final Map<String, DateTime> availableFrom;
 
   @override
-  State<AmolTrackScreen> createState() => _AmolTrackScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<AmolTrackProvider>(
+      create: (_) => AmolTrackProvider(),
+      child: _AmolTrackView(availableFrom: availableFrom),
+    );
+  }
 }
 
-class _AmolTrackScreenState extends State<AmolTrackScreen> {
-  final AmolTrackService _service = AmolTrackService();
+class _AmolTrackView extends StatefulWidget {
+  const _AmolTrackView({required this.availableFrom});
 
-  /// The day currently being viewed/edited. Defaults to today.
-  late DateTime _selectedDate;
-
-  /// Completed item ids for [_selectedDate].
-  Set<String> _completed = <String>{};
-
-  /// Which sections are expanded. The fardh prayers section starts open.
-  final Set<String> _expanded = {'fardh'};
-
-  bool _loading = true;
+  final Map<String, DateTime> availableFrom;
 
   @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _selectedDate = DateTime(now.year, now.month, now.day);
-    _init();
-  }
+  State<_AmolTrackView> createState() => _AmolTrackViewState();
+}
 
-  Future<void> _init() async {
-    await _service.load();
-    if (!mounted) return;
-    setState(() {
-      _completed = _service.completedFor(_selectedDate);
-      _loading = false;
-    });
-  }
+class _AmolTrackViewState extends State<_AmolTrackView> {
+  AmolTrackProvider get _amol => context.read<AmolTrackProvider>();
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  DateTime get _selectedDate => _amol.selectedDate;
+  Set<String> get _completed => _amol.completed;
+  Set<String> get _expanded => _amol.expanded;
+  bool get _loading => _amol.loading;
+
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   String _t(String en, String bn) => _isBangla ? bn : en;
@@ -169,10 +161,7 @@ class _AmolTrackScreenState extends State<AmolTrackScreen> {
   // ----- actions ------------------------------------------------------------
 
   void _selectDate(DateTime date) {
-    setState(() {
-      _selectedDate = DateTime(date.year, date.month, date.day);
-      _completed = _service.completedFor(_selectedDate);
-    });
+    _amol.selectDate(date);
   }
 
   void _showFutureAmolAlert() {
@@ -226,30 +215,19 @@ class _AmolTrackScreenState extends State<AmolTrackScreen> {
       _showFutureAmolAlert();
       return;
     }
-    final nowDone = await _service.toggle(_selectedDate, item.id);
-    if (!mounted) return;
-    setState(() {
-      if (nowDone) {
-        _completed.add(item.id);
-      } else {
-        _completed.remove(item.id);
-      }
-    });
+    await _amol.toggle(item);
   }
 
   void _toggleSection(String id) {
-    setState(() {
-      if (!_expanded.remove(id)) _expanded.add(id);
-    });
+    _amol.toggleSection(id);
   }
 
   // ----- build --------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<AppLanguage>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, _, _) {
+    return Consumer2<LanguageProvider, AmolTrackProvider>(
+      builder: (context, lang, amol, _) {
         return Scaffold(
           backgroundColor: _c(0xFF060C17, 0xFFF0F7FC),
           body: Container(
@@ -371,7 +349,7 @@ class _AmolTrackScreenState extends State<AmolTrackScreen> {
 
   Widget _buildDayCell(DateTime day) {
     final selected = _isSameDay(day, _selectedDate);
-    final done = _service.completedCountFor(day);
+    final done = _amol.completedCountFor(day);
     final progress = kAmolTotalCount == 0 ? 0.0 : done / kAmolTotalCount;
 
     return GestureDetector(

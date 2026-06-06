@@ -5,20 +5,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:provider/provider.dart';
+
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
+import 'package:first_project/features/auth/providers/sign_up_provider.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<SignUpProvider>(
+      create: (_) => SignUpProvider(),
+      child: const _SignupView(),
+    );
+  }
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupView extends StatefulWidget {
+  const _SignupView();
+
+  @override
+  State<_SignupView> createState() => _SignupViewState();
+}
+
+class _SignupViewState extends State<_SignupView> {
   static const _bgPath = 'assets/images/Login.jpg';
 
   final TextEditingController _emailController = TextEditingController();
@@ -27,28 +43,17 @@ class _SignupScreenState extends State<SignupScreen> {
       TextEditingController();
   final TextEditingController _guestNameController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
-  bool _saveInfo = true;
-  bool _isLoading = false;
+  SignUpProvider get _auth => context.read<SignUpProvider>();
+  bool get _isLoading => _auth.isLoading;
+  bool get _obscurePassword => _auth.obscurePassword;
+  bool get _obscureConfirm => _auth.obscureConfirm;
+  bool get _saveInfo => _auth.saveInfo;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   String _text(String en, String bn) => _isBangla ? bn : en;
 
   @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  @override
   void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -389,7 +394,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signUpWithEmail(
         email: email,
@@ -411,14 +416,14 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
 
   Future<void> _signInWithGoogle() async {
     if (!await _ensureInternetOrShowMessage()) return;
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signInWithGoogle();
       await _setSkipAuthGate(false);
@@ -439,13 +444,15 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
+    context.watch<SignUpProvider>();
     final glass = NoorifyGlassTheme(context);
 
     return Scaffold(
@@ -508,7 +515,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: '........',
                   suffixIcon: IconButton(
                     onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
+                      _auth.toggleObscurePassword();
                     },
                     icon: Icon(
                       _obscurePassword
@@ -539,7 +546,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: '........',
                   suffixIcon: IconButton(
                     onPressed: () {
-                      setState(() => _obscureConfirm = !_obscureConfirm);
+                      _auth.toggleObscureConfirm();
                     },
                     icon: Icon(
                       _obscureConfirm
@@ -556,7 +563,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   Switch.adaptive(
                     value: _saveInfo,
-                    onChanged: (v) => setState(() => _saveInfo = v),
+                    onChanged: (v) => _auth.setSaveInfo(v),
                   ),
                   SizedBox(width: 6.w),
                   Text(

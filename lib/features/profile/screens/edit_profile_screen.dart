@@ -4,25 +4,35 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import 'package:first_project/features/profile/providers/edit_profile_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends StatelessWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<EditProfileProvider>(
+      create: (_) => EditProfileProvider(),
+      child: const _EditProfileView(),
+    );
+  }
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileView extends StatefulWidget {
+  const _EditProfileView();
+
+  @override
+  State<_EditProfileView> createState() => _EditProfileViewState();
+}
+
+class _EditProfileViewState extends State<_EditProfileView> {
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _nameController;
   late final TextEditingController _locationController;
-
-  String? _photoBase64;
-  String? _photoUrl;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -31,9 +41,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _locationController = TextEditingController(
       text: profileLocationNotifier.value,
     );
-    _photoBase64 = profilePhotoBase64Notifier.value;
-    final remoteUrl = (profilePhotoUrlNotifier.value ?? '').trim();
-    _photoUrl = remoteUrl.isEmpty ? null : remoteUrl;
   }
 
   @override
@@ -95,14 +102,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final bytes = await picked.readAsBytes();
     if (!mounted) return;
-    setState(() => _photoBase64 = base64Encode(bytes));
+    context.read<EditProfileProvider>().setPhoto(base64Encode(bytes));
   }
 
   void _removePhoto() {
-    setState(() {
-      _photoBase64 = null;
-      _photoUrl = null;
-    });
+    context.read<EditProfileProvider>().removePhoto();
   }
 
   Future<void> _saveChanges() async {
@@ -122,22 +126,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    setState(() => _isSaving = true);
-    profileNameNotifier.value = name;
-    profileLocationNotifier.value = location;
-    profilePhotoBase64Notifier.value = _photoBase64;
-    profilePhotoUrlNotifier.value = _photoUrl;
-    await saveAppPreferences();
+    await context.read<EditProfileProvider>().save(
+      name: name,
+      location: location,
+    );
     if (!mounted) return;
-    setState(() => _isSaving = false);
     Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<EditProfileProvider>();
     final glass = NoorifyGlassTheme(context);
-    final photoBytes = _decodePhoto(_photoBase64);
-    final hasPhotoUrl = (_photoUrl ?? '').trim().isNotEmpty;
+    final photoBytes = _decodePhoto(provider.photoBase64);
+    final hasPhotoUrl = (provider.photoUrl ?? '').trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: glass.bgBottom,
@@ -194,7 +196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   : const Color(0xFFD9DEE3),
                               backgroundImage: photoBytes == null
                                   ? (hasPhotoUrl
-                                        ? NetworkImage(_photoUrl!.trim())
+                                        ? NetworkImage(provider.photoUrl!.trim())
                                         : null)
                                   : MemoryImage(photoBytes),
                               child: photoBytes == null && !hasPhotoUrl
@@ -283,8 +285,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ? const Color(0xFF072734)
                                 : Colors.white,
                           ),
-                          onPressed: _isSaving ? null : _saveChanges,
-                          child: _isSaving
+                          onPressed: provider.isSaving ? null : _saveChanges,
+                          child: provider.isSaving
                               ? SizedBox(
                                   width: 20.w,
                                   height: 20.h,

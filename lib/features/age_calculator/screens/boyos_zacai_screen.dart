@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hijri/hijri_calendar.dart';
+import 'package:provider/provider.dart';
 
-import 'package:first_project/shared/services/app_globals.dart';
-
-/// Which calendar a date field is entered/displayed in.
-enum _CalendarType { gregorian, hijri, bengali }
+import 'package:first_project/features/age_calculator/providers/boyos_zacai_provider.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 
 /// "Boyos Zacai" — an age calculator. The user picks a present date and a date
 /// of birth, each in either the English (Gregorian) or Arabic (Hijri) calendar,
@@ -13,14 +12,26 @@ enum _CalendarType { gregorian, hijri, bengali }
 /// and total minutes. Both dates resolve to an absolute Gregorian [DateTime], so
 /// the age is identical regardless of which calendar each was entered in.
 /// Everything is computed locally with no network access.
-class BoyosZacaiScreen extends StatefulWidget {
+class BoyosZacaiScreen extends StatelessWidget {
   const BoyosZacaiScreen({super.key});
 
   @override
-  State<BoyosZacaiScreen> createState() => _BoyosZacaiScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<BoyosZacaiProvider>(
+      create: (_) => BoyosZacaiProvider(),
+      child: const _BoyosZacaiView(),
+    );
+  }
 }
 
-class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
+class _BoyosZacaiView extends StatefulWidget {
+  const _BoyosZacaiView();
+
+  @override
+  State<_BoyosZacaiView> createState() => _BoyosZacaiViewState();
+}
+
+class _BoyosZacaiViewState extends State<_BoyosZacaiView> {
   static const _monthsEn = <String>[
     'January',
     'February',
@@ -113,30 +124,15 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     'চৈত্র',
   ];
 
-  DateTime _presentDate = DateTime.now();
-  DateTime? _birthDate;
+  BoyosZacaiProvider get _calc => context.read<BoyosZacaiProvider>();
 
-  _CalendarType _presentCalendar = _CalendarType.gregorian;
-  _CalendarType _birthCalendar = _CalendarType.gregorian;
+  DateTime get _presentDate => _calc.presentDate;
+  DateTime? get _birthDate => _calc.birthDate;
+  CalendarType get _presentCalendar => _calc.presentCalendar;
+  CalendarType get _birthCalendar => _calc.birthCalendar;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-
-  @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  @override
-  void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
-    super.dispose();
-  }
-
-  void _onLanguageChanged() {
-    if (mounted) setState(() {});
-  }
 
   String _text(String en, String bn) => _isBangla ? bn : en;
 
@@ -207,13 +203,13 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
 
   /// Formats [date] in the requested [calendar]. Hijri dates are derived from
   /// the absolute Gregorian value and suffixed with "AH".
-  String _formatDate(DateTime date, _CalendarType calendar) {
-    if (calendar == _CalendarType.hijri) {
+  String _formatDate(DateTime date, CalendarType calendar) {
+    if (calendar == CalendarType.hijri) {
       final h = HijriCalendar.fromDate(date);
       return '${_digits(h.hDay.toString())} ${_hijriMonthName(h.hMonth)} '
           '${_digits(h.hYear.toString())} ${_text('AH', 'হিজরি')}';
     }
-    if (calendar == _CalendarType.bengali) {
+    if (calendar == CalendarType.bengali) {
       final b = _toBangla(date);
       return '${_digits(b.day.toString())} ${_banglaMonthName(b.month)} '
           '${_digits(b.year.toString())} ${_text('BS', 'বঙ্গাব্দ')}';
@@ -278,9 +274,9 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     final initial = isBirth ? (_birthDate ?? DateTime(2000, 1, 1)) : _presentDate;
 
     final DateTime? picked;
-    if (calendar == _CalendarType.hijri) {
+    if (calendar == CalendarType.hijri) {
       picked = await _pickHijriDate(isBirth: isBirth, initial: initial);
-    } else if (calendar == _CalendarType.bengali) {
+    } else if (calendar == CalendarType.bengali) {
       picked = await _pickBanglaDate(isBirth: isBirth, initial: initial);
     } else {
       picked = await showDatePicker(
@@ -296,13 +292,11 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
 
     if (picked == null) return;
     final result = picked;
-    setState(() {
-      if (isBirth) {
-        _birthDate = result;
-      } else {
-        _presentDate = result;
-      }
-    });
+    if (isBirth) {
+      _calc.setBirthDate(result);
+    } else {
+      _calc.setPresentDate(result);
+    }
   }
 
   /// A simple Hijri date picker built from three dropdowns. Returns the chosen
@@ -600,6 +594,8 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
+    context.watch<BoyosZacaiProvider>();
     final age = _age;
 
     return Scaffold(
@@ -626,8 +622,7 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
               icon: Icons.today_rounded,
               value: _formatDate(_presentDate, _presentCalendar),
               calendar: _presentCalendar,
-              onCalendarChanged: (c) =>
-                  setState(() => _presentCalendar = c),
+              onCalendarChanged: (c) => _calc.setPresentCalendar(c),
               onTap: () => _pickDate(isBirth: false),
             ),
             SizedBox(height: 12.h),
@@ -638,7 +633,7 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
                   ? _text('Tap to select', 'নির্বাচন করতে চাপুন')
                   : _formatDate(_birthDate!, _birthCalendar),
               calendar: _birthCalendar,
-              onCalendarChanged: (c) => setState(() => _birthCalendar = c),
+              onCalendarChanged: (c) => _calc.setBirthCalendar(c),
               onTap: () => _pickDate(isBirth: true),
               placeholder: _birthDate == null,
             ),
@@ -657,8 +652,8 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
     required String label,
     required IconData icon,
     required String value,
-    required _CalendarType calendar,
-    required ValueChanged<_CalendarType> onCalendarChanged,
+    required CalendarType calendar,
+    required ValueChanged<CalendarType> onCalendarChanged,
     required VoidCallback onTap,
     bool placeholder = false,
   }) {
@@ -733,10 +728,10 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
   }
 
   Widget _buildCalendarToggle(
-    _CalendarType selected,
-    ValueChanged<_CalendarType> onChanged,
+    CalendarType selected,
+    ValueChanged<CalendarType> onChanged,
   ) {
-    Widget segment(_CalendarType type, String label) {
+    Widget segment(CalendarType type, String label) {
       final isActive = selected == type;
       return Material(
         color: Colors.transparent,
@@ -772,9 +767,9 @@ class _BoyosZacaiScreenState extends State<BoyosZacaiScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          segment(_CalendarType.gregorian, _text('English', 'ইংরেজি')),
-          segment(_CalendarType.hijri, _text('Arabic', 'আরবি')),
-          segment(_CalendarType.bengali, _text('Bengali', 'বাংলা')),
+          segment(CalendarType.gregorian, _text('English', 'ইংরেজি')),
+          segment(CalendarType.hijri, _text('Arabic', 'আরবি')),
+          segment(CalendarType.bengali, _text('Bengali', 'বাংলা')),
         ],
       ),
     );
