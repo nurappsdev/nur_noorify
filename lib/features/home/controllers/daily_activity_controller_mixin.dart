@@ -762,7 +762,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
       _isBangla ? '\u0987\u09ab\u09a4\u09be\u09b0' : 'Iftar';
 
   String _localizedRemainingLabel() => _isBangla
-      ? '\u0985\u09ac\u09b6\u09bf\u09b7\u09cd\u099f \u09b8\u09ae\u09df'
+      ? '\u0985\u09ac\u09b6\u09bf\u09b7\u09cd\u099f'
       : 'Remaining';
 
   String _localizedLastReadLabel() => _isBangla
@@ -1169,8 +1169,29 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen> {
     }
   }
 
-  String get _displayPrayer => _selectedPrayer ?? _activePrayer;
-  bool get _isShowingActivePrayer => _displayPrayer == _activePrayer;
+  /// True during the post-sunrise gap: Fajr's window has already closed at
+  /// sunrise but Zuhr has not begun, so no fard prayer is in progress. (The sky
+  /// section still treats this stretch as Fajr→Chasht, so [_activePrayer] is
+  /// intentionally left as 'Fajr' here.)
+  bool get _isPostSunriseGap {
+    final sunrise = _todaySchedule?.sunrise;
+    if (sunrise == null) return false;
+    return _activePrayer == 'Fajr' && !_now.isBefore(sunrise);
+  }
+
+  /// The prayer whose window is actually in progress right now, or null during
+  /// the post-sunrise gap when no obligatory prayer is active.
+  String? get _currentActivePrayer => _isPostSunriseGap ? null : _activePrayer;
+
+  /// The prayer whose card should be highlighted: the user's manual selection,
+  /// otherwise the prayer currently in progress. Null when nothing should be
+  /// highlighted — i.e. no manual selection during the post-sunrise gap.
+  String? get _displayPrayer => _selectedPrayer ?? _currentActivePrayer;
+
+  /// Whether the strip is tracking the live prayer: no manual selection and a
+  /// prayer is genuinely in progress (not the post-sunrise gap).
+  bool get _isShowingActivePrayer =>
+      _selectedPrayer == null && !_isPostSunriseGap;
 
   int get _prayerCarouselItemsCount => _prayerCarouselItemCount;
 

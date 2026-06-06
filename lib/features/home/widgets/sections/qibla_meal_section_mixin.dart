@@ -281,7 +281,7 @@ mixin DailyQiblaMealSectionMixin
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: _accentStrong,
-                      fontSize: 11.5.sp,
+                      fontSize: 10.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

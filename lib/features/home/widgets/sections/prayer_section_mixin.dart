@@ -12,6 +12,11 @@ mixin DailyPrayerSectionMixin
     return _isBangla ? '$value বাকি' : 'ends in $value';
   }
 
+  /// The prayer the header pill describes. Normally the displayed prayer, but
+  /// during the post-sunrise gap (when nothing is in progress) it falls back to
+  /// the upcoming prayer, Zuhr, so the pill shows "Zuhr in …" rather than blank.
+  String get _pillPrayer => _displayPrayer ?? 'Zuhr';
+
   String _prayerMeridiem(String prayer) {
     return prayer == 'Fajr' ? 'AM' : 'PM';
   }
@@ -35,16 +40,16 @@ mixin DailyPrayerSectionMixin
     }
   }
 
-  /// When a prayer's window closes — i.e. when the next prayer begins. This
-  /// mirrors the `windowEnd` logic in [_buildActivePrayerData], so the ranges
-  /// shown on the cards match the countdown/progress behaviour. Isha runs until
-  /// tomorrow's Fajr.
+  /// When a prayer's window closes. For most prayers this is when the next
+  /// prayer begins, mirroring the `windowEnd` logic in [_buildActivePrayerData].
+  /// Fajr is the exception: its window closes at sunrise (shuruq), not Dhuhr.
+  /// Isha runs until tomorrow's Fajr.
   DateTime? _prayerEndDateTime(String prayer) {
     final schedule = _todaySchedule;
     if (schedule == null) return null;
     switch (prayer) {
       case 'Fajr':
-        return schedule.dzuhr;
+        return schedule.sunrise ?? schedule.dzuhr;
       case 'Zuhr':
         return schedule.ashr;
       case 'Asr':
@@ -78,7 +83,7 @@ mixin DailyPrayerSectionMixin
   }
 
   String _prayerStatusLabel(String prayer) {
-    if (prayer == _activePrayer) {
+    if (prayer == _currentActivePrayer) {
       return _text('Now', 'এখন');
     }
     final time = _prayerDateTime(prayer);
@@ -93,22 +98,23 @@ mixin DailyPrayerSectionMixin
   }
 
   String _displayPrayerSummary() {
-    final time = _prayerDateTime(_displayPrayer);
+    final prayer = _displayPrayer ?? _activePrayer;
+    final time = _prayerDateTime(prayer);
     if (time == null) {
       return _text('Calculated prayer schedule', 'নির্ধারিত নামাজের সময়সূচি');
     }
     final diff = time.difference(_now);
-    if (_displayPrayer == _activePrayer) {
+    if (prayer == _activePrayer) {
       return _localizedCountdownLabel();
     }
     if (diff.isNegative) {
       return _isBangla
-          ? '${_localizedPrayerName(_displayPrayer)} আজ সম্পন্ন হয়েছে'
-          : '${_localizedPrayerName(_displayPrayer)} has passed today';
+          ? '${_localizedPrayerName(prayer)} আজ সম্পন্ন হয়েছে'
+          : '${_localizedPrayerName(prayer)} has passed today';
     }
     return _isBangla
-        ? '${_localizedPrayerName(_displayPrayer)} শুরু হতে ${_compactDuration(diff)}'
-        : '${_localizedPrayerName(_displayPrayer)} starts in ${_compactDuration(diff)}';
+        ? '${_localizedPrayerName(prayer)} শুরু হতে ${_compactDuration(diff)}'
+        : '${_localizedPrayerName(prayer)} starts in ${_compactDuration(diff)}';
   }
 
   String _locationContextLabel() {
@@ -237,7 +243,7 @@ mixin DailyPrayerSectionMixin
               Tooltip(
                 message: _isShowingActivePrayer
                     ? '${_localizedActiveRemainingLabel()}: ${_activePrayerShortCountdown()}'
-                    : '${_localizedPrayerTimeLabel()}: ${_localizedPrayerTime(_prayerTimes[_displayPrayer] ?? '--:--')}',
+                    : '${_localizedPrayerTimeLabel()}: ${_localizedPrayerTime(_prayerTimes[_pillPrayer] ?? '--:--')}',
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h),
                   decoration: BoxDecoration(
@@ -254,7 +260,7 @@ mixin DailyPrayerSectionMixin
                   child: Text(
                     _isShowingActivePrayer
                         ? _activePrayerShortCountdown()
-                        : _prayerStatusLabel(_displayPrayer),
+                        : _prayerStatusLabel(_pillPrayer),
                     style: TextStyle(
                       color: _isDarkTheme
                           ? const Color(0xFFF5E2B8)
@@ -355,7 +361,7 @@ mixin DailyPrayerSectionMixin
               },
             ),
           ),
-          if (!_isShowingActivePrayer) ...[
+          if (_selectedPrayer != null) ...[
             SizedBox(height: 8.h),
             Align(
               alignment: Alignment.centerRight,
@@ -382,7 +388,7 @@ mixin DailyPrayerSectionMixin
 
   Widget _buildPrayerTimeChip(String prayer, {required int pageIndex}) {
     final isActive = prayer == _displayPrayer;
-    final isCurrent = prayer == _activePrayer;
+    final isCurrent = prayer == _currentActivePrayer;
     final timeRange = _prayerTimeRangeLabel(prayer);
     final icon = _prayerIcon(prayer);
 
