@@ -13,6 +13,7 @@ class RouteNames {
   static const tasbih = '/tasbih';
   static const quran = '/quran';
   static const prayerTimes = '/prayer-times';
+  static const chat = '/chat';
   static const islamicCalendar = '/islamic-calendar';
   static const prayerCompass = '/prayer-compass';
   static const findMosque = '/find-mosque';

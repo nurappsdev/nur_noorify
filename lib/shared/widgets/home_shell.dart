@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:first_project/features/chat/screens/chat_users_screen.dart';
 import 'package:first_project/features/discover/screens/discover_screen.dart';
 import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
 import 'package:first_project/features/home/screens/daily_activity_screen.dart';
@@ -25,6 +26,7 @@ class _HomeShellState extends State<HomeShell> {
     DiscoverScreen(),
     QuranScreen(),
     DuaJikirScreen(),
+    ChatUsersScreen(),
     ProfilePreferencesScreen(),
   ];
 
@@ -32,6 +34,7 @@ class _HomeShellState extends State<HomeShell> {
     DailyActivityScreen(),
     DiscoverScreen(),
     DuaJikirScreen(),
+    ChatUsersScreen(),
     ProfilePreferencesScreen(),
   ];
 

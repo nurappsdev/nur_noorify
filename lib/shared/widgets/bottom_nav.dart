@@ -40,6 +40,11 @@ Widget bottomNav(
       routeName: RouteNames.prayerTimes,
     ),
     (
+      label: t('Chat', '\u099a\u09cd\u09af\u09be\u099f'),
+      icon: Icons.chat_bubble_outline,
+      routeName: RouteNames.chat,
+    ),
+    (
       label: t('Profile', '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2'),
       icon: Icons.person_outline,
       routeName: RouteNames.preferences,

@@ -25,7 +25,8 @@ class AppRoutes {
   static const int _tabDiscover = 1;
   static const int _tabQuran = 2;
   static int get _tabPrayer => kQuranFeatureEnabled ? 3 : 2;
-  static int get _tabProfile => kQuranFeatureEnabled ? 4 : 3;
+  static int get _tabChat => kQuranFeatureEnabled ? 4 : 3;
+  static int get _tabProfile => kQuranFeatureEnabled ? 5 : 4;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -60,6 +61,8 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabQuran), settings);
       case RouteNames.prayerTimes:
         return _page(HomeShell(initialIndex: _tabPrayer), settings);
+      case RouteNames.chat:
+        return _page(HomeShell(initialIndex: _tabChat), settings);
       case RouteNames.islamicCalendar:
         return _page(const IslamicCalendarScreen(), settings);
       case RouteNames.prayerCompass:
