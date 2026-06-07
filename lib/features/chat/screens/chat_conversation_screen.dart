@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'package:first_project/features/chat/models/chat_message.dart';
+import 'package:first_project/features/chat/models/chat_question.dart';
 import 'package:first_project/features/chat/models/chat_user.dart';
 import 'package:first_project/features/chat/services/chat_service.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
@@ -19,35 +20,59 @@ class ChatConversationScreen extends StatefulWidget {
 }
 
 class _ChatConversationScreenState extends State<ChatConversationScreen> {
-  final TextEditingController _controller = TextEditingController();
-  bool _sending = false;
+  /// Questions sent this session, newest first — instant feedback / fallback.
+  final List<ChatMessage> _localSent = [];
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  /// Optimistic answers I've given, keyed by message id.
+  final Map<String, String> _localAnswers = {};
 
-  Future<void> _send() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || _sending) return;
+  Future<void> _sendQuestion(String question) async {
+    final me = ChatService.instance.currentUid ?? 'me';
 
-    setState(() => _sending = true);
-    _controller.clear();
+    setState(() {
+      _localSent.insert(
+        0,
+        ChatMessage(
+          id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+          senderId: me,
+          text: question,
+          answer: null,
+          createdAt: DateTime.now(),
+        ),
+      );
+    });
+
     try {
       await ChatService.instance.sendMessage(
         otherUid: widget.peer.uid,
-        text: text,
+        text: question,
       );
     } catch (_) {
       if (mounted) {
-        _controller.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not send message')),
+          const SnackBar(content: Text('Sent (not synced yet)')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _answer(ChatMessage message, String answer) async {
+    // Once answered, it's final — ignore further taps on the same question.
+    if (message.isAnswered || _localAnswers.containsKey(message.id)) return;
+    setState(() => _localAnswers[message.id] = answer);
+
+    try {
+      await ChatService.instance.answerMessage(
+        otherUid: widget.peer.uid,
+        messageId: message.id,
+        answer: answer,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Answer saved (not synced yet)')),
+        );
+      }
     }
   }
 
@@ -110,23 +135,30 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 child: StreamBuilder<List<ChatMessage>>(
                   stream: ChatService.instance.watchMessages(widget.peer.uid),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        _localSent.isEmpty) {
                       return Center(
                         child: CircularProgressIndicator(color: glass.accent),
                       );
                     }
 
-                    final messages = snapshot.data ?? const <ChatMessage>[];
+                    final remote = snapshot.data ?? const <ChatMessage>[];
+                    final messages = remote.isNotEmpty ? remote : _localSent;
+
                     if (messages.isEmpty) {
                       return Center(
-                        child: Text(
-                          t(
-                            'Say hello 👋',
-                            'সালাম দিন 👋',
-                          ),
-                          style: TextStyle(
-                            color: glass.textSecondary,
-                            fontSize: 14.sp,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
+                          child: Text(
+                            t(
+                              'Tap a question below to send it.',
+                              'পাঠাতে নিচের একটি প্রশ্নে ট্যাপ করুন।',
+                            ),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: glass.textSecondary,
+                              fontSize: 14.sp,
+                            ),
                           ),
                         ),
                       );
@@ -139,22 +171,36 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       itemBuilder: (context, index) {
                         final message = messages[index];
                         final isMine = message.senderId == me;
-                        return _MessageBubble(
+                        // Apply any optimistic answer I just gave.
+                        final localAnswer = _localAnswers[message.id];
+                        final answer = message.isAnswered
+                            ? message.answer
+                            : localAnswer;
+
+                        return _QuestionBubble(
                           glass: glass,
-                          text: message.text,
+                          question: message.text,
                           isMine: isMine,
+                          answer: answer,
+                          // The recipient (not the sender) gets Yes/No buttons.
+                          showAnswerButtons: !isMine && answer == null,
+                          pendingLabel: t('Awaiting answer', 'উত্তরের অপেক্ষায়'),
+                          answerLabel: t('Answer', 'উত্তর'),
+                          yesLabel: t('Yes', 'হ্যাঁ'),
+                          noLabel: t('No', 'না'),
+                          onYes: () => _answer(message, 'Yes'),
+                          onNo: () => _answer(message, 'No'),
                         );
                       },
                     );
                   },
                 ),
               ),
-              _Composer(
+              _QuestionPicker(
                 glass: glass,
-                controller: _controller,
-                sending: _sending,
-                hint: t('Type a message…', 'একটি বার্তা লিখুন…'),
-                onSend: _send,
+                questions: kCheckInQuestions,
+                title: t('Send a check-in question', 'একটি প্রশ্ন পাঠান'),
+                onSelect: _sendQuestion,
               ),
             ],
           ),
@@ -164,25 +210,50 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   }
 }
 
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
+class _QuestionBubble extends StatelessWidget {
+  const _QuestionBubble({
     required this.glass,
-    required this.text,
+    required this.question,
     required this.isMine,
+    required this.answer,
+    required this.showAnswerButtons,
+    required this.pendingLabel,
+    required this.answerLabel,
+    required this.yesLabel,
+    required this.noLabel,
+    required this.onYes,
+    required this.onNo,
   });
 
   final NoorifyGlassTheme glass;
-  final String text;
+  final String question;
   final bool isMine;
+  final String? answer;
+  final bool showAnswerButtons;
+  final String pendingLabel;
+  final String answerLabel;
+  final String yesLabel;
+  final String noLabel;
+  final VoidCallback onYes;
+  final VoidCallback onNo;
 
   @override
   Widget build(BuildContext context) {
+    final onBubble = isMine ? Colors.white : glass.textPrimary;
+    final subtle = isMine
+        ? Colors.white.withValues(alpha: 0.85)
+        : glass.textSecondary;
+    final answered = (answer ?? '').isNotEmpty;
+    final answerColor = answer == 'Yes'
+        ? const Color(0xFF2E9E5B)
+        : const Color(0xFFD7674F);
+
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 4.h),
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-        constraints: BoxConstraints(maxWidth: 0.72.sw),
+        constraints: BoxConstraints(maxWidth: 0.76.sw),
         decoration: BoxDecoration(
           color: isMine ? glass.accent : glass.glassStart,
           borderRadius: BorderRadius.only(
@@ -193,12 +264,85 @@ class _MessageBubble extends StatelessWidget {
           ),
           border: isMine ? null : Border.all(color: glass.glassBorder),
         ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              question,
+              style: TextStyle(color: onBubble, fontSize: 14.5.sp, height: 1.3),
+            ),
+            SizedBox(height: 8.h),
+            if (answered)
+              _AnswerChip(label: '$answerLabel: $answer', color: answerColor)
+            else if (showAnswerButtons)
+              Row(
+                children: [
+                  _ChoiceButton(
+                    label: yesLabel,
+                    color: const Color(0xFF2E9E5B),
+                    onTap: onYes,
+                  ),
+                  SizedBox(width: 8.w),
+                  _ChoiceButton(
+                    label: noLabel,
+                    color: const Color(0xFFD7674F),
+                    onTap: onNo,
+                  ),
+                ],
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.schedule_rounded, size: 13.r, color: subtle),
+                  SizedBox(width: 4.w),
+                  Text(
+                    pendingLabel,
+                    style: TextStyle(
+                      color: subtle,
+                      fontSize: 11.5.sp,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChoiceButton extends StatelessWidget {
+  const _ChoiceButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20.r),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(color: color.withValues(alpha: 0.6)),
+        ),
         child: Text(
-          text,
+          label,
           style: TextStyle(
-            color: isMine ? Colors.white : glass.textPrimary,
-            fontSize: 14.5.sp,
-            height: 1.3,
+            color: color,
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -206,78 +350,116 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.glass,
-    required this.controller,
-    required this.sending,
-    required this.hint,
-    required this.onSend,
-  });
+class _AnswerChip extends StatelessWidget {
+  const _AnswerChip({required this.label, required this.color});
 
-  final NoorifyGlassTheme glass;
-  final TextEditingController controller;
-  final bool sending;
-  final String hint;
-  final VoidCallback onSend;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _QuestionPicker extends StatelessWidget {
+  const _QuestionPicker({
+    required this.glass,
+    required this.questions,
+    required this.title,
+    required this.onSelect,
+  });
+
+  final NoorifyGlassTheme glass;
+  final List<String> questions;
+  final String title;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
       decoration: BoxDecoration(
         color: glass.glassStart,
         border: Border(top: BorderSide(color: glass.glassBorder)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w),
-              decoration: BoxDecoration(
-                color: glass.bgBottom,
-                borderRadius: BorderRadius.circular(22.r),
-                border: Border.all(color: glass.glassBorder),
-              ),
-              child: TextField(
-                controller: controller,
-                minLines: 1,
-                maxLines: 4,
-                textCapitalization: TextCapitalization.sentences,
-                style: TextStyle(color: glass.textPrimary, fontSize: 14.5.sp),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: hint,
-                  hintStyle: TextStyle(color: glass.textMuted),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.h),
-                ),
-                onSubmitted: (_) => onSend(),
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: glass.textSecondary,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
               ),
             ),
           ),
-          SizedBox(width: 8.w),
-          GestureDetector(
-            onTap: sending ? null : onSend,
-            child: Container(
-              width: 44.r,
-              height: 44.r,
-              decoration: BoxDecoration(
-                color: glass.accent,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: sending
-                  ? SizedBox(
-                      width: 18.r,
-                      height: 18.r,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 0.34.sh),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: questions.length,
+              separatorBuilder: (_, _) => SizedBox(height: 8.h),
+              itemBuilder: (context, index) {
+                final question = questions[index];
+                return InkWell(
+                  borderRadius: BorderRadius.circular(14.r),
+                  onTap: () => onSelect(question),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 12.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: glass.accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(14.r),
+                      border: Border.all(
+                        color: glass.accent.withValues(alpha: 0.35),
                       ),
-                    )
-                  : Icon(Icons.send_rounded, color: Colors.white, size: 20.r),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            question,
+                            style: TextStyle(
+                              color: glass.textPrimary,
+                              fontSize: 13.5.sp,
+                              height: 1.25,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Icon(
+                          Icons.send_rounded,
+                          size: 18.r,
+                          color: glass.accent,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],

@@ -33,10 +33,21 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read: if request.auth != null
                     && request.auth.uid in chatId.split('_');
-        // You can only send messages as yourself.
+        // You can only send questions as yourself.
         allow create: if request.auth != null
                       && request.auth.uid in chatId.split('_')
                       && request.resource.data.senderId == request.auth.uid;
+        // Only the recipient (not the sender) may answer, and only while the
+        // question is still unanswered — the first answer is final, so the
+        // same user can't reply to the same question again. Question
+        // text/sender stay fixed.
+        allow update: if request.auth != null
+                      && request.auth.uid in chatId.split('_')
+                      && request.auth.uid != resource.data.senderId
+                      && resource.data.answer == null
+                      && request.resource.data.answer != null
+                      && request.resource.data.senderId == resource.data.senderId
+                      && request.resource.data.text == resource.data.text;
       }
     }
   }

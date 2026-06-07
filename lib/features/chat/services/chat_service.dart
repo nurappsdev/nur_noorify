@@ -71,6 +71,9 @@ class ChatService {
 
   /// Sends [text] to [otherUid]. Writes the message and updates the parent
   /// chat summary atomically so the conversation list stays in sync.
+  ///
+  /// The message is stored as a question with a pending (null) answer; the
+  /// recipient can fill it in later.
   Future<void> sendMessage({
     required String otherUid,
     required String text,
@@ -85,6 +88,7 @@ class ChatService {
     batch.set(chatRef.collection('messages').doc(), {
       'senderId': me,
       'text': trimmed,
+      'answer': null,
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -96,5 +100,26 @@ class ChatService {
     }, SetOptions(merge: true));
 
     await batch.commit();
+  }
+
+  /// Records the recipient's Yes/No [answer] to a question [messageId].
+  /// Only the user who did *not* send the question should call this.
+  Future<void> answerMessage({
+    required String otherUid,
+    required String messageId,
+    required String answer,
+  }) async {
+    final me = currentUid;
+    if (me == null || !_firebaseReady) return;
+
+    await _chats
+        .doc(chatIdFor(me, otherUid))
+        .collection('messages')
+        .doc(messageId)
+        .set({
+          'answer': answer,
+          'answeredBy': me,
+          'answeredAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
   }
 }
