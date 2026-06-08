@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'package:first_project/features/chat/models/chat_message.dart';
 import 'package:first_project/features/chat/models/chat_user.dart';
+import 'package:first_project/shared/services/user_points_service.dart';
 
 /// Thrown by [ChatService.sendMessage] when the same check-in question has
 /// already been sent in this conversation today. Each question may be sent at
@@ -114,6 +115,13 @@ class ChatService {
       'lastMessage': trimmed,
       'lastSenderId': me,
       'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    // Reward the sender for sending a check-in question. The once-per-day guard
+    // above means the same question can't be re-sent to farm points. Written in
+    // the same batch so points only land if the message is actually sent.
+    batch.set(_users.doc(me), {
+      'points': FieldValue.increment(UserPointsService.pointsPerQuestion),
     }, SetOptions(merge: true));
 
     await batch.commit();

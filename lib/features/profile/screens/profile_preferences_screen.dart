@@ -11,6 +11,7 @@ import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/shared/services/user_points_service.dart';
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
@@ -869,6 +870,48 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen> {
                                           size: 16.sp,
                                         ),
                                       ],
+                                    );
+                                  },
+                                ),
+                                SizedBox(height: 4.h),
+                                StreamBuilder<int>(
+                                  stream:
+                                      UserPointsService.instance.watchPoints(),
+                                  builder: (context, snapshot) {
+                                    final points = snapshot.data ?? 0;
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 3.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _teal.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(
+                                          20.r,
+                                        ),
+                                        border: Border.all(
+                                          color: _teal.withValues(alpha: 0.4),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.stars_rounded,
+                                            color: _teal,
+                                            size: 13.sp,
+                                          ),
+                                          SizedBox(width: 4.w),
+                                          Text(
+                                            '$points ${_text('points', 'পয়েন্ট')}',
+                                            style: TextStyle(
+                                              fontSize: 10.5.sp,
+                                              color: _teal,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     );
                                   },
                                 ),
