@@ -5,6 +5,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:first_project/features/chat/models/chat_message.dart';
 import 'package:first_project/features/chat/models/chat_user.dart';
 
+/// Thrown by [ChatService.sendMessage] when the same check-in question has
+/// already been sent in this conversation today. Each question may be sent at
+/// most once per calendar day.
+class QuestionAlreadySentTodayException implements Exception {
+  const QuestionAlreadySentTodayException();
+}
+
 class ChatService {
   ChatService._();
 
@@ -74,6 +81,10 @@ class ChatService {
   ///
   /// The message is stored as a question with a pending (null) answer; the
   /// recipient can fill it in later.
+  ///
+  /// A given question may only be sent once per calendar day in a conversation.
+  /// If the same question has already been sent today, this throws a
+  /// [QuestionAlreadySentTodayException] without writing anything.
   Future<void> sendMessage({
     required String otherUid,
     required String text,
@@ -83,6 +94,12 @@ class ChatService {
     if (me == null || !_firebaseReady || trimmed.isEmpty) return;
 
     final chatRef = _chats.doc(chatIdFor(me, otherUid));
+
+    // Guard against sending the same question twice on the same day.
+    if (await _sentToday(chatRef, trimmed)) {
+      throw const QuestionAlreadySentTodayException();
+    }
+
     final batch = _db.batch();
 
     batch.set(chatRef.collection('messages').doc(), {
@@ -100,6 +117,28 @@ class ChatService {
     }, SetOptions(merge: true));
 
     await batch.commit();
+  }
+
+  /// Whether a question equal to [text] has already been sent in [chatRef]
+  /// since local midnight. Filters by [text] in memory so the query only needs
+  /// the single-field `createdAt` index.
+  Future<bool> _sentToday(
+    DocumentReference<Map<String, dynamic>> chatRef,
+    String text,
+  ) async {
+    final now = DateTime.now();
+    final startOfDay = Timestamp.fromDate(
+      DateTime(now.year, now.month, now.day),
+    );
+
+    final todays = await chatRef
+        .collection('messages')
+        .where('createdAt', isGreaterThanOrEqualTo: startOfDay)
+        .get();
+
+    return todays.docs.any(
+      (doc) => (doc.data()['text'] ?? '').toString() == text,
+    );
   }
 
   /// Records the recipient's Yes/No [answer] to a question [messageId].
