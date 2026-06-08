@@ -352,6 +352,76 @@ mixin DailyQuickActionsSectionMixin
   String _localizedCountLabel(int value) =>
       _isBangla ? _toBanglaDigits(value.toString()) : value.toString();
 
+  /// A compact card that opens the in-app "Zakat Calculator" screen where the
+  /// user enters their gold, silver, cash, deposits and loans to work out the
+  /// zakat payable.
+  Widget _buildZakatCalculatorCard() {
+    return _buildGlassCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18.r),
+          onTap: () =>
+              Navigator.of(context).pushNamed(RouteNames.zakatCalculator),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
+            child: Row(
+              children: [
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    color: _surfaceStrong,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.savings_rounded,
+                    color: _accentSoft,
+                    size: 21.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _text('Zakat Calculator', 'যাকাত ক্যালকুলেটর'),
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        _text(
+                          'Gold, silver, cash, deposits & loans',
+                          'স্বর্ণ, রুপা, নগদ, আমানত ও ঋণ',
+                        ),
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 11.5.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13.sp,
+                  color: _textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// A compact card that opens the "Boyos Zacai" age calculator screen.
   Widget _buildBoyosZacaiCard() {
     return _buildGlassCard(

@@ -119,6 +119,9 @@ mixin DailyActivityViewMixin
                           _buildQiblaAndCountdownRow(),
 
                           SizedBox(height: 12.h),
+                          _buildZakatCalculatorCard(),
+
+                          SizedBox(height: 12.h),
                           _buildBoyosZacaiCard(),
 
                           SizedBox(height: 12.h),

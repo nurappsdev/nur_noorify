@@ -7,6 +7,7 @@ import 'package:first_project/features/admin/screens/admin_panel_screen.dart';
 import 'package:first_project/features/asmaul_husna/screens/asma_screen.dart';
 import 'package:first_project/features/dua/screens/dua_screen.dart';
 import 'package:first_project/features/tasbih/screens/tasbih_screen.dart';
+import 'package:first_project/features/zakat/screens/zakat_calculator_screen.dart';
 import 'package:first_project/features/hadith/screens/hadith_screen.dart';
 import 'package:first_project/features/mosque/screens/find_mosque_screen.dart';
 import 'package:first_project/features/legal/screens/privacy_policy_screen.dart';
@@ -59,6 +60,8 @@ class AppRoutes {
         return _page(const DuaScreen(), settings);
       case RouteNames.tasbih:
         return _page(const TasbihScreen(), settings);
+      case RouteNames.zakatCalculator:
+        return _page(const ZakatCalculatorScreen(), settings);
       case RouteNames.quran:
         if (!kQuranFeatureEnabled) {
           return _page(const HomeShell(initialIndex: _tabHome), settings);
