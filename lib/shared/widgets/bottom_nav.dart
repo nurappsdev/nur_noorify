@@ -51,9 +51,10 @@ Widget bottomNav(
     ),
   ];
 
-  final normalizedActive = !kQuranFeatureEnabled && active > 2
-      ? active - 1
-      : (kQuranFeatureEnabled ? active : active.clamp(0, items.length - 1));
+  // `active` already arrives as an index into the current `items` list
+  // (app_routes and HomeShell compute it from kQuranFeatureEnabled), so we only
+  // clamp it defensively rather than re-shifting it here.
+  final normalizedActive = active.clamp(0, items.length - 1);
 
   void onTapItem(int index) {
     if (index == normalizedActive) return;
