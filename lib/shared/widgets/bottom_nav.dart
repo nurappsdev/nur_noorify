@@ -24,9 +24,9 @@ Widget bottomNav(
       routeName: RouteNames.activity,
     ),
     (
-      label: t('Discover', '\u09a1\u09bf\u09b8\u0995\u09ad\u09be\u09b0'),
-      icon: Icons.explore_outlined,
-      routeName: RouteNames.discover,
+      label: t('Leaderboard', '\u09b2\u09bf\u09a1\u09be\u09b0\u09ac\u09cb\u09b0\u09cd\u09a1'),
+      icon: Icons.emoji_events_outlined,
+      routeName: RouteNames.leaderboard,
     ),
     if (kQuranFeatureEnabled)
       (

@@ -5,6 +5,7 @@ import 'package:first_project/features/chat/screens/chat_users_screen.dart';
 import 'package:first_project/features/discover/screens/discover_screen.dart';
 import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
 import 'package:first_project/features/home/screens/daily_activity_screen.dart';
+import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
 import 'package:first_project/features/quran/screens/quran_screen.dart';
 import 'package:first_project/shared/providers/bottom_nav_provider.dart';
@@ -21,21 +22,26 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
+  // Leaderboard replaces Discover in the bottom bar. Discover is no longer a
+  // bar tab but is kept as the last entry so existing RouteNames.discover
+  // deep links (quick actions, prayer times, calendar) still resolve to a tab.
   static const List<Widget> _tabsWithQuran = <Widget>[
     DailyActivityScreen(),
-    DiscoverScreen(),
+    LeaderboardScreen(),
     QuranScreen(),
     DuaJikirScreen(),
     ChatUsersScreen(),
     ProfilePreferencesScreen(),
+    DiscoverScreen(),
   ];
 
   static const List<Widget> _tabsWithoutQuran = <Widget>[
     DailyActivityScreen(),
-    DiscoverScreen(),
+    LeaderboardScreen(),
     DuaJikirScreen(),
     ChatUsersScreen(),
     ProfilePreferencesScreen(),
+    DiscoverScreen(),
   ];
 
   List<Widget> get _tabs =>

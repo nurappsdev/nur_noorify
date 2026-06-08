@@ -7,6 +7,7 @@ class RouteNames {
   static const editProfile = '/edit-profile';
   static const activity = '/activity';
   static const discover = '/discover';
+  static const leaderboard = '/leaderboard';
   static const asma = '/asma';
   static const hadith = '/hadith';
   static const dua = '/dua';

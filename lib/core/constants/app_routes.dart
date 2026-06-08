@@ -20,13 +20,16 @@ import 'package:first_project/shared/widgets/home_shell.dart';
 
 class AppRoutes {
   // Index in HomeShell for each tab route. Kept in sync with the items list
-  // in bottom_nav.dart and the tab list in HomeShell.
+  // in bottom_nav.dart and the tab list in HomeShell. Discover is no longer in
+  // the bottom bar, so it sits last (after Profile) and is only reached via
+  // its route.
   static const int _tabHome = 0;
-  static const int _tabDiscover = 1;
+  static const int _tabLeaderboard = 1;
   static const int _tabQuran = 2;
   static int get _tabPrayer => kQuranFeatureEnabled ? 3 : 2;
   static int get _tabChat => kQuranFeatureEnabled ? 4 : 3;
   static int get _tabProfile => kQuranFeatureEnabled ? 5 : 4;
+  static int get _tabDiscover => kQuranFeatureEnabled ? 6 : 5;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -45,7 +48,9 @@ class AppRoutes {
       case RouteNames.activity:
         return _page(const HomeShell(initialIndex: _tabHome), settings);
       case RouteNames.discover:
-        return _page(const HomeShell(initialIndex: _tabDiscover), settings);
+        return _page(HomeShell(initialIndex: _tabDiscover), settings);
+      case RouteNames.leaderboard:
+        return _page(const HomeShell(initialIndex: _tabLeaderboard), settings);
       case RouteNames.asma:
         return _page(const AsmaScreen(), settings);
       case RouteNames.hadith:
