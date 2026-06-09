@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/features/chat/screens/chat_users_screen.dart';
 import 'package:first_project/features/discover/screens/discover_screen.dart';
 import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
@@ -22,35 +23,26 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  // Leaderboard replaces Discover in the bottom bar. Discover is no longer a
-  // bar tab but is kept as the last entry so existing RouteNames.discover
-  // deep links (quick actions, prayer times, calendar) still resolve to a tab.
-  static const List<Widget> _tabsWithQuran = <Widget>[
-    DailyActivityScreen(),
-    LeaderboardScreen(),
-    // QuranScreen(),
-    DuaJikirScreen(),
-    ChatUsersScreen(),
-    ProfilePreferencesScreen(),
-    DiscoverScreen(),
-  ];
+  List<Widget> get _tabs {
+    final user = AuthService.instance.currentUser;
+    final isGuest = user == null;
 
-  static const List<Widget> _tabsWithoutQuran = <Widget>[
-    DailyActivityScreen(),
-    LeaderboardScreen(),
-    DuaJikirScreen(),
-    ChatUsersScreen(),
-    ProfilePreferencesScreen(),
-    DiscoverScreen(),
-  ];
-
-  List<Widget> get _tabs =>
-      kQuranFeatureEnabled ? _tabsWithQuran : _tabsWithoutQuran;
+    return <Widget>[
+      const DailyActivityScreen(),
+      if (!isGuest) const LeaderboardScreen(),
+      // if (kQuranFeatureEnabled) const QuranScreen(),
+      const DuaJikirScreen(),
+      if (!isGuest) const ChatUsersScreen(),
+      const ProfilePreferencesScreen(),
+      const DiscoverScreen(),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
-    final clamped = widget.initialIndex.clamp(0, _tabs.length - 1);
+    final initialTabs = _tabs;
+    final clamped = widget.initialIndex.clamp(0, initialTabs.length - 1);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<BottomNavProvider>().setIndex(clamped);

@@ -37,7 +37,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   final _loanController = TextEditingController();
 
   String _currency = _currencies.first.label;
-  double? _zakatPayable;
 
   // One focus node per amount field so the field's text can switch color on
   // focus/blur (brand color while editing, black once it loses focus).
@@ -105,10 +104,84 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         _parse(_depositController) +
         _parse(_loanController);
     final nisab = _parse(_nisabController);
+    final totalAssets = nisab + assets;
+    final totalZakat = totalAssets * 0.025;
 
-    setState(() {
-      _zakatPayable = assets >= nisab ? assets * 0.025 : 0;
-    });
+    _showResultDialog(totalAssets, totalZakat);
+  }
+
+  void _showResultDialog(double totalAssets, double totalZakat) {
+    final symbol = _selected.symbol;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: BrandColors.screenBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text(
+          'Zakat Calculation',
+          style: TextStyle(
+            color: BrandColors.primaryDark,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _resultRow('Total Assets', '${_formatAmount(totalAssets)} $symbol'),
+            SizedBox(height: 12.h),
+            _resultRow(
+              'Total Zakat (2.5%)',
+              '${totalZakat.toStringAsFixed(2)} $symbol',
+              isZakat: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                color: BrandColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _resultRow(String label, String value, {bool isZakat = false}) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isZakat ? BrandColors.tintBackground : Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: BrandColors.border),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: BrandColors.textSecondary,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isZakat ? BrandColors.primaryDark : BrandColors.textPrimary,
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -128,7 +201,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             _label('Currency', required: true),
             SizedBox(height: 6.h),
             DropdownButtonFormField<String>(
-              initialValue: _currency,
+              value: _currency,
               decoration: _fieldDecoration(),
               items: _currencies
                   .map(
@@ -161,39 +234,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               onPressed: _calculate,
               child: const Text('Calculate Zakat'),
             ),
-            if (_zakatPayable != null) ...[
-              SizedBox(height: 16.h),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: BrandColors.tintBackground,
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: BrandColors.border),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Zakat Payable',
-                      style: TextStyle(
-                        color: BrandColors.textSecondary,
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    Text(
-                      '${_zakatPayable!.toStringAsFixed(2)} $symbol',
-                      style: TextStyle(
-                        color: BrandColors.primaryDark,
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

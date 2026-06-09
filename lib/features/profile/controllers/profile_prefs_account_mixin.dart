@@ -4,10 +4,22 @@ part of '../screens/profile_preferences_screen.dart';
 mixin ProfilePrefsAccountMixin
     on State<ProfilePreferencesScreen>, ProfilePrefsStateMixin {
   Future<void> _openEditProfile() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(RouteNames.signIn);
+      return;
+    }
     await Navigator.of(context).pushNamed(RouteNames.editProfile);
   }
 
   Future<void> _logout() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamed(RouteNames.signIn);
+      return;
+    }
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {

@@ -2,43 +2,50 @@ part of '../screens/profile_preferences_screen.dart';
 
 /// Reusable building blocks: avatar, section cards/labels, and rows.
 mixin ProfilePrefsUiMixin
-    on State<ProfilePreferencesScreen>, ProfilePrefsStateMixin {
+    on
+        State<ProfilePreferencesScreen>,
+        ProfilePrefsStateMixin,
+        ProfilePrefsAccountMixin {
   Widget _avatar() {
-    return ValueListenableBuilder2<String?, String?>(
-      first: profilePhotoBase64Notifier,
-      second: profilePhotoUrlNotifier,
-      builder: (context, encoded, photoUrl, _) {
-        final glass = NoorifyGlassTheme(context);
-        final bytes = _decodeProfilePhoto(encoded);
-        final hasPhotoUrl = (photoUrl ?? '').trim().isNotEmpty;
-        if (bytes != null) {
+    return InkWell(
+      onTap: _openEditProfile,
+      borderRadius: BorderRadius.circular(19.r),
+      child: ValueListenableBuilder2<String?, String?>(
+        first: profilePhotoBase64Notifier,
+        second: profilePhotoUrlNotifier,
+        builder: (context, encoded, photoUrl, _) {
+          final glass = NoorifyGlassTheme(context);
+          final bytes = _decodeProfilePhoto(encoded);
+          final hasPhotoUrl = (photoUrl ?? '').trim().isNotEmpty;
+          if (bytes != null) {
+            return CircleAvatar(
+              radius: 19.r,
+              backgroundImage: MemoryImage(bytes),
+              backgroundColor: Colors.white,
+            );
+          }
+          if (hasPhotoUrl) {
+            return CircleAvatar(
+              radius: 19.r,
+              backgroundImage: NetworkImage(photoUrl!.trim()),
+              backgroundColor: Colors.white,
+            );
+          }
           return CircleAvatar(
             radius: 19.r,
-            backgroundImage: MemoryImage(bytes),
-            backgroundColor: Colors.white,
+            backgroundColor: glass.isDark
+                ? const Color(0xFF2A3A4A)
+                : const Color(0xFFCCD7E2),
+            child: Icon(
+              Icons.person,
+              color: glass.isDark
+                  ? const Color(0xFFB6C9D8)
+                  : const Color(0xFF6B7A8A),
+              size: 19.sp,
+            ),
           );
-        }
-        if (hasPhotoUrl) {
-          return CircleAvatar(
-            radius: 19.r,
-            backgroundImage: NetworkImage(photoUrl!.trim()),
-            backgroundColor: Colors.white,
-          );
-        }
-        return CircleAvatar(
-          radius: 19.r,
-          backgroundColor: glass.isDark
-              ? const Color(0xFF2A3A4A)
-              : const Color(0xFFCCD7E2),
-          child: Icon(
-            Icons.person,
-            color: glass.isDark
-                ? const Color(0xFFB6C9D8)
-                : const Color(0xFF6B7A8A),
-            size: 19.sp,
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 

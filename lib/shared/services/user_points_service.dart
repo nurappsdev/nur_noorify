@@ -20,18 +20,32 @@ class UserPointsService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
+  Stream<int>? _cachedStream;
+  String? _cachedUid;
+
   /// Live stream of the signed-in user's point total. Emits 0 when signed out,
   /// when Firebase isn't ready, or before the `points` field exists.
   Stream<int> watchPoints() {
-    if (!_firebaseReady) return Stream<int>.value(0);
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return Stream<int>.value(0);
 
-    return _db
-        .collection('users')
-        .doc(uid)
-        .snapshots()
-        .map((snapshot) => _pointsFrom(snapshot.data()));
+    if (_cachedStream != null && _cachedUid == uid) {
+      return _cachedStream!;
+    }
+
+    _cachedUid = uid;
+
+    if (!_firebaseReady || uid == null) {
+      _cachedStream = Stream<int>.value(0).asBroadcastStream();
+    } else {
+      _cachedStream = _db
+          .collection('users')
+          .doc(uid)
+          .snapshots()
+          .map((snapshot) => _pointsFrom(snapshot.data()))
+          .asBroadcastStream();
+    }
+
+    return _cachedStream!;
   }
 
   int _pointsFrom(Map<String, dynamic>? data) {

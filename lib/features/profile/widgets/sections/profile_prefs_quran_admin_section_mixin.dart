@@ -123,6 +123,8 @@ mixin ProfilePrefsQuranAdminSectionMixin
   }
 
   List<Widget> _buildLogoutSection() {
+    final user = AuthService.instance.currentUser;
+    final isGuest = user == null;
     return [
       SizedBox(height: 16.h),
       Align(
@@ -130,16 +132,18 @@ mixin ProfilePrefsQuranAdminSectionMixin
         child: FilledButton.icon(
           onPressed: _logout,
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFE64C5B),
+            backgroundColor: isGuest ? const Color(0xFF4CAF50) : const Color(0xFFE64C5B),
             foregroundColor: Colors.white,
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 9.h),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(22.r),
             ),
           ),
-          icon: Icon(Icons.logout_rounded, size: 14.sp),
+          icon: Icon(isGuest ? Icons.login_rounded : Icons.logout_rounded, size: 14.sp),
           label: Text(
-            _text('Log Out', '\u09b2\u0997 \u0986\u0989\u099f'),
+            isGuest
+                ? _text('Login', '\u09b2\u0997\u0987\u09a8')
+                : _text('Log Out', '\u09b2\u0997 \u0986\u0989\u099f'),
             style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
           ),
         ),

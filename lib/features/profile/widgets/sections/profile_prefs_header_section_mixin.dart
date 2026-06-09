@@ -34,103 +34,106 @@ mixin ProfilePrefsHeaderSectionMixin
             _avatar(),
             SizedBox(width: 11.w),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ValueListenableBuilder<String>(
-                    valueListenable: profileNameNotifier,
-                    builder: (context, name, _) {
-                      final displayName = name.trim().isEmpty
-                          ? _text(
-                              'Add your name',
-                              '\u0986\u09aa\u09a8\u09be\u09b0 \u09a8\u09be\u09ae \u09af\u09cb\u0997 \u0995\u09b0\u09c1\u09a8',
-                            )
-                          : name.trim();
-                      return Text(
-                        displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: glass.textPrimary,
-                          fontSize: 13.sp,
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 1.h),
-                  ValueListenableBuilder<String>(
-                    valueListenable: profileLocationNotifier,
-                    builder: (context, location, _) {
-                      return Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_rounded,
-                            color: _teal,
-                            size: 12.sp,
+              child: InkWell(
+                onTap: _openEditProfile,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ValueListenableBuilder<String>(
+                      valueListenable: profileNameNotifier,
+                      builder: (context, name, _) {
+                        final displayName = name.trim().isEmpty
+                            ? _text(
+                                'Add your name',
+                                '\u0986\u09aa\u09a8\u09be\u09b0 \u09a8\u09be\u09ae \u09af\u09cb\u0997 \u0995\u09b0\u09c1\u09a8',
+                              )
+                            : name.trim();
+                        return Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: glass.textPrimary,
+                            fontSize: 13.sp,
                           ),
-                          SizedBox(width: 3.w),
-                          Expanded(
-                            child: Text(
-                              location,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 10.5.sp,
-                                color: _teal,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: glass.textMuted,
-                            size: 16.sp,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  SizedBox(height: 4.h),
-                  StreamBuilder<int>(
-                    stream: UserPointsService.instance.watchPoints(),
-                    builder: (context, snapshot) {
-                      final points = snapshot.data ?? 0;
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.w,
-                          vertical: 3.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _teal.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20.r),
-                          border: Border.all(
-                            color: _teal.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        );
+                      },
+                    ),
+                    SizedBox(height: 1.h),
+                    ValueListenableBuilder<String>(
+                      valueListenable: profileLocationNotifier,
+                      builder: (context, location, _) {
+                        return Row(
                           children: [
                             Icon(
-                              Icons.stars_rounded,
+                              Icons.location_on_rounded,
                               color: _teal,
-                              size: 13.sp,
+                              size: 12.sp,
                             ),
-                            SizedBox(width: 4.w),
-                            Text(
-                              '$points ${_text('points', 'পয়েন্ট')}',
-                              style: TextStyle(
-                                fontSize: 10.5.sp,
-                                color: _teal,
-                                fontWeight: FontWeight.w700,
+                            SizedBox(width: 3.w),
+                            Expanded(
+                              child: Text(
+                                location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10.5.sp,
+                                  color: _teal,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: glass.textMuted,
+                              size: 16.sp,
+                            ),
                           ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                    SizedBox(height: 4.h),
+                    StreamBuilder<int>(
+                      stream: UserPointsService.instance.watchPoints(),
+                      builder: (context, snapshot) {
+                        final points = snapshot.data ?? 0;
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _teal.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20.r),
+                            border: Border.all(
+                              color: _teal.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.stars_rounded,
+                                color: _teal,
+                                size: 13.sp,
+                              ),
+                              SizedBox(width: 4.w),
+                              Text(
+                                '$points ${_text('points', 'পয়েন্ট')}',
+                                style: TextStyle(
+                                  fontSize: 10.5.sp,
+                                  color: _teal,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             IconButton(

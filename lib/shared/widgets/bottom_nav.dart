@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
 import 'package:first_project/core/constants/route_names.dart';
+import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 
 Widget bottomNav(
@@ -17,17 +18,21 @@ Widget bottomNav(
       ? const Color(0xFFACC0CC)
       : const Color(0xFF728A98);
 
+  final user = AuthService.instance.currentUser;
+  final isGuest = user == null;
+
   final items = <({String label, IconData icon, String routeName})>[
     (
       label: t('Home', '\u09b9\u09cb\u09ae'),
       icon: Icons.home_filled,
       routeName: RouteNames.activity,
     ),
-    (
-      label: t('Leaderboard', '\u09b2\u09bf\u09a1\u09be\u09b0\u09ac\u09cb\u09b0\u09cd\u09a1'),
-      icon: Icons.emoji_events_outlined,
-      routeName: RouteNames.leaderboard,
-    ),
+    if (!isGuest)
+      (
+        label: t('Leaderboard', '\u09b2\u09bf\u09a1\u09be\u09b0\u09ac\u09cb\u09b0\u09cd\u09a1'),
+        icon: Icons.emoji_events_outlined,
+        routeName: RouteNames.leaderboard,
+      ),
     if (kQuranFeatureEnabled)
       (
         label: t('Quran', '\u0995\u09c1\u09b0\u0986\u09a8'),
@@ -39,11 +44,12 @@ Widget bottomNav(
       icon: Icons.self_improvement_outlined,
       routeName: RouteNames.prayerTimes,
     ),
-    (
-      label: t('Chat', '\u099a\u09cd\u09af\u09be\u099f'),
-      icon: Icons.chat_bubble_outline,
-      routeName: RouteNames.chat,
-    ),
+    if (!isGuest)
+      (
+        label: t('Chat', '\u099a\u09cd\u09af\u09be\u099f'),
+        icon: Icons.chat_bubble_outline,
+        routeName: RouteNames.chat,
+      ),
     (
       label: t('Profile', '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2'),
       icon: Icons.person_outline,
