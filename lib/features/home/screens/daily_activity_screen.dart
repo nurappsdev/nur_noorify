@@ -42,6 +42,18 @@ import 'package:first_project/features/mosque/models/mosque_item.dart';
 import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
 import 'package:first_project/shared/providers/bottom_nav_provider.dart';
 
+part '../controllers/daily_activity_state_mixin.dart';
+part '../controllers/daily_controller_utils_mixin.dart';
+part '../controllers/daily_controller_format_mixin.dart';
+part '../controllers/daily_controller_labels_mixin.dart';
+part '../controllers/daily_controller_prayer_calc_mixin.dart';
+part '../controllers/daily_controller_schedule_data_mixin.dart';
+part '../controllers/daily_controller_alerts_core_mixin.dart';
+part '../controllers/daily_controller_alerts_mixin.dart';
+part '../controllers/daily_controller_prayer_data_mixin.dart';
+part '../controllers/daily_controller_location_mixin.dart';
+part '../controllers/daily_controller_loaders_mixin.dart';
+part '../controllers/daily_controller_announcements_mixin.dart';
 part '../controllers/daily_activity_controller_mixin.dart';
 part '../widgets/sections/daily_activity_view_base_mixin.dart';
 part '../widgets/sections/sky_section_mixin.dart';
@@ -65,6 +77,18 @@ class DailyActivityScreen extends StatefulWidget {
 
 class _DailyActivityScreenState extends State<DailyActivityScreen>
     with
+        DailyControllerStateMixin,
+        DailyControllerUtilsMixin,
+        DailyControllerFormatMixin,
+        DailyControllerLabelsMixin,
+        DailyControllerPrayerCalcMixin,
+        DailyControllerScheduleDataMixin,
+        DailyControllerAlertsCoreMixin,
+        DailyControllerAlertsMixin,
+        DailyControllerPrayerDataMixin,
+        DailyControllerLocationMixin,
+        DailyControllerLoadersMixin,
+        DailyControllerAnnouncementsMixin,
         DailyActivityControllerMixin,
         DailyActivityViewBaseMixin,
         DailySkySectionMixin,

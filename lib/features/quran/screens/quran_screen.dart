@@ -1,1214 +1,160 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'package:first_project/core/theme/brand_colors.dart';
-import 'package:first_project/features/quran/models/quran_models.dart';
-import 'package:first_project/features/quran/screens/quran_bookmarks_screen.dart';
-import 'package:first_project/features/quran/screens/surah_detail_screen.dart';
-import 'package:first_project/features/quran/services/quran_api_service.dart';
-import 'package:first_project/features/quran/services/quran_bookmarks_service.dart';
-import 'package:first_project/features/quran/services/quran_content_cache_service.dart';
-import 'package:first_project/features/quran/services/quran_last_read_service.dart';
-import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
-import 'package:first_project/shared/widgets/noorify_glass.dart';
-
-class QuranScreen extends StatefulWidget {
-  const QuranScreen({super.key});
-
-  @override
-  State<QuranScreen> createState() => _QuranScreenState();
-}
-
-class _QuranScreenState extends State<QuranScreen> {
-  final QuranApiService _api = QuranApiService();
-  final QuranContentCacheService _contentCache = QuranContentCacheService();
-  final QuranBookmarksService _bookmarksService = QuranBookmarksService();
-  final QuranLastReadService _lastReadService = QuranLastReadService();
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  final ScrollController _surahListController = ScrollController();
-
-  final Set<int> _downloadedSurahNos = {};
-
-  bool _isLoading = true;
-  String? _error;
-  String _searchQuery = '';
-  String _filter = 'all';
-  bool _showOnlyDownloaded = false;
-  int? _lastReadSurahNo;
-  int? _lastReadAyahNo;
-  List<QuranAyahBookmark> _bookmarks = const [];
-  bool _isTopCollapsed = false;
-  bool _isBulkCachingText = false;
-  int _bulkCacheCompleted = 0;
-  int _bulkCacheTotal = 0;
-
-  List<QuranChapter> _chapters = [];
-
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
-  String _t(String en, String bn) => _isBangla ? bn : en;
-
-  String _toBanglaDigits(String input) {
-    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const bangla = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    var output = input;
-    for (var i = 0; i < english.length; i++) {
-      output = output.replaceAll(english[i], bangla[i]);
-    }
-    return output;
-  }
-
-  String _digits(String input) => _isBangla ? _toBanglaDigits(input) : input;
-
-  @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-    _searchController.addListener(_onSearchChanged);
-    _surahListController.addListener(_onSurahListScroll);
-    _loadBookmarks();
-    _restoreLastRead();
-    _loadChapters();
-  }
-
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
-    _searchController
-      ..removeListener(_onSearchChanged)
-      ..dispose();
-    _surahListController
-      ..removeListener(_onSurahListScroll)
-      ..dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged() {
-    if (!mounted) return;
-    setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
-  }
-
-  void _onSurahListScroll() {
-    if (!mounted || _searchFocusNode.hasFocus) return;
-    final shouldCollapse =
-        _surahListController.hasClients && _surahListController.offset > 28;
-    if (shouldCollapse == _isTopCollapsed) return;
-    setState(() => _isTopCollapsed = shouldCollapse);
-  }
-
-  Future<void> _restoreLastRead() async {
-    final saved = await _lastReadService.readLastRead();
-    if (!mounted || saved == null) return;
-    setState(() {
-      _lastReadSurahNo = saved.surahNo;
-      _lastReadAyahNo = saved.ayahNo;
-    });
-  }
-
-  Future<void> _loadBookmarks() async {
-    final items = await _bookmarksService.readAll();
-    if (!mounted) return;
-    setState(() => _bookmarks = items);
-  }
-
-  QuranChapter _resolveChapterForBookmark(QuranAyahBookmark bookmark) {
-    for (final chapter in _chapters) {
-      if (chapter.surahNo == bookmark.surahNo) {
-        return chapter;
-      }
-    }
-    final fallbackName = bookmark.surahName.trim();
-    final surahName = fallbackName.isEmpty
-        ? '${_t('Surah', 'সূরা')} ${_digits(bookmark.surahNo.toString())}'
-        : fallbackName;
-    return QuranChapter(
-      surahNo: bookmark.surahNo,
-      surahName: surahName,
-      surahNameArabic: '...',
-      surahNameArabicLong: '...',
-      surahNameTranslation: '',
-      revelationPlace: '',
-      totalAyah: 0,
-    );
-  }
-
-  QuranAyahBookmark? _firstBookmarkForSurah(int surahNo) {
-    for (final bookmark in _bookmarks) {
-      if (bookmark.surahNo == surahNo) return bookmark;
-    }
-    return null;
-  }
-
-  ({int ayahNo, double progress}) _lastReadProgressForSurah(
-      QuranChapter chapter,
-      ) {
-    if (chapter.totalAyah <= 0) {
-      return (ayahNo: 0, progress: 0);
-    }
-
-    var bestAyah = 0;
-    if (_lastReadSurahNo == chapter.surahNo && (_lastReadAyahNo ?? 0) > 0) {
-      bestAyah = _lastReadAyahNo!;
-    }
-
-    if (bestAyah <= 0) {
-      for (final bookmark in _bookmarks) {
-        if (bookmark.surahNo == chapter.surahNo && bookmark.ayahNo > bestAyah) {
-          bestAyah = bookmark.ayahNo;
-        }
-      }
-    }
-
-    final safeAyah = bestAyah.clamp(0, chapter.totalAyah);
-    return (ayahNo: safeAyah, progress: safeAyah / chapter.totalAyah);
-  }
-
-  Future<void> _loadChapters() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    try {
-      final chapters = await _api.fetchChapters();
-      final fromCache = _api.lastReadFromCache;
-      if (!mounted) return;
-      setState(() {
-        _chapters = chapters;
-        _isLoading = false;
-      });
-      final downloaded = await _refreshDownloadedFlags();
-      if (!mounted) return;
-      if (!fromCache) {
-        unawaited(_autoCacheAllTextIfNeeded(chapters, downloaded));
-      }
-      if (fromCache) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _t(
-                'No internet. Showing saved content.',
-                'ইন্টারনেট নেই। সেভ করা কনটেন্ট দেখানো হচ্ছে।',
-              ),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = _t(
-          'Could not load Quran list.',
-          'কুরআনের তালিকা লোড করা যায়নি।',
-        );
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<Set<int>> _refreshDownloadedFlags() async {
-    final chapters = List<QuranChapter>.from(_chapters);
-    final downloaded = <int>{};
-
-    for (final chapter in chapters) {
-      final detail = await _contentCache.readSurahDetail(
-        chapter.surahNo,
-        lang: 'bn',
-      );
-      if (detail != null) {
-        downloaded.add(chapter.surahNo);
-      }
-    }
-
-    if (!mounted) return downloaded;
-    setState(() {
-      _downloadedSurahNos
-        ..clear()
-        ..addAll(downloaded);
-    });
-    return downloaded;
-  }
-
-  Future<void> _autoCacheAllTextIfNeeded(
-      List<QuranChapter> chapters,
-      Set<int> downloaded,
-      ) async {
-    if (_isBulkCachingText) return;
-
-    final missing = chapters
-        .where((chapter) => !downloaded.contains(chapter.surahNo))
-        .toList(growable: false);
-    if (missing.isEmpty) return;
-
-    if (!mounted) return;
-    setState(() {
-      _isBulkCachingText = true;
-      _bulkCacheTotal = chapters.length;
-      _bulkCacheCompleted = downloaded.length;
-    });
-
-    var failed = 0;
-    for (final chapter in missing) {
-      try {
-        await _api.fetchSurahDetail(chapter.surahNo, lang: 'bn');
-        downloaded.add(chapter.surahNo);
-      } catch (_) {
-        failed += 1;
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _bulkCacheCompleted = downloaded.length;
-        _downloadedSurahNos
-          ..clear()
-          ..addAll(downloaded);
-      });
-    }
-
-    if (!mounted) return;
-    setState(() => _isBulkCachingText = false);
-
-    final successCount = downloaded.length;
-    if (failed == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _t(
-              'Quran text cached for offline reading ($successCount/${chapters.length}).',
-              'অফলাইনে পড়ার জন্য কুরআনের টেক্সট সেভ হয়েছে ($successCount/${chapters.length})।',
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _t(
-            'Offline text cached $successCount/${chapters.length}. Retry later for remaining $failed.',
-            'অফলাইন টেক্সট সেভ হয়েছে $successCount/${chapters.length}। বাকি $failed পরে আবার চেষ্টা করুন।',
-          ),
-        ),
-      ),
-    );
-  }
-
-  bool get _showBulkCacheProgress =>
-      _isBulkCachingText ||
-          (_bulkCacheTotal > 0 && _bulkCacheCompleted < _bulkCacheTotal);
-
-  double get _bulkCacheProgressValue {
-    if (_bulkCacheTotal <= 0) return 0;
-    final value = _bulkCacheCompleted / _bulkCacheTotal;
-    return value.clamp(0.0, 1.0).toDouble();
-  }
-
-  List<QuranChapter> get _filteredChapters {
-    return _chapters
-        .where((chapter) {
-      if (_showOnlyDownloaded &&
-          !_downloadedSurahNos.contains(chapter.surahNo)) {
-        return false;
-      }
-
-      if (_filter == 'meccan' && !chapter.isMeccan) return false;
-      if (_filter == 'medinan' && !chapter.isMedinan) return false;
-
-      if (_searchQuery.isEmpty) return true;
-      return chapter.surahNo.toString() == _searchQuery ||
-          chapter.surahName.toLowerCase().contains(_searchQuery) ||
-          chapter.surahNameArabic.contains(_searchQuery) ||
-          chapter.surahNameTranslation.toLowerCase().contains(_searchQuery);
-    })
-        .toList(growable: false);
-  }
-
-  String _revelationLabel(String place) {
-    final lower = place.toLowerCase();
-    if (lower.contains('mecca')) return _t('Makkah', 'মক্কা');
-    if (lower.contains('medina')) return _t('Madinah', 'মদিনা');
-    return place;
-  }
-
-  Future<void> _showSurahDetail(
-      QuranChapter chapter, {
-        bool autoStartAudio = false,
-        int? initialAyahNo,
-      }) async {
-    if (_lastReadSurahNo != chapter.surahNo) {
-      setState(() {
-        _lastReadSurahNo = chapter.surahNo;
-        _lastReadAyahNo = 1;
-      });
-      unawaited(
-        _lastReadService.saveLastRead(surahNo: chapter.surahNo, ayahNo: 1),
-      );
-    }
-
-    final downloaded = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) => SurahDetailScreen(
-          chapter: chapter,
-          autoStartAudio: autoStartAudio,
-          initialAyahNo: initialAyahNo,
-        ),
-      ),
-    );
-    await _restoreLastRead();
-    await _loadBookmarks();
-    if (!mounted) return;
-    if (downloaded == true) {
-      setState(() => _downloadedSurahNos.add(chapter.surahNo));
-    }
-  }
-
-  Future<void> _openBookmarksScreen() async {
-    await _loadBookmarks();
-    if (!mounted) return;
-    if (_bookmarks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _t(
-              'No saved ayah bookmarks yet',
-              'এখনও কোনো আয়াত বুকমার্ক সেভ করা হয়নি',
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-
-    final selected = await Navigator.of(context).push<QuranAyahBookmark>(
-      MaterialPageRoute<QuranAyahBookmark>(
-        builder: (_) => QuranBookmarksScreen(bookmarks: _bookmarks),
-      ),
-    );
-
-    if (selected == null || !mounted) return;
-    final chapter = _resolveChapterForBookmark(selected);
-    await _showSurahDetail(chapter, initialAyahNo: selected.ayahNo);
-  }
-
-  Widget _buildHeader() {
-    final fallbackChapter = _chapters.isNotEmpty
-        ? _chapters.first
-        : QuranChapter(
-      surahNo: 2,
-      surahName: 'Al-Baqara',
-      surahNameArabic: '\u0627\u0644\u0628\u0642\u0631\u0629',
-      surahNameArabicLong:
-      '\u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629',
-      surahNameTranslation: 'The Cow',
-      revelationPlace: 'Medina',
-      totalAyah: 286,
-    );
-    final lastReadChapter = _chapters.firstWhere(
-          (chapter) =>
-      chapter.surahNo == (_lastReadSurahNo ?? fallbackChapter.surahNo),
-      orElse: () => fallbackChapter,
-    );
-    final lastReadProgress = _lastReadProgressForSurah(lastReadChapter);
-    final completionPercent = (lastReadProgress.progress * 100).round();
-    final progressLabel = lastReadProgress.ayahNo <= 0
-        ? _t('Start reading to track progress', 'প্রগ্রেস দেখতে পড়া শুরু করুন')
-        : _t(
-      '${_digits(completionPercent.toString())}% Complete \u2022 Ayat ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
-      '${_digits(completionPercent.toString())}% সম্পন্ন \u2022 আয়াত ${_digits(lastReadProgress.ayahNo.toString())}/${_digits(lastReadChapter.totalAyah.toString())}',
-    );
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF091A2A), Color(0xFF0E2B3D), Color(0xFF144B64)],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28.r),
-          bottomRight: Radius.circular(46.r),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28.r),
-          bottomRight: Radius.circular(46.r),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -36,
-              top: -36,
-              child: Container(
-                width: 144.r,
-                height: 144.r,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0x1FFFFFFF),
-                ),
-              ),
-            ),
-            Positioned(
-              left: -52,
-              bottom: -72,
-              child: Container(
-                width: 190.r,
-                height: 190.r,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0x18FFFFFF),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h),
-              child: Column(
-                children: [
-                  Text(
-                    '\u0627\u0644\u0642\u0631\u0622\u0646 \u0627\u0644\u0643\u0631\u064a\u0645',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26.sp,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    _t('Quran', 'কুরআন'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 44.sp,
-                      fontWeight: FontWeight.w300,
-                      height: 0.92,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    _t('Read | Listen | Offline', 'পড়ুন | শুনুন | অফলাইন'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xD7FFFFFF),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(12.w, 11.h, 12.w, 10.h),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0x2AFFFFFF), Color(0x12000000)],
-                      ),
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.26),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 34.r,
-                              height: 34.r,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.24),
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.menu_book_rounded,
-                                size: 18.sp,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(width: 10.w),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _t('Last Read:', 'সর্বশেষ তিলাওয়াত:'),
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.86,
-                                      ),
-                                      fontSize: 11.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2.h),
-                                  Text(
-                                    lastReadChapter.surahName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 17.sp,
-                                      fontWeight: FontWeight.w700,
-                                      height: 1.05,
-                                    ),
-                                  ),
-                                  Text(
-                                    '(${_t('Surah', 'সূরা')} ${_digits(lastReadChapter.surahNo.toString())})',
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.84,
-                                      ),
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            FilledButton(
-                              onPressed: () =>
-                                  _showSurahDetail(lastReadChapter),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF43E6B0),
-                                foregroundColor: const Color(0xFF04353A),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 18.w,
-                                ),
-                                minimumSize: Size(0.w, 40.h),
-                                shape: const StadiumBorder(),
-                              ),
-                              child: Text(
-                                _t('Continue', 'চালিয়ে যান'),
-                                style: TextStyle(fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8.h),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999.r),
-                          child: LinearProgressIndicator(
-                            minHeight: 5.h,
-                            value: lastReadProgress.progress,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.24,
-                            ),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF43E6B0),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 5.h),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            progressLabel,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 11.5.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchAndFilters() {
-    final glass = NoorifyGlassTheme(context);
-    final searchFill = glass.isDark
-        ? const Color(0xC4142331)
-        : const Color(0xFFF9FCFF);
-    final searchBorder = glass.isDark
-        ? const Color(0x66A9C7DB)
-        : const Color(0xFFBDD5E4);
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 8.h),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(5.r),
-            decoration: BoxDecoration(
-              gradient: glass.isDark
-                  ? null
-                  : const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xEFFFFFFF), Color(0xD7F3FAFF)],
-              ),
-              color: glass.isDark ? const Color(0x3816232F) : null,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: glass.isDark
-                    ? const Color(0x6AA9C7DB)
-                    : const Color(0x88D1E1EC),
-              ),
-              boxShadow: glass.isDark
-                  ? null
-                  : const [
-                BoxShadow(
-                  color: Color(0x120E3853),
-                  blurRadius: 12,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _FilterChipButton(
-                    label: _t('All', 'সব'),
-                    selected: _filter == 'all',
-                    isSegment: true,
-                    onTap: () => setState(() => _filter = 'all'),
-                  ),
-                ),
-                SizedBox(width: 6.w),
-                Expanded(
-                  child: _FilterChipButton(
-                    label: _t('Meccan', 'মক্কী'),
-                    selected: _filter == 'meccan',
-                    isSegment: true,
-                    onTap: () => setState(() => _filter = 'meccan'),
-                  ),
-                ),
-                SizedBox(width: 6.w),
-                Expanded(
-                  child: _FilterChipButton(
-                    label: _t('Medinan', 'মাদানী'),
-                    selected: _filter == 'medinan',
-                    isSegment: true,
-                    onTap: () => setState(() => _filter = 'medinan'),
-                  ),
-                ),
-                SizedBox(width: 6.w),
-                Expanded(
-                  child: _FilterChipButton(
-                    label: _t('Downloaded', 'ডাউনলোডেড'),
-                    selected: _showOnlyDownloaded,
-                    isSegment: true,
-                    onTap: () => setState(
-                          () => _showOnlyDownloaded = !_showOnlyDownloaded,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10.h),
-          TextField(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            style: TextStyle(
-              color: glass.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              hintText: _t('Search', 'খুঁজুন'),
-              hintStyle: TextStyle(color: glass.textSecondary),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: glass.textSecondary,
-              ),
-              filled: true,
-              fillColor: searchFill,
-              contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14.r),
-                borderSide: BorderSide(color: searchBorder, width: 1.2.w),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14.r),
-                borderSide: BorderSide(color: searchBorder, width: 1.2.w),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14.r),
-                borderSide: BorderSide(color: glass.accent, width: 1.7.w),
-              ),
-            ),
-          ),
-          if (_showBulkCacheProgress) ...[
-            SizedBox(height: 10.h),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-              decoration: BoxDecoration(
-                color: BrandColors.tintBackground,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: BrandColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _t(
-                      'Preparing offline reading: $_bulkCacheCompleted/$_bulkCacheTotal',
-                      'অফলাইন রিডিং প্রস্তুত হচ্ছে: ${_digits(_bulkCacheCompleted.toString())}/${_digits(_bulkCacheTotal.toString())}',
-                    ),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: BrandColors.primaryDark,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999.r),
-                    child: LinearProgressIndicator(
-                      minHeight: 6.h,
-                      value: _bulkCacheProgressValue,
-                      backgroundColor: Colors.white,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        BrandColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCollapsedTopBar() {
-    final glass = NoorifyGlassTheme(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 6.h),
-      child: NoorifyGlassCard(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 9.h),
-        radius: BorderRadius.circular(14.r),
-        child: Row(
-          children: [
-            Text(
-              _t('Quran', 'কুরআন'),
-              style: TextStyle(
-                color: glass.textPrimary,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () {
-                setState(() => _isTopCollapsed = false);
-                Future<void>.delayed(const Duration(milliseconds: 220), () {
-                  if (!mounted) return;
-                  _searchFocusNode.requestFocus();
-                });
-              },
-              icon: Icon(Icons.search_rounded, color: glass.accent),
-              tooltip: _t('Search Surah', 'সূরা খুঁজুন'),
-            ),
-            IconButton(
-              onPressed: _openBookmarksScreen,
-              icon: Icon(
-                _bookmarks.isEmpty
-                    ? Icons.bookmark_border_rounded
-                    : Icons.bookmark_rounded,
-                color: glass.accent,
-              ),
-              tooltip: _t('Bookmarks', 'বুকমার্ক'),
-            ),
-            IconButton(
-              onPressed: () {
-                if (_surahListController.hasClients) {
-                  _surahListController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeOutCubic,
-                  );
-                }
-                setState(() => _isTopCollapsed = false);
-              },
-              icon: Icon(Icons.expand_more_rounded, color: glass.accent),
-              tooltip: _t('Expand', 'বিস্তারিত দেখুন'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final glass = NoorifyGlassTheme(context);
-    return Scaffold(
-      backgroundColor: glass.bgBottom,
-      body: NoorifyGlassBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              AnimatedCrossFade(
-                firstChild: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [_buildHeader(), _buildSearchAndFilters()],
-                ),
-                secondChild: _buildCollapsedTopBar(),
-                crossFadeState: _isTopCollapsed
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 240),
-                sizeCurve: Curves.easeInOutCubic,
-              ),
-              Expanded(
-                child: _isLoading
-                    ? Center(
-                  child: CircularProgressIndicator(color: glass.accent),
-                )
-                    : _error != null
-                    ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _error!,
-                        style: TextStyle(color: glass.textSecondary),
-                      ),
-                      SizedBox(height: 8.h),
-                      FilledButton(
-                        onPressed: _loadChapters,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: glass.accent,
-                          foregroundColor: glass.isDark
-                              ? const Color(0xFF032F35)
-                              : Colors.white,
-                        ),
-                        child: Text(_t('Retry', 'আবার চেষ্টা করুন')),
-                      ),
-                    ],
-                  ),
-                )
-                    : ListView.builder(
-                  controller: _surahListController,
-                  padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 8.h),
-                  itemCount: _filteredChapters.length,
-                  itemBuilder: (context, index) {
-                    final chapter = _filteredChapters[index];
-                    final firstBookmark = _firstBookmarkForSurah(
-                      chapter.surahNo,
-                    );
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 10.h),
-                      child: _QuranSurahTile(
-                        chapter: chapter,
-                        hasBookmark: firstBookmark != null,
-                        isBangla: _isBangla,
-                        revelationLabel: _revelationLabel(
-                          chapter.revelationPlace,
-                        ),
-                        onTap: () => _showSurahDetail(chapter),
-                        onBookmarkTap: _openBookmarksScreen,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // bottomNav(context, 1),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChipButton extends StatelessWidget {
-  const _FilterChipButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.isSegment = false,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  final bool isSegment;
-
-  @override
-  Widget build(BuildContext context) {
-    final glass = NoorifyGlassTheme(context);
-    final bgColor = selected
-        ? glass.accent
-        : (glass.isDark ? const Color(0x66162538) : const Color(0xFFFDFEFF));
-    final borderColor = selected
-        ? glass.accentSoft
-        : (glass.isDark ? const Color(0x55B4D8EE) : const Color(0xFFC6DAE8));
-    final textColor = selected
-        ? (glass.isDark ? const Color(0xFF032F35) : Colors.white)
-        : glass.textPrimary;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(isSegment ? 10 : 100),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: isSegment
-            ? EdgeInsets.symmetric(horizontal: 4.w, vertical: 9.h)
-            : EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(isSegment ? 10 : 100),
-          border: Border.all(color: borderColor),
-          boxShadow: selected
-              ? [
-            BoxShadow(
-              color: glass.accent.withValues(
-                alpha: glass.isDark ? 0.28 : 0.22,
-              ),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ]
-              : (glass.isDark
-              ? null
-              : const [
-            BoxShadow(
-              color: Color(0x0B0E3853),
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ]),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: TextStyle(
-            color: textColor,
-            fontSize: isSegment ? 13 : null,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuranSurahTile extends StatelessWidget {
-  const _QuranSurahTile({
-    required this.chapter,
-    required this.hasBookmark,
-    required this.isBangla,
-    required this.revelationLabel,
-    required this.onTap,
-    required this.onBookmarkTap,
-  });
-
-  final QuranChapter chapter;
-  final bool hasBookmark;
-  final bool isBangla;
-  final String revelationLabel;
-  final VoidCallback onTap;
-  final VoidCallback onBookmarkTap;
-
-  String _t(String en, String bn) => isBangla ? bn : en;
-
-  @override
-  Widget build(BuildContext context) {
-    final glass = NoorifyGlassTheme(context);
-    final translation = chapter.surahNameTranslation.trim().isEmpty
-        ? _t('Translation unavailable', 'অনুবাদ পাওয়া যায়নি')
-        : chapter.surahNameTranslation.trim();
-    final tileBackground = glass.isDark
-        ? null
-        : const LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0xFFFDFEFF), Color(0xFFF4FAFF)],
-    );
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(18.r),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18.r),
-        onTap: onTap,
-        child: NoorifyGlassCard(
-          radius: BorderRadius.circular(18.r),
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
-          boxShadow: [
-            BoxShadow(
-              color: glass.isDark
-                  ? const Color(0x32000000)
-                  : const Color(0x140E3853),
-              blurRadius: 14,
-              offset: const Offset(0, 7),
-            ),
-          ],
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.r),
-              gradient: tileBackground,
-              border: glass.isDark
-                  ? null
-                  : Border.all(color: const Color(0xB8DCEAF3)),
-            ),
-            child: Stack(
-              children: [
-                if (!glass.isDark)
-                  Positioned(
-                    top: -22,
-                    left: -18,
-                    child: IgnorePointer(
-                      child: Container(
-                        width: 140.w,
-                        height: 64.h,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999.r),
-                          gradient: const LinearGradient(
-                            colors: [Color(0x4DFFFFFF), Color(0x00FFFFFF)],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                Row(
-                  children: [
-                    Container(
-                      width: 48.r,
-                      height: 48.r,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: glass.isDark
-                            ? const Color(0xFF122A35)
-                            : const Color(0xFFE9F8FC),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: glass.accentSoft, width: 1.4.w),
-                        boxShadow: [
-                          BoxShadow(
-                            color: glass.accent.withValues(alpha: 0.26),
-                            blurRadius: 14,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        chapter.surahNo.toString(),
-                        style: TextStyle(
-                          color: glass.accentSoft,
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chapter.surahName,
-                            style: TextStyle(
-                              color: glass.textPrimary,
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              height: 1.1,
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                          Text(
-                            chapter.surahName,
-                            style: TextStyle(
-                              color: glass.isDark
-                                  ? const Color(0xFFE4F1FA)
-                                  : const Color(0xFF21465F),
-                              fontSize: 12.5.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                          Text(
-                            '$revelationLabel \u2022 ${chapter.totalAyah} ${_t('ayah', 'আয়াত')} \u2022 $translation',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: glass.isDark
-                                  ? const Color(0xFFC6DBEB)
-                                  : const Color(0xFF3F627B),
-                              fontSize: 11.5.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: 110.w),
-                      child: Text(
-                        chapter.surahNameArabic,
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: glass.isDark
-                              ? const Color(0xFFDDEBA8)
-                              : const Color(0xFF2F5A60),
-                          fontSize: 40.sp,
-                          fontWeight: FontWeight.w500,
-                          height: 0.9,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 4.w),
-                    IconButton.filledTonal(
-                      onPressed: onBookmarkTap,
-                      style: IconButton.styleFrom(
-                        backgroundColor: hasBookmark
-                            ? (glass.isDark
-                            ? const Color(0x332EB8E6)
-                            : const Color(0x1F1EA8B8))
-                            : (glass.isDark
-                            ? const Color(0x3316383E)
-                            : const Color(0x121EA8B8)),
-                        foregroundColor: hasBookmark
-                            ? glass.accent
-                            : glass.textSecondary,
-                      ),
-                      icon: Icon(
-                        hasBookmark
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                      ),
-                      tooltip: _t('Open bookmarks', 'বুকমার্ক খুলুন'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// import 'dart:async';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
+//
+// import 'package:first_project/core/theme/brand_colors.dart';
+// import 'package:first_project/features/quran/models/quran_models.dart';
+// import 'package:first_project/features/quran/screens/quran_bookmarks_screen.dart';
+// import 'package:first_project/features/quran/screens/surah_detail_screen.dart';
+// import 'package:first_project/features/quran/services/quran_api_service.dart';
+// import 'package:first_project/features/quran/services/quran_bookmarks_service.dart';
+// import 'package:first_project/features/quran/services/quran_content_cache_service.dart';
+// import 'package:first_project/features/quran/services/quran_last_read_service.dart';
+// import 'package:first_project/features/quran/utils/quran_utils.dart';
+// import 'package:first_project/features/quran/widgets/quran_header.dart';
+// import 'package:first_project/features/quran/widgets/quran_list_widgets.dart';
+// import 'package:first_project/shared/widgets/noorify_glass.dart';
+//
+// class QuranScreen extends StatefulWidget {
+//   const QuranScreen({super.key});
+//   @override
+//   State<QuranScreen> createState() => _QuranScreenState();
+// }
+//
+// class _QuranScreenState extends State<QuranScreen> {
+//   final QuranApiService _api = QuranApiService();
+//   final QuranContentCacheService _contentCache = QuranContentCacheService();
+//   final QuranBookmarksService _bookmarksService = QuranBookmarksService();
+//   final QuranLastReadService _lastReadService = QuranLastReadService();
+//   final TextEditingController _searchController = TextEditingController();
+//   final FocusNode _searchFocusNode = FocusNode();
+//   final ScrollController _surahListController = ScrollController();
+//   final Set<int> _downloadedSurahNos = {};
+//   bool _isLoading = true, _isTopCollapsed = false, _showOnlyDownloaded = false, _isBulkCaching = false;
+//   String? _error;
+//   String _searchQuery = '', _filter = 'all';
+//   int? _lastReadSurahNo, _lastReadAyahNo;
+//   List<QuranAyahBookmark> _bookmarks = [];
+//   List<QuranChapter> _chapters = [];
+//   int _bulkCacheCompleted = 0, _bulkCacheTotal = 0;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _searchController.addListener(() => setState(() => _searchQuery = _searchController.text.trim().toLowerCase()));
+//     _surahListController.addListener(() {
+//       if (_searchFocusNode.hasFocus) return;
+//       final coll = _surahListController.hasClients && _surahListController.offset > 28;
+//       if (coll != _isTopCollapsed) setState(() => _isTopCollapsed = coll);
+//     });
+//     _loadAll();
+//   }
+//
+//   Future<void> _loadAll() async {
+//     final saved = await _lastReadService.readLastRead();
+//     final items = await _bookmarksService.readAll();
+//     setState(() { _lastReadSurahNo = saved?.surahNo; _lastReadAyahNo = saved?.ayahNo; _bookmarks = items; });
+//     _loadChapters();
+//   }
+//
+//   Future<void> _loadChapters() async {
+//     setState(() { _isLoading = true; _error = null; });
+//     try {
+//       final chapters = await _api.fetchChapters();
+//       setState(() { _chapters = chapters; _isLoading = false; });
+//       final downloaded = await _refreshDownloadedFlags();
+//       if (!_api.lastReadFromCache) unawaited(_autoCacheAll(chapters, downloaded));
+//     } catch (_) { setState(() { _error = QuranUtils.t('Could not load Quran list.', 'কুরআনের তালিকা লোড করা যায়নি।'); _isLoading = false; }); }
+//   }
+//
+//   Future<Set<int>> _refreshDownloadedFlags() async {
+//     final downloaded = <int>{};
+//     for (final c in _chapters) { if (await _contentCache.readSurahDetail(c.surahNo, lang: 'bn') != null) downloaded.add(c.surahNo); }
+//     setState(() { _downloadedSurahNos.clear(); _downloadedSurahNos.addAll(downloaded); });
+//     return downloaded;
+//   }
+//
+//   Future<void> _autoCacheAll(List<QuranChapter> chapters, Set<int> downloaded) async {
+//     final missing = chapters.where((c) => !downloaded.contains(c.surahNo)).toList();
+//     if (missing.isEmpty) return;
+//     setState(() { _isBulkCaching = true; _bulkCacheTotal = chapters.length; _bulkCacheCompleted = downloaded.length; });
+//     for (final c in missing) {
+//       try { await _api.fetchSurahDetail(c.surahNo, lang: 'bn'); downloaded.add(c.surahNo); } catch (_) {}
+//       setState(() { _bulkCacheCompleted = downloaded.length; _downloadedSurahNos.clear(); _downloadedSurahNos.addAll(downloaded); });
+//     }
+//     setState(() => _isBulkCaching = false);
+//   }
+//
+//   ({int ayahNo, double progress}) _progress(QuranChapter c) {
+//     if (c.totalAyah <= 0) return (ayahNo: 0, progress: 0);
+//     var best = (_lastReadSurahNo == c.surahNo) ? (_lastReadAyahNo ?? 0) : 0;
+//     if (best <= 0) for (final b in _bookmarks) { if (b.surahNo == c.surahNo && b.ayahNo > best) best = b.ayahNo; }
+//     final safe = best.clamp(0, c.totalAyah);
+//     return (ayahNo: safe, progress: safe / c.totalAyah);
+//   }
+//
+//   Future<void> _showDetail(QuranChapter c, {int? initialAyahNo}) async {
+//     if (_lastReadSurahNo != c.surahNo) {
+//       setState(() { _lastReadSurahNo = c.surahNo; _lastReadAyahNo = 1; });
+//       unawaited(_lastReadService.saveLastRead(surahNo: c.surahNo, ayahNo: 1));
+//     }
+//     final downloaded = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => SurahDetailScreen(chapter: c, initialAyahNo: initialAyahNo)));
+//     await _loadAll();
+//     if (downloaded == true) setState(() => _downloadedSurahNos.add(c.surahNo));
+//   }
+//
+//   Future<void> _openBookmarks() async {
+//     if (_bookmarks.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(QuranUtils.t('No saved ayah bookmarks yet', 'এখনও কোনো আয়াত বুকমার্ক সেভ করা হয়নি')))); return; }
+//     final sel = await Navigator.of(context).push<QuranAyahBookmark>(MaterialPageRoute(builder: (_) => QuranBookmarksScreen(bookmarks: _bookmarks)));
+//     if (sel != null) _showDetail(_chapters.firstWhere((c) => c.surahNo == sel.surahNo), initialAyahNo: sel.ayahNo);
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final glass = NoorifyGlassTheme(context);
+//     final filtered = _chapters.where((c) {
+//       if (_showOnlyDownloaded && !_downloadedSurahNos.contains(c.surahNo)) return false;
+//       if (_filter == 'meccan' && !c.isMeccan) return false;
+//       if (_filter == 'medinan' && !c.isMedinan) return false;
+//       return _searchQuery.isEmpty || c.surahNo.toString() == _searchQuery || c.surahName.toLowerCase().contains(_searchQuery) || c.surahNameArabic.contains(_searchQuery);
+//     }).toList();
+//
+//     return Scaffold(
+//       backgroundColor: glass.bgBottom,
+//       body: NoorifyGlassBackground(
+//         child: SafeArea(
+//           child: Column(children: [
+//             AnimatedCrossFade(
+//               duration: const Duration(milliseconds: 240),
+//               crossFadeState: _isTopCollapsed ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+//               firstChild: Column(children: [
+//                 QuranHeader(lastReadChapter: _chapters.firstWhere((c) => c.surahNo == (_lastReadSurahNo ?? 2), orElse: () => _chapters.first), lastReadProgress: _progress(_chapters.firstWhere((c) => c.surahNo == (_lastReadSurahNo ?? 2), orElse: () => _chapters.first)), onContinueTap: () => _showDetail(_chapters.firstWhere((c) => c.surahNo == (_lastReadSurahNo ?? 2), orElse: () => _chapters.first))),
+//                 Padding(
+//                   padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 8.h),
+//                   child: Column(children: [
+//                     Container(padding: EdgeInsets.all(5.r), decoration: BoxDecoration(color: glass.isDark ? const Color(0x3816232F) : Colors.white, borderRadius: BorderRadius.circular(14.r), border: Border.all(color: glass.isDark ? const Color(0x6AA9C7DB) : const Color(0x88D1E1EC))), child: Row(children: [
+//                       Expanded(child: FilterChipButton(label: QuranUtils.t('All', 'সব'), selected: _filter == 'all', isSegment: true, onTap: () => setState(() => _filter = 'all'))), SizedBox(width: 6.w),
+//                       Expanded(child: FilterChipButton(label: QuranUtils.t('Makkah', 'মক্কী'), selected: _filter == 'meccan', isSegment: true, onTap: () => setState(() => _filter = 'meccan'))), SizedBox(width: 6.w),
+//                       Expanded(child: FilterChipButton(label: QuranUtils.t('Madinah', 'মাদানী'), selected: _filter == 'medinan', isSegment: true, onTap: () => setState(() => _filter = 'medinan'))), SizedBox(width: 6.w),
+//                       Expanded(child: FilterChipButton(label: QuranUtils.t('Saved', 'সেভড'), selected: _showOnlyDownloaded, isSegment: true, onTap: () => setState(() => _showOnlyDownloaded = !_showOnlyDownloaded))),
+//                     ])),
+//                     SizedBox(height: 10.h),
+//                     TextField(controller: _searchController, focusNode: _searchFocusNode, style: TextStyle(color: glass.textPrimary, fontWeight: FontWeight.w600), decoration: InputDecoration(hintText: QuranUtils.t('Search', 'খুঁজুন'), prefixIcon: Icon(Icons.search_rounded, color: glass.textSecondary), filled: true, fillColor: glass.isDark ? const Color(0xC4142331) : const Color(0xFFF9FCFF), border: OutlineInputBorder(borderRadius: BorderRadius.circular(14.r), borderSide: BorderSide(color: glass.isDark ? const Color(0x66A9C7DB) : const Color(0xFFBDD5E4)))),
+//                     if (_isBulkCaching) ...[SizedBox(height: 10.h), LinearProgressIndicator(value: _bulkCacheCompleted / _bulkCacheTotal, backgroundColor: Colors.white, valueColor: const AlwaysStoppedAnimation(BrandColors.primary))],
+//                   ]),
+//                 ),
+//               ]),
+//               secondChild: Padding(padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 6.h), child: NoorifyGlassCard(radius: BorderRadius.circular(14.r), child: Row(children: [
+//                 Text(QuranUtils.t('Quran', 'কুরআন'), style: TextStyle(color: glass.textPrimary, fontSize: 18.sp, fontWeight: FontWeight.w700)), const Spacer(),
+//                 IconButton(onPressed: () { setState(() => _isTopCollapsed = false); Future.delayed(const Duration(milliseconds: 220), () => _searchFocusNode.requestFocus()); }, icon: Icon(Icons.search_rounded, color: glass.accent)),
+//                 IconButton(onPressed: _openBookmarks, icon: Icon(_bookmarks.isEmpty ? Icons.bookmark_border_rounded : Icons.bookmark_rounded, color: glass.accent)),
+//                 IconButton(onPressed: () { if (_surahListController.hasClients) _surahListController.animateTo(0, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic); setState(() => _isTopCollapsed = false); }, icon: Icon(Icons.expand_more_rounded, color: glass.accent)),
+//               ]))),
+//             ),
+//             Expanded(child: _isLoading ? Center(child: CircularProgressIndicator(color: glass.accent)) : _error != null ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_error!, style: TextStyle(color: glass.textSecondary)), SizedBox(height: 8.h), FilledButton(onPressed: _loadChapters, style: FilledButton.styleFrom(backgroundColor: glass.accent), child: Text(QuranUtils.t('Retry', 'আবার চেষ্টা করুন')))])) : ListView.builder(controller: _surahListController, padding: EdgeInsets.symmetric(horizontal: 16.w), itemCount: filtered.length, itemBuilder: (context, index) => Padding(padding: EdgeInsets.only(bottom: 10.h), child: QuranSurahTile(chapter: filtered[index], hasBookmark: _bookmarks.any((b) => b.surahNo == filtered[index].surahNo), onTap: () => _showDetail(filtered[index]), onBookmarkTap: _openBookmarks)))),
+//           ]),
+//         ),
+//       ),
+//     );
+//   }
+// }

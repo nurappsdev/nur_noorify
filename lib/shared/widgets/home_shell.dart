@@ -28,7 +28,7 @@ class _HomeShellState extends State<HomeShell> {
   static const List<Widget> _tabsWithQuran = <Widget>[
     DailyActivityScreen(),
     LeaderboardScreen(),
-    QuranScreen(),
+    // QuranScreen(),
     DuaJikirScreen(),
     ChatUsersScreen(),
     ProfilePreferencesScreen(),
