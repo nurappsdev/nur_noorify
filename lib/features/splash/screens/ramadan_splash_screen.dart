@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
-import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/features/splash/utils/post_splash_route.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 
 class RamadanSplashScreen extends StatefulWidget {
@@ -22,30 +21,17 @@ class _RamadanSplashScreenState extends State<RamadanSplashScreen> {
   @override
   void initState() {
     super.initState();
-    _openHomeAfterDelay();
+    _openNextAfterDelay();
   }
 
-  Future<void> _openHomeAfterDelay() async {
+  Future<void> _openNextAfterDelay() async {
     await Future<void>.delayed(_splashDuration);
     if (!mounted) return;
-    var nextRoute = RouteNames.home;
-    if (Firebase.apps.isNotEmpty) {
-      try {
-        final user = AuthService.instance.currentUser;
-        if (user != null) {
-          await AuthService.instance.syncLocalProfileFromCurrentUser();
-        }
-        nextRoute = skipAuthGateNotifier.value || user != null
-            ? RouteNames.home
-            : RouteNames.signIn;
-      } catch (_) {
-        nextRoute = RouteNames.home;
-      }
-    } else {
-      nextRoute = skipAuthGateNotifier.value
-          ? RouteNames.home
-          : RouteNames.signIn;
-    }
+    // First launch shows the onboarding flow; afterwards we go straight to the
+    // auth gate. Onboarding resolves the post-splash route itself when it ends.
+    final nextRoute = onboardingCompletedNotifier.value
+        ? await resolvePostSplashRoute()
+        : RouteNames.onboardingHadith;
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(nextRoute);
   }

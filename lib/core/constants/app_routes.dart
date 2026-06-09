@@ -14,6 +14,9 @@ import 'package:first_project/features/legal/screens/privacy_policy_screen.dart'
 import 'package:first_project/features/qibla/screens/qibla_compass_screen.dart';
 import 'package:first_project/features/islamic_calendar/screens/islamic_calendar_screen.dart';
 import 'package:first_project/features/splash/screens/ramadan_splash_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_hadith_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_language_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_location_screen.dart';
 import 'package:first_project/features/auth/screens/signin_screen.dart';
 import 'package:first_project/features/auth/screens/signup_screen.dart';
 import 'package:first_project/shared/services/app_globals.dart';
@@ -38,6 +41,12 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabHome), settings);
       case RouteNames.splash:
         return _page(const RamadanSplashScreen(), settings);
+      case RouteNames.onboardingHadith:
+        return _page(const OnboardingHadithScreen(), settings);
+      case RouteNames.onboardingLanguage:
+        return _page(const OnboardingLanguageScreen(), settings);
+      case RouteNames.onboardingLocation:
+        return _page(const OnboardingLocationScreen(), settings);
       case RouteNames.signIn:
         return _page(const SignInScreen(), settings);
       case RouteNames.signUp:

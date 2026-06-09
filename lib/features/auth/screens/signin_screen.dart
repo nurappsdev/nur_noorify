@@ -648,16 +648,6 @@ class _SignInViewState extends State<_SignInView> {
                 ],
               ),
               SizedBox(height: 8.h),
-              TextButton(
-                onPressed: _isLoading ? null : _continueWithoutSignIn,
-                child: Text(
-                  _text(
-                    'Skip for now',
-                    '\u098f\u0996\u09a8 \u09b8\u09cd\u0995\u09bf\u09aa \u0995\u09b0\u09c1\u09a8',
-                  ),
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
             ],
           ),
         ),

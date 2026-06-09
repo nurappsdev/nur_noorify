@@ -1,6 +1,9 @@
 class RouteNames {
   static const home = '/';
   static const splash = '/splash';
+  static const onboardingHadith = '/onboarding';
+  static const onboardingLanguage = '/onboarding/language';
+  static const onboardingLocation = '/onboarding/location';
   static const signIn = '/signin';
   static const signUp = '/signup';
   static const preferences = '/preferences';

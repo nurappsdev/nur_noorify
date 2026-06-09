@@ -89,6 +89,11 @@ final ValueNotifier<bool> hapticFeedbackEnabledNotifier = ValueNotifier<bool>(
   true,
 );
 final ValueNotifier<bool> skipAuthGateNotifier = ValueNotifier<bool>(false);
+// Tracks whether the first-launch onboarding (Hadith, language, location) has
+// been completed or skipped, so it only shows once.
+final ValueNotifier<bool> onboardingCompletedNotifier = ValueNotifier<bool>(
+  false,
+);
 final ValueNotifier<String> translatorNotifier = ValueNotifier<String>(
   'Dr. Mustafa Khattab',
 );
@@ -333,6 +338,11 @@ Future<void> loadAppPreferences() async {
       skipAuthGateNotifier.value = skipAuthGate;
     }
 
+    final onboardingCompleted = json['onboardingCompleted'];
+    if (onboardingCompleted is bool) {
+      onboardingCompletedNotifier.value = onboardingCompleted;
+    }
+
     final translator = (json['translator'] ?? '').toString().trim();
     if (translator.isNotEmpty) {
       translatorNotifier.value = translator;
@@ -409,6 +419,7 @@ Future<void> saveAppPreferences() async {
     'showTajweed': showTajweedNotifier.value,
     'hapticFeedback': hapticFeedbackEnabledNotifier.value,
     'skipAuthGate': skipAuthGateNotifier.value,
+    'onboardingCompleted': onboardingCompletedNotifier.value,
     'translator': translatorNotifier.value,
     'reciter': reciterNotifier.value,
     'adzanVoice': adzanVoiceNotifier.value,
