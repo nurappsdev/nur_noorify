@@ -6,7 +6,7 @@ import 'package:first_project/features/chat/screens/chat_users_screen.dart';
 import 'package:first_project/features/discover/screens/discover_screen.dart';
 import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
 import 'package:first_project/features/home/screens/daily_activity_screen.dart';
-import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
+import 'package:first_project/features/islamic_quiz/screens/islamic_quiz_screen.dart';
 import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
 import 'package:first_project/features/quran/screens/quran_screen.dart';
 import 'package:first_project/shared/providers/bottom_nav_provider.dart';
@@ -29,7 +29,7 @@ class _HomeShellState extends State<HomeShell> {
 
     return <Widget>[
       const DailyActivityScreen(),
-      if (!isGuest) const LeaderboardScreen(),
+      const IslamicQuizScreen(),
       // if (kQuranFeatureEnabled) const QuranScreen(),
       const DuaJikirScreen(),
       if (!isGuest) const ChatUsersScreen(),

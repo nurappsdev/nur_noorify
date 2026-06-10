@@ -11,6 +11,7 @@ class RouteNames {
   static const activity = '/activity';
   static const discover = '/discover';
   static const leaderboard = '/leaderboard';
+  static const elmNoor = '/elm-noor';
   static const asma = '/asma';
   static const hadith = '/hadith';
   static const dua = '/dua';

@@ -196,4 +196,28 @@ mixin ProfilePrefsHeaderSectionMixin
       ),
     ];
   }
+
+  List<Widget> _buildLeaderboardSection() {
+    return [
+      _sectionLabel(
+        _text('Community', 'কমিউনিটি'),
+      ),
+      _sectionCard(
+        child: _rowTile(
+          icon: Icons.emoji_events_outlined,
+          title: _text(
+            'Leaderboard',
+            'লিডারবোর্ড',
+          ),
+          subtitle: _text(
+            'Top members by points earned',
+            'পয়েন্টের ভিত্তিতে শীর্ষ সদস্যরা',
+          ),
+          onTap: () {
+            Navigator.of(context).pushNamed(RouteNames.leaderboard);
+          },
+        ),
+      ),
+    ];
+  }
 }

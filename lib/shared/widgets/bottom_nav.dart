@@ -27,12 +27,11 @@ Widget bottomNav(
       icon: Icons.home_filled,
       routeName: RouteNames.activity,
     ),
-    if (!isGuest)
-      (
-        label: t('Leaderboard', '\u09b2\u09bf\u09a1\u09be\u09b0\u09ac\u09cb\u09b0\u09cd\u09a1'),
-        icon: Icons.emoji_events_outlined,
-        routeName: RouteNames.leaderboard,
-      ),
+    (
+      label: t('Elm Noor', '\u0987\u09b2\u09ae \u09a8\u09c2\u09b0'),
+      icon: Icons.quiz_outlined,
+      routeName: RouteNames.elmNoor,
+    ),
     if (kQuranFeatureEnabled)
       (
         label: t('Quran', '\u0995\u09c1\u09b0\u0986\u09a8'),

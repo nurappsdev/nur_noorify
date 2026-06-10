@@ -62,6 +62,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen>
                   children: [
                     ..._buildTitle(),
                     ..._buildProfileHeaderCard(),
+                    ..._buildLeaderboardSection(),
                     ..._buildNearbySection(),
                     ..._buildGeneralSection(),
                     ..._buildPrayerSettingSection(),

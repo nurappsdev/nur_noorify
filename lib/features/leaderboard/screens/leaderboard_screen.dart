@@ -31,13 +31,30 @@ class LeaderboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      t('Leaderboard', 'লিডারবোর্ড'),
-                      style: TextStyle(
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.w700,
-                        color: glass.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        if (Navigator.of(context).canPop())
+                          Padding(
+                            padding: EdgeInsets.only(right: 6.w),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20.r),
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                color: glass.textPrimary,
+                                size: 24.r,
+                              ),
+                            ),
+                          ),
+                        Text(
+                          t('Leaderboard', 'লিডারবোর্ড'),
+                          style: TextStyle(
+                            fontSize: 22.sp,
+                            fontWeight: FontWeight.w700,
+                            color: glass.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 2.h),
                     Text(

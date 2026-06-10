@@ -13,6 +13,7 @@ import 'package:first_project/features/mosque/screens/find_mosque_screen.dart';
 import 'package:first_project/features/legal/screens/privacy_policy_screen.dart';
 import 'package:first_project/features/qibla/screens/qibla_compass_screen.dart';
 import 'package:first_project/features/islamic_calendar/screens/islamic_calendar_screen.dart';
+import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:first_project/features/splash/screens/ramadan_splash_screen.dart';
 import 'package:first_project/features/onboarding/screens/onboarding_hadith_screen.dart';
 import 'package:first_project/features/onboarding/screens/onboarding_language_screen.dart';
@@ -28,7 +29,7 @@ class AppRoutes {
   // the bottom bar, so it sits last (after Profile) and is only reached via
   // its route.
   static const int _tabHome = 0;
-  static const int _tabLeaderboard = 1;
+  static const int _tabElmNoor = 1;
   static const int _tabQuran = 2;
   static int get _tabPrayer => kQuranFeatureEnabled ? 3 : 2;
   static int get _tabChat => kQuranFeatureEnabled ? 4 : 3;
@@ -59,8 +60,10 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabHome), settings);
       case RouteNames.discover:
         return _page(HomeShell(initialIndex: _tabDiscover), settings);
+      case RouteNames.elmNoor:
+        return _page(const HomeShell(initialIndex: _tabElmNoor), settings);
       case RouteNames.leaderboard:
-        return _page(const HomeShell(initialIndex: _tabLeaderboard), settings);
+        return _page(const LeaderboardScreen(), settings);
       case RouteNames.asma:
         return _page(const AsmaScreen(), settings);
       case RouteNames.hadith:
