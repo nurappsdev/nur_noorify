@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:first_project/features/hadith/models/hadith_item.dart';
 import 'package:first_project/features/hadith/providers/hadith_provider.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class HadithScreen extends StatelessWidget {
@@ -248,6 +247,22 @@ class _HadithViewState extends State<_HadithView> {
                     children: [
                       Row(
                         children: [
+                          Material(
+                            color: glass.isDark
+                                ? const Color(0x332EB8E6)
+                                : const Color(0x221EA8B8),
+                            shape: const CircleBorder(),
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => Navigator.of(context).maybePop(),
+                              icon: Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                size: 18.sp,
+                                color: glass.textPrimary,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               _text('Sahih Bukhari (50)', 'সহিহ বুখারী (৫০)'),
@@ -479,7 +494,6 @@ class _HadithViewState extends State<_HadithView> {
                         },
                       ),
               ),
-              bottomNav(context, 1),
             ],
           ),
         ),

@@ -139,7 +139,7 @@ mixin DailyActivityViewMixin
                           ],
 
                           SizedBox(height: 12.h),
-                          _buildDailyActivityCard(),
+                          // _buildDailyActivityCard(),
                         ],
                       ),
                     ),

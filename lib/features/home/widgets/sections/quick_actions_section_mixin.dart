@@ -85,44 +85,44 @@ mixin DailyQuickActionsSectionMixin
             onTap: () =>
                 Navigator.of(context).pushNamed(RouteNames.islamicCalendar),
           ),
-          (
-            titleEn: 'Find Mosque',
-            titleBn: '\u09ae\u09b8\u099c\u09bf\u09a6',
-            icon: Icons.location_city_rounded,
-            onTap: () => Navigator.of(context).pushNamed(RouteNames.findMosque),
-          ),
-          (
-            titleEn: 'Qibla',
-            titleBn: '\u0995\u09bf\u09ac\u09b2\u09be',
-            icon: Icons.near_me_rounded,
-            onTap: () =>
-                Navigator.of(context).pushNamed(RouteNames.prayerCompass),
-          ),
-          (
-            titleEn: 'Prayer',
-            titleBn: '\u09a8\u09be\u09ae\u09be\u099c',
-            icon: Icons.schedule_rounded,
-            onTap: () =>
-                Navigator.of(context).pushNamed(RouteNames.prayerTimes),
-          ),
+          // (
+          //   titleEn: 'Find Mosque',
+          //   titleBn: '\u09ae\u09b8\u099c\u09bf\u09a6',
+          //   icon: Icons.location_city_rounded,
+          //   onTap: () => Navigator.of(context).pushNamed(RouteNames.findMosque),
+          // ),
+
+          // (
+          //   titleEn: 'Prayer',
+          //   titleBn: '\u09a8\u09be\u09ae\u09be\u099c',
+          //   icon: Icons.schedule_rounded,
+          //   onTap: () => Navigator.of(context).push<void>(
+          //     MaterialPageRoute<void>(
+          //       builder: (_) => const PrayerTimesScreen(),
+          //     ),
+          //   ),
+          // ),
           (
             titleEn: 'Tasbih',
             titleBn: '\u09a4\u09be\u09b8\u09ac\u09bf\u09b9',
             icon: Icons.exposure_plus_1_rounded,
             onTap: () => Navigator.of(context).pushNamed(RouteNames.tasbih),
           ),
-          (
-            titleEn: 'Zakat',
-            titleBn: '\u09af\u09be\u0995\u09be\u09a4',
-            icon: Icons.savings_rounded,
-            onTap: () => unawaited(_openZakatCalculator()),
-          ),
+          // (
+          //   titleEn: 'Zakat',
+          //   titleBn: '\u09af\u09be\u0995\u09be\u09a4',
+          //   icon: Icons.savings_rounded,
+          //   onTap: () => unawaited(_openZakatCalculator()),
+          // ),
           (
             titleEn: 'Settings',
             titleBn: '\u09b8\u09c7\u099f\u09bf\u0982\u09b8',
             icon: Icons.settings_rounded,
-            onTap: () =>
-                Navigator.of(context).pushNamed(RouteNames.preferences),
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const ProfilePreferencesScreen(),
+              ),
+            ),
           ),
         ];
 
@@ -132,44 +132,47 @@ mixin DailyQuickActionsSectionMixin
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_awesome_outlined,
-                size: 13.sp,
-                color: _accentGold,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                _text(
-                  'Quick Menu',
-                  '\u09a6\u09cd\u09b0\u09c1\u09a4 \u09ae\u09c7\u09a8\u09c1',
-                ),
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const Spacer(),
-              TextButton.icon(
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  foregroundColor: _accentStrong,
-                ),
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(RouteNames.discover),
-                icon: Icon(Icons.grid_view_rounded, size: 15.sp),
-                label: Text(
-                  _text(
-                    'Open Discover',
-                    '\u09a1\u09bf\u09b8\u0995\u09ad\u09be\u09b0',
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Icon(
+          //       Icons.auto_awesome_outlined,
+          //       size: 13.sp,
+          //       color: _accentGold,
+          //     ),
+          //     SizedBox(width: 6.w),
+          //     Text(
+          //       _text(
+          //         'Quick Menu',
+          //         '\u09a6\u09cd\u09b0\u09c1\u09a4 \u09ae\u09c7\u09a8\u09c1',
+          //       ),
+          //       style: TextStyle(
+          //         color: _textPrimary,
+          //         fontSize: 14.sp,
+          //         fontWeight: FontWeight.w700,
+          //         letterSpacing: 0.3,
+          //       ),
+          //     ),
+          //     const Spacer(),
+          //     TextButton.icon(
+          //       style: TextButton.styleFrom(
+          //         visualDensity: VisualDensity.compact,
+          //         foregroundColor: _accentStrong,
+          //       ),
+          //       onPressed: () => Navigator.of(context).push<void>(
+          //         MaterialPageRoute<void>(
+          //           builder: (_) => const DiscoverScreen(),
+          //         ),
+          //       ),
+          //       icon: Icon(Icons.grid_view_rounded, size: 15.sp),
+          //       label: Text(
+          //         _text(
+          //           'Open Discover',
+          //           '\u09a1\u09bf\u09b8\u0995\u09ad\u09be\u09b0',
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           _ornamentDivider(
             padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
           ),

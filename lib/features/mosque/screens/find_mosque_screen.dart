@@ -14,7 +14,6 @@ import 'package:first_project/features/mosque/utils/mosque_utils.dart';
 import 'package:first_project/features/mosque/widgets/mosque_empty_state.dart';
 import 'package:first_project/features/mosque/widgets/mosque_list_item.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 enum _FallbackReason { none, appOff, serviceDisabled, denied, deniedForever, error }
@@ -159,7 +158,6 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
               ])),
               Positioned(right: 10.w, bottom: 10.h, child: FloatingActionButton(onPressed: () => _refresh(force: true), mini: true, child: Icon(Icons.my_location_rounded, color: glass.accent))),
             ])),
-            bottomNav(context, 1),
           ]),
         ),
       ),

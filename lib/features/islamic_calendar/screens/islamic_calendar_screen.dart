@@ -15,7 +15,6 @@ import 'package:first_project/features/islamic_calendar/widgets/important_events
 import 'package:first_project/features/islamic_calendar/widgets/moon_card.dart';
 import 'package:first_project/features/islamic_calendar/widgets/prayer_card.dart';
 import 'package:first_project/shared/services/app_globals.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class IslamicCalendarScreen extends StatefulWidget {
@@ -156,7 +155,6 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   ],
                 ),
               ),
-              bottomNav(context, 1),
             ],
           ),
         ),

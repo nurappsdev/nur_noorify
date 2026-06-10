@@ -12,13 +12,36 @@ mixin ProfilePrefsHeaderSectionMixin
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 6.h),
-        child: Text(
-          _text('Profile', '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2'),
-          style: TextStyle(
-            fontSize: 22.sp,
-            fontWeight: FontWeight.w700,
-            color: glass.textPrimary,
-          ),
+        child: Row(
+          children: [
+            Material(
+              color: glass.isDark
+                  ? const Color(0x332EB8E6)
+                  : const Color(0x221EA8B8),
+              shape: const CircleBorder(),
+              child: IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 18.sp,
+                  color: glass.textPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Text(
+              _text(
+                'Profile',
+                '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2',
+              ),
+              style: TextStyle(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w700,
+                color: glass.textPrimary,
+              ),
+            ),
+          ],
         ),
       ),
     ];

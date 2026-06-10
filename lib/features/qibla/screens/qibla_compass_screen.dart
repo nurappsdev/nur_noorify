@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:first_project/features/qibla/providers/qibla_provider.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class QiblaCompassScreen extends StatelessWidget {
@@ -554,7 +553,6 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
                   ),
                 ),
               ),
-              bottomNav(context, 3),
             ],
           ),
         ),

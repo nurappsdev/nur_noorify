@@ -389,6 +389,22 @@ class _DiscoverHeaderCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              Material(
+                color: glass.isDark
+                    ? const Color(0x332EB8E6)
+                    : const Color(0x221EA8B8),
+                shape: const CircleBorder(),
+                child: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18.sp,
+                    color: glass.textPrimary,
+                  ),
+                ),
+              ),
+              SizedBox(width: 10.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

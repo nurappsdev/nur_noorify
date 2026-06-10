@@ -9,7 +9,6 @@ import 'package:first_project/features/dua/screens/sub_screens/main_category_sub
 import 'package:first_project/features/dua/utils/dua_utils.dart';
 import 'package:first_project/features/dua/widgets/dua_category_widgets.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
-import 'package:first_project/shared/widgets/bottom_nav.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 class DuaScreen extends StatelessWidget {
@@ -63,6 +62,16 @@ class _DuaViewState extends State<_DuaView> {
                 child: NoorifyGlassCard(
                   radius: BorderRadius.circular(20.r), padding: EdgeInsets.all(14.r),
                   child: Row(children: [
+                    Material(
+                      color: glass.isDark ? const Color(0x332EB8E6) : const Color(0x221EA8B8),
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18.sp, color: glass.textPrimary),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(isBn ? 'দুআ' : 'Dua', style: TextStyle(fontSize: 30.sp, fontWeight: FontWeight.w700, color: glass.textPrimary, height: 1)),
                       SizedBox(height: 6.h),
@@ -81,7 +90,6 @@ class _DuaViewState extends State<_DuaView> {
                   ],
                 ),
               ),
-              bottomNav(context, 1),
             ]),
           ),
         ),

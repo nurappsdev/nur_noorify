@@ -26,6 +26,9 @@ import 'package:first_project/features/announcements/models/announcement_item.da
 import 'package:first_project/features/calendar_waqt/screens/calendar_waqt_screen.dart';
 import 'package:first_project/features/age_calculator/screens/boyos_zacai_screen.dart';
 import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
+import 'package:first_project/features/prayer_time/screens/prayer_times_screen.dart';
+import 'package:first_project/features/discover/screens/discover_screen.dart';
+import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
 import 'package:first_project/features/amol_track/models/amol_track_models.dart';
 import 'package:first_project/features/amol_track/services/amol_track_service.dart';
 import 'package:first_project/features/amol_track/screens/amol_track_screen.dart';
