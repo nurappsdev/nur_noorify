@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/shared/services/fcm_token_service.dart';
 
 class AuthService {
   AuthService._();
@@ -71,6 +72,13 @@ class AuthService {
       await _syncLocalProfileFromUser(user);
     } catch (_) {
       // Keep auth flow successful even when local profile sync fails.
+    }
+    try {
+      // Link this device's push token so targeted notifications (e.g. family
+      // requests) can reach the user. Never block auth on this.
+      await FcmTokenService.instance.registerCurrentToken();
+    } catch (_) {
+      // Ignore token registration failures.
     }
   }
 
@@ -166,6 +174,13 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    // Unlink this device's push token before clearing auth, while the uid is
+    // still available, so a signed-out device stops receiving this user's pushes.
+    try {
+      await FcmTokenService.instance.removeCurrentToken();
+    } catch (_) {
+      // Ignore token cleanup failures; continue signing out.
+    }
     await _auth.signOut();
     try {
       await _ensureGoogleInitialized();

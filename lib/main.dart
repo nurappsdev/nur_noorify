@@ -39,6 +39,7 @@ class MyApp extends StatelessWidget {
   Widget _buildMaterialApp(AppFontSize fontSize, bool darkThemeEnabled) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: appNavigatorKey,
       title: 'Noorify',
       theme: ThemeData(
         useMaterial3: true,

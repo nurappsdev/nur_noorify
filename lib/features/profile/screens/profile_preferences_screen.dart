@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 
 import 'package:first_project/features/admin/services/admin_role_service.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/features/family/models/family_member.dart';
+import 'package:first_project/features/family/services/family_service.dart';
 import 'package:first_project/features/profile/widgets/change_password_dialog.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
@@ -21,6 +23,7 @@ part '../controllers/profile_prefs_pickers_mixin.dart';
 part '../controllers/profile_prefs_account_mixin.dart';
 part '../widgets/profile_prefs_ui_mixin.dart';
 part '../widgets/sections/profile_prefs_header_section_mixin.dart';
+part '../widgets/sections/profile_prefs_family_section_mixin.dart';
 part '../widgets/sections/profile_prefs_general_section_mixin.dart';
 part '../widgets/sections/profile_prefs_prayer_section_b_mixin.dart';
 part '../widgets/sections/profile_prefs_prayer_section_a_mixin.dart';
@@ -42,6 +45,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen>
         ProfilePrefsAccountMixin,
         ProfilePrefsUiMixin,
         ProfilePrefsHeaderSectionMixin,
+        ProfilePrefsFamilySectionMixin,
         ProfilePrefsGeneralSectionMixin,
         ProfilePrefsPrayerSectionBMixin,
         ProfilePrefsPrayerSectionAMixin,
@@ -63,6 +67,7 @@ class _ProfilePreferencesScreenState extends State<ProfilePreferencesScreen>
                     ..._buildTitle(),
                     ..._buildProfileHeaderCard(),
                     ..._buildLeaderboardSection(),
+                    ..._buildFamilySection(),
                     ..._buildNearbySection(),
                     ..._buildGeneralSection(),
                     ..._buildPrayerSettingSection(),

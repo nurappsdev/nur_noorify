@@ -14,6 +14,7 @@ import 'package:first_project/features/legal/screens/privacy_policy_screen.dart'
 import 'package:first_project/features/qibla/screens/qibla_compass_screen.dart';
 import 'package:first_project/features/islamic_calendar/screens/islamic_calendar_screen.dart';
 import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
+import 'package:first_project/features/family/screens/family_requests_screen.dart';
 import 'package:first_project/features/splash/screens/ramadan_splash_screen.dart';
 import 'package:first_project/features/onboarding/screens/onboarding_hadith_screen.dart';
 import 'package:first_project/features/onboarding/screens/onboarding_language_screen.dart';
@@ -64,6 +65,8 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabElmNoor), settings);
       case RouteNames.leaderboard:
         return _page(const LeaderboardScreen(), settings);
+      case RouteNames.familyRequests:
+        return _page(const FamilyRequestsScreen(), settings);
       case RouteNames.asma:
         return _page(const AsmaScreen(), settings);
       case RouteNames.hadith:

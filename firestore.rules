@@ -12,9 +12,47 @@ service cloud.firestore {
     }
 
     // Any signed-in user can read the people list; you may only edit your own doc.
+    // `family_members` is intentionally NOT client-writable: it is set only by
+    // the trusted Cloud Function when a family request is accepted, so a name
+    // can never appear on a profile without the other person accepting.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create, delete: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data)
+                          .affectedKeys().hasAny(['family_members']);
+    }
+
+    // Directed family requests. Doc id is "fromUid_toUid"; uids never contain
+    // "_", so the pair is unambiguous.
+    match /family_requests/{reqId} {
+      // Both parties can read the request (requester to track status,
+      // recipient to act on it). Authorize from the doc id's uid pair rather
+      // than resource.data, so the existence check in sendRequest works even
+      // when the document does not exist yet (a null resource would otherwise
+      // deny the get with PERMISSION_DENIED).
+      allow read: if request.auth != null
+                  && request.auth.uid in reqId.split('_');
+
+      // Only the requester may create their own outgoing, pending request,
+      // and not to themselves.
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.from_uid
+                    && request.resource.data.from_uid != request.resource.data.to_uid
+                    && request.resource.data.status == 'pending';
+
+      // Only the recipient may respond, and only to accept/decline. The
+      // from/to pair stays fixed so the request can't be retargeted.
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.to_uid
+                    && request.resource.data.from_uid == resource.data.from_uid
+                    && request.resource.data.to_uid == resource.data.to_uid
+                    && request.resource.data.status in ['accepted', 'declined'];
+
+      // The requester may cancel a request they sent.
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.from_uid;
     }
 
     // Anyone signed in can read announcements; only admins can manage them.

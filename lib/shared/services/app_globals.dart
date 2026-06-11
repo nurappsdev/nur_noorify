@@ -10,6 +10,10 @@ import 'package:timezone/timezone.dart' as tz;
 
 final FlutterLocalNotificationsPlugin localNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
+
+/// App-wide navigator key, so services (e.g. push handlers) can navigate
+/// without a BuildContext.
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 bool localNotificationsInitialized = false;
 bool locationPermissionRequestInProgress = false;
 const int sehriNotificationId = 1001;

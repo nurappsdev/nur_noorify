@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import 'package:first_project/features/family/widgets/add_family_dialog.dart';
 import 'package:first_project/features/leaderboard/models/leaderboard_entry.dart';
 import 'package:first_project/features/leaderboard/services/leaderboard_service.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
@@ -106,12 +107,22 @@ class LeaderboardScreen extends StatelessWidget {
                       separatorBuilder: (_, _) => SizedBox(height: 8.h),
                       itemBuilder: (context, index) {
                         final entry = entries[index];
+                        final isMe = entry.uid == me;
                         return _LeaderboardTile(
                           glass: glass,
                           rank: index + 1,
                           entry: entry,
-                          isMe: entry.uid == me,
+                          isMe: isMe,
                           pointsLabel: t('pts', 'পয়েন্ট'),
+                          onTap: isMe
+                              ? null
+                              : () => AddFamilyDialog.show(
+                                  context,
+                                  targetUid: entry.uid,
+                                  targetName: entry.resolvedName,
+                                  targetPhoto: entry.photoUrl,
+                                  isBangla: isBangla,
+                                ),
                         );
                       },
                     );
@@ -133,6 +144,7 @@ class _LeaderboardTile extends StatelessWidget {
     required this.entry,
     required this.isMe,
     required this.pointsLabel,
+    this.onTap,
   });
 
   final NoorifyGlassTheme glass;
@@ -140,6 +152,7 @@ class _LeaderboardTile extends StatelessWidget {
   final LeaderboardEntry entry;
   final bool isMe;
   final String pointsLabel;
+  final VoidCallback? onTap;
 
   /// Medal colours for the top three ranks; null for the rest.
   Color? get _medalColor {
@@ -173,6 +186,7 @@ class _LeaderboardTile extends StatelessWidget {
               )
             : null,
         child: ListTile(
+          onTap: onTap,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
           leading: Row(
             mainAxisSize: MainAxisSize.min,
