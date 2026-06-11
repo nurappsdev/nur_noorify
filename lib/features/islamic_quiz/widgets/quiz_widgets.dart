@@ -75,13 +75,15 @@ class QuizOptionTile extends StatelessWidget {
 class QuizResultView extends StatelessWidget {
   const QuizResultView({
     super.key,
-    required this.score,
+    required this.points,
+    required this.correct,
     required this.total,
     required this.isBangla,
     required this.onRestart,
   });
 
-  final int score;
+  final int points;
+  final int correct;
   final int total;
   final bool isBangla;
   final VoidCallback onRestart;
@@ -105,10 +107,19 @@ class QuizResultView extends StatelessWidget {
               color: glass.textPrimary,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 10.h),
           Text(
-            _t('You scored $score / $total', 'আপনার স্কোর $score / $total'),
-            style: TextStyle(fontSize: 15.sp, color: glass.textSecondary),
+            _t('$points points', '$points পয়েন্ট'),
+            style: TextStyle(
+              fontSize: 30.sp,
+              fontWeight: FontWeight.w800,
+              color: glass.accent,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            _t('Correct: $correct / $total', 'সঠিক: $correct / $total'),
+            style: TextStyle(fontSize: 14.sp, color: glass.textSecondary),
           ),
           SizedBox(height: 22.h),
           FilledButton.icon(

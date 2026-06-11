@@ -15,62 +15,41 @@ class QuizQuestion {
   final int correctIndex;
 }
 
-/// Built-in question bank for the "Elm Noor" Islamic quiz.
-const List<QuizQuestion> kIslamicQuizQuestions = <QuizQuestion>[
-  QuizQuestion(
-    questionEn: 'How many times do Muslims pray each day?',
-    questionBn: 'মুসলিমরা প্রতিদিন কতবার নামাজ পড়ে?',
-    optionsEn: ['Three', 'Five', 'Seven', 'Two'],
-    optionsBn: ['তিনবার', 'পাঁচবার', 'সাতবার', 'দুইবার'],
-    correctIndex: 1,
-  ),
-  QuizQuestion(
-    questionEn: 'In which month do Muslims fast?',
-    questionBn: 'মুসলিমরা কোন মাসে রোজা রাখে?',
-    optionsEn: ['Shawwal', 'Ramadan', 'Rajab', 'Muharram'],
-    optionsBn: ['শাওয়াল', 'রমজান', 'রজব', 'মুহার্রম'],
-    correctIndex: 1,
-  ),
-  QuizQuestion(
-    questionEn: 'How many pillars of Islam are there?',
-    questionBn: 'ইসলামের স্তম্ভ কয়টি?',
-    optionsEn: ['Four', 'Five', 'Six', 'Three'],
-    optionsBn: ['চার', 'পাঁচ', 'ছয়', 'তিন'],
-    correctIndex: 1,
-  ),
-  QuizQuestion(
-    questionEn: 'What is the holy book of Islam?',
-    questionBn: 'ইসলামের পবিত্র গ্রন্থ কোনটি?',
-    optionsEn: ['Torah', 'Injil', 'Quran', 'Zabur'],
-    optionsBn: ['তাওরাত', 'ইঞ্জিল', 'কুরআন', 'যাবূর'],
-    correctIndex: 2,
-  ),
-  QuizQuestion(
-    questionEn: 'Which direction do Muslims face during prayer?',
-    questionBn: 'নামাজে মুসলিমরা কোন দিকে মুখ করে?',
-    optionsEn: ['North', 'Kaaba (Qibla)', 'East', 'Jerusalem'],
-    optionsBn: ['উত্তর', 'কাবা (কিবলা)', 'পূর্ব', 'জেরুজালেম'],
-    correctIndex: 1,
-  ),
-  QuizQuestion(
-    questionEn: 'What is the first month of the Islamic calendar?',
-    questionBn: 'ইসলামি বর্ষপঞ্জিকার প্রথম মাস কোনটি?',
-    optionsEn: ['Ramadan', 'Muharram', 'Safar', 'Rajab'],
-    optionsBn: ['রমজান', 'মুহার্রম', 'সফর', 'রজব'],
-    correctIndex: 1,
-  ),
-  QuizQuestion(
-    questionEn: 'How many rakats are in the Fajr fard prayer?',
-    questionBn: 'ফজরের ফরজ নামাজ কয় রাকাত?',
-    optionsEn: ['Two', 'Three', 'Four', 'Five'],
-    optionsBn: ['দুই', 'তিন', 'চার', 'পাঁচ'],
-    correctIndex: 0,
-  ),
-  QuizQuestion(
-    questionEn: 'Who is the last Prophet in Islam?',
-    questionBn: 'ইসলামের শেষ নবী কে?',
-    optionsEn: ['Isa (AS)', 'Musa (AS)', 'Muhammad (SAW)', 'Ibrahim (AS)'],
-    optionsBn: ['ঈসা (আঃ)', 'মূসা (আঃ)', 'মুহাম্মদ (সাঃ)', 'ইব্রাহিম (আঃ)'],
-    correctIndex: 2,
-  ),
-];
+/// Quiz segments shown after the user taps "Start".
+enum QuizTopic { quran, hadith, elmNoor, fiqh }
+
+extension QuizTopicLabels on QuizTopic {
+  String label(bool isBangla) {
+    switch (this) {
+      case QuizTopic.quran:
+        return isBangla ? 'কুরআন টপিক' : 'Quran Topic';
+      case QuizTopic.hadith:
+        return isBangla ? 'হাদিস টপিক' : 'Hadith Topic';
+      case QuizTopic.elmNoor:
+        return isBangla ? 'ইলম নূর' : 'Elm Noor';
+      case QuizTopic.fiqh:
+        return isBangla ? 'ফিকহ ও মাসআলা' : 'Fiqh and Masala';
+    }
+  }
+
+  String subtitle(bool isBangla) {
+    switch (this) {
+      case QuizTopic.quran:
+        return isBangla
+            ? 'কুরআন সম্পর্কিত প্রশ্ন'
+            : 'Questions about the Quran';
+      case QuizTopic.hadith:
+        return isBangla
+            ? 'হাদিস সম্পর্কিত প্রশ্ন'
+            : 'Questions about the Hadith';
+      case QuizTopic.elmNoor:
+        return isBangla
+            ? 'সাধারণ ইসলামিক জ্ঞান'
+            : 'General Islamic knowledge';
+      case QuizTopic.fiqh:
+        return isBangla
+            ? 'ফিকহ ও মাসআলা সম্পর্কিত প্রশ্ন'
+            : 'Questions on fiqh and rulings';
+    }
+  }
+}
