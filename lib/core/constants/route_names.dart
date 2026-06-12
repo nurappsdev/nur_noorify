@@ -12,6 +12,7 @@ class RouteNames {
   static const discover = '/discover';
   static const leaderboard = '/leaderboard';
   static const familyRequests = '/family-requests';
+  static const notifications = '/notifications';
   static const elmNoor = '/elm-noor';
   static const asma = '/asma';
   static const hadith = '/hadith';

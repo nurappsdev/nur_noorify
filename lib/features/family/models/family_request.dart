@@ -54,8 +54,15 @@ class FamilyRequest {
   /// Relationship the requester chose, from their point of view.
   final FamilyRelation? relation;
 
-  String get resolvedFromName =>
-      fromName.trim().isEmpty ? 'Noorify user' : fromName.trim();
+  /// Sender's name, falling back to the email handle (the app-wide convention)
+  /// then a generic label — so an empty `from_name` never shows as a stranger.
+  String get resolvedFromName {
+    final name = fromName.trim();
+    if (name.isNotEmpty) return name;
+    final handle = (fromEmail ?? '').split('@').first.trim();
+    if (handle.isNotEmpty) return handle;
+    return 'Noorify user';
+  }
 
   String get fromInitial {
     final source = resolvedFromName;

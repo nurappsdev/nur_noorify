@@ -58,16 +58,8 @@ class CalendarHeader extends StatelessWidget {
           ),
           SizedBox(width: 6.w),
           IconButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  IslamicCalendarUtils.text(
-                    'Notifications screen coming soon',
-                    'নোটিফিকেশন স্ক্রিন শিগগিরই আসছে',
-                  ),
-                ),
-              ),
-            ),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(RouteNames.notifications),
             style: IconButton.styleFrom(
               backgroundColor: glass.isDark ? const Color(0x2B1EA8B8) : const Color(0x1A1EA8B8),
               foregroundColor: glass.accent,

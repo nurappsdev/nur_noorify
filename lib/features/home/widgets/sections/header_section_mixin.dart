@@ -201,7 +201,7 @@ mixin DailyHeaderSectionMixin
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () =>
-                      Navigator.of(context).pushNamed(RouteNames.preferences),
+                      Navigator.of(context).pushNamed(RouteNames.notifications),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: EdgeInsets.all(10),

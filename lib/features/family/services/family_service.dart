@@ -58,27 +58,33 @@ class FamilyService {
     if (me == toUid) return SendRequestResult.selfRequest;
 
     try {
-      // Already in my accepted family list?
-      final myDoc = await _users.doc(me).get();
-      final members = (myDoc.data()?['family_members'] as List?) ?? const [];
-      final alreadyFamily = members.any(
-        (m) => m is Map && (m['uid'] ?? '').toString() == toUid,
-      );
-      if (alreadyFamily) return SendRequestResult.alreadyFamily;
-
-      // An outstanding request already pending for this pair?
-      final existing = await _requests.doc(_pairId(me, toUid)).get();
-      final existingStatus = (existing.data()?['status'] ?? '').toString();
-      if (existing.exists && existingStatus == 'pending') {
+      // A request in either direction settles the relationship: if one was
+      // accepted the two are already family (so no reverse request), and if one
+      // is still pending a request is already outstanding between them. This is
+      // what stops user B from re-adding user A after A added B.
+      final outgoing = await _requests.doc(_pairId(me, toUid)).get();
+      final incoming = await _requests.doc(_pairId(toUid, me)).get();
+      String statusOf(DocumentSnapshot<Map<String, dynamic>> d) =>
+          (d.data()?['status'] ?? '').toString();
+      final statuses = {statusOf(outgoing), statusOf(incoming)};
+      if (statuses.contains('accepted')) {
+        return SendRequestResult.alreadyFamily;
+      }
+      if (statuses.contains('pending')) {
         return SendRequestResult.alreadyRequested;
       }
 
+      final myDoc = await _users.doc(me).get();
       final myData = myDoc.data() ?? const {};
+      final myEmail = (myData['email'] ?? '').toString().trim();
+      final myName = (myData['display_name'] ?? '').toString().trim();
+      // Mirror the app-wide name convention: display name, else email handle.
+      final fromName = myName.isNotEmpty ? myName : myEmail.split('@').first;
       await _requests.doc(_pairId(me, toUid)).set({
         'from_uid': me,
-        'from_name': (myData['display_name'] ?? '').toString(),
+        'from_name': fromName,
         'from_photo': (myData['photo_url'] ?? '').toString(),
-        'from_email': (myData['email'] ?? '').toString(),
+        'from_email': myEmail,
         'to_uid': toUid,
         'to_name': toName,
         'to_photo': toPhoto ?? '',
@@ -145,6 +151,23 @@ class FamilyService {
             });
       return list;
     });
+  }
+
+  /// Forces a server round-trip for both request streams, for pull-to-refresh.
+  /// The active snapshot listeners pick up anything new; awaiting the gets keeps
+  /// the refresh indicator visible until the fetch actually completes.
+  Future<void> refreshFamilyData() async {
+    final me = currentUid;
+    if (!_firebaseReady || me == null) return;
+    const serverFirst = GetOptions(source: Source.server);
+    try {
+      await Future.wait([
+        _requests.where('to_uid', isEqualTo: me).get(serverFirst),
+        _requests.where('from_uid', isEqualTo: me).get(serverFirst),
+      ]);
+    } catch (_) {
+      // Offline or transient error: the live streams keep the last good data.
+    }
   }
 
   /// Recipient accepts a request. Flipping the status to `accepted` is all

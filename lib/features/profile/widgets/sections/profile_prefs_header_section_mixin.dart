@@ -13,22 +13,9 @@ mixin ProfilePrefsHeaderSectionMixin
       Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 6.h),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Material(
-              color: glass.isDark
-                  ? const Color(0x332EB8E6)
-                  : const Color(0x221EA8B8),
-              shape: const CircleBorder(),
-              child: IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18.sp,
-                  color: glass.textPrimary,
-                ),
-              ),
-            ),
+
             SizedBox(width: 10.w),
             Text(
               _text(

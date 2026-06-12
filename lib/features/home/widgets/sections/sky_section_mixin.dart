@@ -478,7 +478,7 @@ mixin DailySkySectionMixin
                 borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () =>
-                      Navigator.of(context).pushNamed(RouteNames.preferences),
+                      Navigator.of(context).pushNamed(RouteNames.notifications),
                   borderRadius: BorderRadius.circular(12.r),
                   child: Padding(
                     padding: EdgeInsets.all(10.r),
