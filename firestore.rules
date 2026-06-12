@@ -27,13 +27,22 @@ service cloud.firestore {
     // Directed family requests. Doc id is "fromUid_toUid"; uids never contain
     // "_", so the pair is unambiguous.
     match /family_requests/{reqId} {
-      // Both parties can read the request (requester to track status,
-      // recipient to act on it). Authorize from the doc id's uid pair rather
-      // than resource.data, so the existence check in sendRequest works even
-      // when the document does not exist yet (a null resource would otherwise
-      // deny the get with PERMISSION_DENIED).
-      allow read: if request.auth != null
-                  && request.auth.uid in reqId.split('_');
+      // Single-doc reads (e.g. the existence check in sendRequest) authorize
+      // from the doc id's uid pair, so they work even when the document does
+      // not exist yet (a null resource would otherwise deny with
+      // PERMISSION_DENIED).
+      allow get: if request.auth != null
+                 && request.auth.uid in reqId.split('_');
+
+      // Collection queries (the incoming / outgoing request streams) must
+      // authorize from resource.data: Firestore validates a list query against
+      // its potential result set, not per-document, so an id-based rule
+      // (reqId.split) can't be proven from a field filter and the whole query
+      // is rejected. The where('to_uid'==me) / where('from_uid'==me) filters
+      // statically satisfy this rule.
+      allow list: if request.auth != null
+                  && (request.auth.uid == resource.data.from_uid
+                      || request.auth.uid == resource.data.to_uid);
 
       // Only the requester may create their own outgoing, pending request,
       // and not to themselves.

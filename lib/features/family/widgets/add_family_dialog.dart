@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:first_project/features/family/models/family_relation.dart';
 import 'package:first_project/features/family/services/family_service.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
@@ -13,12 +14,14 @@ class AddFamilyDialog extends StatefulWidget {
     required this.targetUid,
     required this.targetName,
     required this.targetPhoto,
+    required this.targetEmail,
     required this.isBangla,
   });
 
   final String targetUid;
   final String targetName;
   final String? targetPhoto;
+  final String? targetEmail;
   final bool isBangla;
 
   /// Opens the dialog. Returns nothing; feedback is shown via SnackBar.
@@ -27,6 +30,7 @@ class AddFamilyDialog extends StatefulWidget {
     required String targetUid,
     required String targetName,
     String? targetPhoto,
+    String? targetEmail,
     required bool isBangla,
   }) {
     return showDialog<void>(
@@ -35,6 +39,7 @@ class AddFamilyDialog extends StatefulWidget {
         targetUid: targetUid,
         targetName: targetName,
         targetPhoto: targetPhoto,
+        targetEmail: targetEmail,
         isBangla: isBangla,
       ),
     );
@@ -46,15 +51,20 @@ class AddFamilyDialog extends StatefulWidget {
 
 class _AddFamilyDialogState extends State<AddFamilyDialog> {
   bool _submitting = false;
+  FamilyRelation? _relation;
 
   String t(String en, String bn) => widget.isBangla ? bn : en;
 
   Future<void> _submit() async {
+    final relation = _relation;
+    if (relation == null) return;
     setState(() => _submitting = true);
     final result = await FamilyService.instance.sendRequest(
       toUid: widget.targetUid,
       toName: widget.targetName,
+      relation: relation,
       toPhoto: widget.targetPhoto,
+      toEmail: widget.targetEmail,
     );
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -88,6 +98,36 @@ class _AddFamilyDialogState extends State<AddFamilyDialog> {
         break;
     }
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _relationDropdown(NoorifyGlassTheme glass) {
+    return DropdownButtonFormField<FamilyRelation>(
+      initialValue: _relation,
+      isExpanded: true,
+      dropdownColor: glass.bgBottom,
+      style: TextStyle(fontSize: 14.sp, color: glass.textPrimary),
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        hintText: t('Select relationship', 'সম্পর্ক নির্বাচন করুন'),
+        hintStyle: TextStyle(fontSize: 13.sp, color: glass.textMuted),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: glass.glassBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: glass.accent, width: 1.5),
+        ),
+      ),
+      items: [
+        for (final r in FamilyRelation.values)
+          DropdownMenuItem(value: r, child: Text(r.label(widget.isBangla))),
+      ],
+      onChanged: _submitting
+          ? null
+          : (value) => setState(() => _relation = value),
+    );
   }
 
   @override
@@ -134,6 +174,17 @@ class _AddFamilyDialogState extends State<AddFamilyDialog> {
                 color: glass.textSecondary,
               ),
             ),
+            SizedBox(height: 14.h),
+            Text(
+              t('Relationship', 'সম্পর্ক'),
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: glass.textSecondary,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            _relationDropdown(glass),
             SizedBox(height: 18.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -149,7 +200,7 @@ class _AddFamilyDialogState extends State<AddFamilyDialog> {
                 ),
                 SizedBox(width: 6.w),
                 FilledButton(
-                  onPressed: _submitting ? null : _submit,
+                  onPressed: (_submitting || _relation == null) ? null : _submit,
                   style: FilledButton.styleFrom(backgroundColor: glass.accent),
                   child: _submitting
                       ? SizedBox(

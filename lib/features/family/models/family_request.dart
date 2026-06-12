@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:first_project/features/family/models/family_relation.dart';
+
 enum FamilyRequestStatus { pending, accepted, declined, unknown }
 
 FamilyRequestStatus _statusFrom(String raw) {
@@ -27,22 +29,30 @@ class FamilyRequest {
     required this.fromUid,
     required this.fromName,
     required this.fromPhoto,
+    required this.fromEmail,
     required this.toUid,
     required this.toName,
     required this.toPhoto,
+    required this.toEmail,
     required this.status,
     required this.createdAt,
+    this.relation,
   });
 
   final String id;
   final String fromUid;
   final String fromName;
   final String? fromPhoto;
+  final String? fromEmail;
   final String toUid;
   final String toName;
   final String? toPhoto;
+  final String? toEmail;
   final FamilyRequestStatus status;
   final DateTime? createdAt;
+
+  /// Relationship the requester chose, from their point of view.
+  final FamilyRelation? relation;
 
   String get resolvedFromName =>
       fromName.trim().isEmpty ? 'Noorify user' : fromName.trim();
@@ -65,11 +75,14 @@ class FamilyRequest {
       fromUid: (map['from_uid'] ?? '').toString(),
       fromName: (map['from_name'] ?? '').toString(),
       fromPhoto: clean(map['from_photo']),
+      fromEmail: clean(map['from_email']),
       toUid: (map['to_uid'] ?? '').toString(),
       toName: (map['to_name'] ?? '').toString(),
       toPhoto: clean(map['to_photo']),
+      toEmail: clean(map['to_email']),
       status: _statusFrom((map['status'] ?? '').toString()),
       createdAt: created is Timestamp ? created.toDate() : null,
+      relation: familyRelationFromKey(map['relationship']?.toString()),
     );
   }
 }

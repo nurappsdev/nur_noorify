@@ -235,6 +235,7 @@ exports.onFamilyRequestWrite = onDocumentWritten(
         uid: after.to_uid,
         name: after.to_name || "",
         photo_url: after.to_photo || null,
+        relationship: after.relationship || null,
         // serverTimestamp() is not allowed inside an array, so use a concrete
         // timestamp for the accepted-at moment.
         since: admin.firestore.Timestamp.now(),

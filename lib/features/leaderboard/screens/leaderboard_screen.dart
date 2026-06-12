@@ -121,6 +121,7 @@ class LeaderboardScreen extends StatelessWidget {
                                   targetUid: entry.uid,
                                   targetName: entry.resolvedName,
                                   targetPhoto: entry.photoUrl,
+                                  targetEmail: entry.email,
                                   isBangla: isBangla,
                                 ),
                         );
