@@ -75,7 +75,7 @@ mixin DailyControllerStateMixin on State<DailyActivityScreen> {
     ActivityItem(title: 'Recite the Al Quran', done: 8, total: 10),
   ];
   final AmolTrackService _amolTrackService = AmolTrackService();
-  int _amolCompletedToday = 0;
+  int _amolScoreToday = 0;
   List<MosqueItem> _nearbyMosquePreview = const [];
   DateTime? _nearbyMosquePreviewUpdatedAt;
   bool _announcementModalChecked = false;

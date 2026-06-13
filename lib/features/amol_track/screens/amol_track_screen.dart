@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'package:first_project/features/amol_track/models/amol_track_models.dart';
 import 'package:first_project/features/amol_track/providers/amol_track_provider.dart';
+import 'package:first_project/features/amol_track/widgets/amol_trend_view.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 
 /// "Today Amol Track" — a daily deeds tracker. The user can mark fardh prayers
@@ -37,8 +38,14 @@ class _AmolTrackView extends StatefulWidget {
   State<_AmolTrackView> createState() => _AmolTrackViewState();
 }
 
+/// The visible range on the tracker: the editable day, or a read-only weekly /
+/// monthly score trend.
+enum _AmolRange { today, week, month }
+
 class _AmolTrackViewState extends State<_AmolTrackView> {
   AmolTrackProvider get _amol => context.read<AmolTrackProvider>();
+
+  _AmolRange _range = _AmolRange.today;
 
   DateTime get _selectedDate => _amol.selectedDate;
   Set<String> get _completed => _amol.completed;
@@ -262,16 +269,21 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                             padding:
                                 EdgeInsets.fromLTRB(14.w, 6.h, 14.w, 20.h),
                             children: [
-                              _buildDateStrip(),
+                              _buildRangeTabs(),
                               SizedBox(height: 12.h),
-                              _buildWeekStrip(),
-                              SizedBox(height: 12.h),
-                              _buildOverallCard(),
-                              SizedBox(height: 14.h),
-                              for (final section in kAmolSections) ...[
-                                _buildSection(section),
+                              if (_range == _AmolRange.today) ...[
+                                _buildDateStrip(),
                                 SizedBox(height: 12.h),
-                              ],
+                                _buildWeekStrip(),
+                                SizedBox(height: 12.h),
+                                _buildOverallCard(),
+                                SizedBox(height: 14.h),
+                                for (final section in kAmolSections) ...[
+                                  _buildSection(section),
+                                  SizedBox(height: 12.h),
+                                ],
+                              ] else
+                                _buildTrend(),
                             ],
                           ),
                         ),
@@ -349,8 +361,8 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
 
   Widget _buildDayCell(DateTime day) {
     final selected = _isSameDay(day, _selectedDate);
-    final done = _amol.completedCountFor(day);
-    final progress = kAmolTotalCount == 0 ? 0.0 : done / kAmolTotalCount;
+    final done = _amol.scoreFor(day);
+    final progress = kAmolMaxScore == 0 ? 0.0 : done / kAmolMaxScore;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -420,8 +432,8 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
   }
 
   Widget _buildOverallCard() {
-    final done = _completed.length;
-    final total = kAmolTotalCount;
+    final done = _amol.selectedScore;
+    final total = kAmolMaxScore;
     final progress = total == 0 ? 0.0 : done / total;
     final percent = (progress * 100).round();
 
@@ -513,9 +525,10 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
 
   Widget _buildSection(AmolSection section) {
     final expanded = _expanded.contains(section.id);
-    final ids = section.items.map((e) => e.id).toSet();
-    final done = ids.where(_completed.contains).length;
-    final total = section.items.length;
+    final done = section.items
+        .where((item) => _completed.contains(item.id))
+        .fold(0, (sum, item) => sum + item.weight);
+    final total = section.maxScore;
     final progress = total == 0 ? 0.0 : done / total;
 
     return _card(
@@ -633,6 +646,8 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                   ),
                 ),
               ),
+              _pointsChip(item.weight, done),
+              SizedBox(width: 10.w),
               if (locked)
                 Icon(
                   Icons.lock_outline_rounded,
@@ -662,6 +677,128 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
         ),
       ),
     );
+  }
+
+  /// A small pill showing how many points the deed is worth; tinted green once
+  /// the deed is done.
+  Widget _pointsChip(int weight, bool done) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: (done ? _done : _accent).withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Text(
+        _t('+$weight', '+${_digits(weight.toString())}'),
+        style: TextStyle(
+          color: done ? _done : _accent,
+          fontSize: 10.sp,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  // ----- range tabs & trend -------------------------------------------------
+
+  Widget _buildRangeTabs() {
+    const ranges = [
+      (_AmolRange.today, 'Today', 'আজ'),
+      (_AmolRange.week, 'Week', 'সপ্তাহ'),
+      (_AmolRange.month, 'Month', 'মাস'),
+    ];
+    return _card(
+      padding: EdgeInsets.all(4.r),
+      child: Row(
+        children: [
+          for (final range in ranges)
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => setState(() => _range = range.$1),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: EdgeInsets.symmetric(vertical: 9.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    color: _range == range.$1 ? _accent : Colors.transparent,
+                  ),
+                  child: Text(
+                    _t(range.$2, range.$3),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: _range == range.$1
+                          ? (_isDark ? const Color(0xFF06231F) : Colors.white)
+                          : _textSecondary,
+                      fontSize: 12.5.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the bar list and average for the active (week or month) range, then
+  /// hands it to [AmolTrendView].
+  Widget _buildTrend() {
+    final isMonth = _range == _AmolRange.month;
+    final days = isMonth ? _monthDays(_selectedDate) : _weekDays(_selectedDate);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final bars = <AmolTrendBar>[];
+    var sumPercent = 0;
+    var trackedDays = 0;
+    for (final day in days) {
+      final future = DateTime(day.year, day.month, day.day).isAfter(today);
+      final score = future ? 0 : _amol.scoreFor(day);
+      final bar = AmolTrendBar(
+        label: isMonth ? day.day.toString() : _weekdayShort(day),
+        score: score,
+        maxScore: kAmolMaxScore,
+        isToday: _isSameDay(day, today),
+        isFuture: future,
+      );
+      bars.add(bar);
+      if (!future) {
+        sumPercent += bar.percent;
+        trackedDays++;
+      }
+    }
+    final average = trackedDays == 0 ? 0 : (sumPercent / trackedDays).round();
+
+    final month = _isBangla
+        ? _monthBn[_selectedDate.month - 1]
+        : _monthEn[_selectedDate.month - 1];
+    return AmolTrendView(
+      title: isMonth
+          ? _t('$month Trend', '$month ট্রেন্ড')
+          : _t('This Week', 'এই সপ্তাহ'),
+      bars: bars,
+      averagePercent: average,
+      trackedDays: trackedDays,
+      isBangla: _isBangla,
+      isDark: _isDark,
+    );
+  }
+
+  /// The Sun..Sat week containing [date].
+  List<DateTime> _weekDays(DateTime date) {
+    final start = date.subtract(Duration(days: _weekdayIndex(date)));
+    return List.generate(
+      7,
+      (i) => DateTime(start.year, start.month, start.day + i),
+    );
+  }
+
+  /// Every calendar day in the month of [date].
+  List<DateTime> _monthDays(DateTime date) {
+    final count = DateTime(date.year, date.month + 1, 0).day;
+    return List.generate(count, (i) => DateTime(date.year, date.month, i + 1));
   }
 
   // ----- shared card --------------------------------------------------------

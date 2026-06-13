@@ -253,8 +253,8 @@ mixin DailyQuickActionsSectionMixin
   /// A compact card that opens the "Today Amol Track" daily deeds tracker and
   /// shows today's completion percentage.
   Widget _buildAmolTrackCard() {
-    final total = kAmolTotalCount;
-    final done = _amolCompletedToday.clamp(0, total);
+    final total = kAmolMaxScore;
+    final done = _amolScoreToday.clamp(0, total);
     final progress = total == 0 ? 0.0 : done / total;
     final percent = (progress * 100).round();
 

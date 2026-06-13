@@ -111,7 +111,7 @@ mixin DailyControllerLoadersMixin on State<DailyActivityScreen>, DailyController
     });
   }
 
-  /// Loads today's tracked-deed count from local storage so the home card
+  /// Loads today's tracked amal score from local storage so the home card
   /// reflects progress made on the Amol tracker. Safe to call repeatedly.
   Future<void> _loadAmolProgress() async {
     await _amolTrackService.load();
@@ -123,9 +123,9 @@ mixin DailyControllerLoadersMixin on State<DailyActivityScreen>, DailyController
   /// [AmolTrackService.revision] notifier.
   void _onAmolProgressChanged() {
     if (!mounted) return;
-    final count = _amolTrackService.completedCountFor(DateTime.now());
-    if (count == _amolCompletedToday) return;
-    setState(() => _amolCompletedToday = count);
+    final score = _amolTrackService.scoreFor(DateTime.now());
+    if (score == _amolScoreToday) return;
+    setState(() => _amolScoreToday = score);
   }
 
 }
