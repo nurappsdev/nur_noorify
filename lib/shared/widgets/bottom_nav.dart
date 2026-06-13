@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
 import 'package:first_project/core/constants/route_names.dart';
+import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 
 Widget bottomNav(
@@ -17,6 +18,9 @@ Widget bottomNav(
       ? const Color(0xFFACC0CC)
       : const Color(0xFF728A98);
 
+  final user = AuthService.instance.currentUser;
+  final isGuest = user == null;
+
   final items = <({String label, IconData icon, String routeName})>[
     (
       label: t('Home', '\u09b9\u09cb\u09ae'),
@@ -24,9 +28,9 @@ Widget bottomNav(
       routeName: RouteNames.activity,
     ),
     (
-      label: t('Discover', '\u09a1\u09bf\u09b8\u0995\u09ad\u09be\u09b0'),
-      icon: Icons.explore_outlined,
-      routeName: RouteNames.discover,
+      label: t('Elm Noor', '\u0987\u09b2\u09ae \u09a8\u09c2\u09b0'),
+      icon: Icons.quiz_outlined,
+      routeName: RouteNames.elmNoor,
     ),
     if (kQuranFeatureEnabled)
       (
@@ -35,10 +39,16 @@ Widget bottomNav(
         routeName: RouteNames.quran,
       ),
     (
-      label: t('Prayer', '\u09a8\u09be\u09ae\u09be\u099c'),
-      icon: Icons.calendar_month_outlined,
+      label: t('Dua Jikir', '\u09a6\u09cb\u09df\u09be \u099c\u09bf\u0995\u09bf\u09b0'),
+      icon: Icons.self_improvement_outlined,
       routeName: RouteNames.prayerTimes,
     ),
+    if (!isGuest)
+      (
+        label: t('Chat', '\u099a\u09cd\u09af\u09be\u099f'),
+        icon: Icons.chat_bubble_outline,
+        routeName: RouteNames.chat,
+      ),
     (
       label: t('Profile', '\u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2'),
       icon: Icons.person_outline,
@@ -46,9 +56,10 @@ Widget bottomNav(
     ),
   ];
 
-  final normalizedActive = !kQuranFeatureEnabled && active > 2
-      ? active - 1
-      : (kQuranFeatureEnabled ? active : active.clamp(0, items.length - 1));
+  // `active` already arrives as an index into the current `items` list
+  // (app_routes and HomeShell compute it from kQuranFeatureEnabled), so we only
+  // clamp it defensively rather than re-shifting it here.
+  final normalizedActive = active.clamp(0, items.length - 1);
 
   void onTapItem(int index) {
     if (index == normalizedActive) return;

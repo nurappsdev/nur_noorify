@@ -2,26 +2,37 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import 'package:first_project/features/profile/providers/edit_profile_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends StatelessWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<EditProfileProvider>(
+      create: (_) => EditProfileProvider(),
+      child: const _EditProfileView(),
+    );
+  }
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileView extends StatefulWidget {
+  const _EditProfileView();
+
+  @override
+  State<_EditProfileView> createState() => _EditProfileViewState();
+}
+
+class _EditProfileViewState extends State<_EditProfileView> {
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _nameController;
   late final TextEditingController _locationController;
-
-  String? _photoBase64;
-  String? _photoUrl;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -30,9 +41,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _locationController = TextEditingController(
       text: profileLocationNotifier.value,
     );
-    _photoBase64 = profilePhotoBase64Notifier.value;
-    final remoteUrl = (profilePhotoUrlNotifier.value ?? '').trim();
-    _photoUrl = remoteUrl.isEmpty ? null : remoteUrl;
   }
 
   @override
@@ -66,15 +74,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ? const Color(0x3F122634)
           : const Color(0xECFFFFFF),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: glass.accent.withValues(alpha: 0.75),
           width: 1.4,
@@ -94,14 +102,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final bytes = await picked.readAsBytes();
     if (!mounted) return;
-    setState(() => _photoBase64 = base64Encode(bytes));
+    context.read<EditProfileProvider>().setPhoto(base64Encode(bytes));
   }
 
   void _removePhoto() {
-    setState(() {
-      _photoBase64 = null;
-      _photoUrl = null;
-    });
+    context.read<EditProfileProvider>().removePhoto();
   }
 
   Future<void> _saveChanges() async {
@@ -121,22 +126,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    setState(() => _isSaving = true);
-    profileNameNotifier.value = name;
-    profileLocationNotifier.value = location;
-    profilePhotoBase64Notifier.value = _photoBase64;
-    profilePhotoUrlNotifier.value = _photoUrl;
-    await saveAppPreferences();
+    await context.read<EditProfileProvider>().save(
+      name: name,
+      location: location,
+    );
     if (!mounted) return;
-    setState(() => _isSaving = false);
     Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<EditProfileProvider>();
     final glass = NoorifyGlassTheme(context);
-    final photoBytes = _decodePhoto(_photoBase64);
-    final hasPhotoUrl = (_photoUrl ?? '').trim().isNotEmpty;
+    final photoBytes = _decodePhoto(provider.photoBase64);
+    final hasPhotoUrl = (provider.photoUrl ?? '').trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: glass.bgBottom,
@@ -145,7 +148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 8.h),
                 child: Row(
                   children: [
                     Material(
@@ -158,16 +161,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onPressed: () => Navigator.of(context).maybePop(),
                         icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          size: 18,
+                          size: 18.sp,
                           color: glass.textPrimary,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10.w),
                     Text(
                       'Edit Profile',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 22.sp,
                         fontWeight: FontWeight.w700,
                         color: glass.textPrimary,
                       ),
@@ -177,45 +180,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 16),
+                  padding: EdgeInsets.fromLTRB(14.w, 6.h, 14.w, 16.h),
                   child: NoorifyGlassCard(
-                    radius: BorderRadius.circular(18),
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                    radius: BorderRadius.circular(18.r),
+                    padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 14.h),
                     child: Column(
                       children: [
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
                             CircleAvatar(
-                              radius: 50,
+                              radius: 50.r,
                               backgroundColor: glass.isDark
                                   ? const Color(0xFF2A3A4A)
                                   : const Color(0xFFD9DEE3),
                               backgroundImage: photoBytes == null
                                   ? (hasPhotoUrl
-                                        ? NetworkImage(_photoUrl!.trim())
+                                        ? NetworkImage(provider.photoUrl!.trim())
                                         : null)
                                   : MemoryImage(photoBytes),
                               child: photoBytes == null && !hasPhotoUrl
                                   ? Icon(
                                       Icons.person,
-                                      size: 46,
+                                      size: 46.sp,
                                       color: glass.textSecondary,
                                     )
                                   : null,
                             ),
                             InkWell(
                               onTap: _pickPhoto,
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(24.r),
                               child: Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(6.r),
                                 decoration: BoxDecoration(
                                   color: glass.accent,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.camera_alt,
-                                  size: 16,
+                                  size: 16.sp,
                                   color: glass.isDark
                                       ? const Color(0xFF072734)
                                       : Colors.white,
@@ -224,15 +227,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         Wrap(
-                          spacing: 8,
+                          spacing: 8.w,
                           children: [
                             OutlinedButton.icon(
                               onPressed: _pickPhoto,
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.photo_library_outlined,
-                                size: 18,
+                                size: 18.sp,
                               ),
                               label: const Text('Choose Photo'),
                               style: OutlinedButton.styleFrom(
@@ -242,7 +245,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             OutlinedButton.icon(
                               onPressed: _removePhoto,
-                              icon: const Icon(Icons.delete_outline, size: 18),
+                              icon: Icon(Icons.delete_outline, size: 18.sp),
                               label: const Text('Remove'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: glass.textPrimary,
@@ -251,7 +254,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 18),
+                        SizedBox(height: 18.h),
                         TextField(
                           controller: _nameController,
                           textInputAction: TextInputAction.next,
@@ -262,7 +265,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             hint: 'Enter your name',
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        SizedBox(height: 14.h),
                         TextField(
                           controller: _locationController,
                           textInputAction: TextInputAction.done,
@@ -273,20 +276,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             hint: 'Example: Sylhet, Bangladesh',
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         FilledButton(
                           style: FilledButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 44),
+                            minimumSize: Size(double.infinity, 44.h),
                             backgroundColor: glass.accent,
                             foregroundColor: glass.isDark
                                 ? const Color(0xFF072734)
                                 : Colors.white,
                           ),
-                          onPressed: _isSaving ? null : _saveChanges,
-                          child: _isSaving
+                          onPressed: provider.isSaving ? null : _saveChanges,
+                          child: provider.isSaving
                               ? SizedBox(
-                                  width: 20,
-                                  height: 20,
+                                  width: 20.w,
+                                  height: 20.h,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     color: glass.isDark

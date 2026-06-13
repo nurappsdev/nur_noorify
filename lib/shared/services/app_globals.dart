@@ -10,6 +10,10 @@ import 'package:timezone/timezone.dart' as tz;
 
 final FlutterLocalNotificationsPlugin localNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
+
+/// App-wide navigator key, so services (e.g. push handlers) can navigate
+/// without a BuildContext.
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 bool localNotificationsInitialized = false;
 bool locationPermissionRequestInProgress = false;
 const int sehriNotificationId = 1001;
@@ -21,7 +25,9 @@ const int maghribNotificationId = 2004;
 const int ishaNotificationId = 2005;
 const int tahajjudNotificationId = 2006;
 // Toggle to hide/show Quran module from app navigation without deleting code.
-const bool kQuranFeatureEnabled = true;
+// Kept false to keep the Quran tab hidden from the bottom bar; the Quran code
+// remains in place behind this flag and can be re-enabled by flipping to true.
+const bool kQuranFeatureEnabled = false;
 
 enum AppLanguage { english, bangla }
 
@@ -87,6 +93,11 @@ final ValueNotifier<bool> hapticFeedbackEnabledNotifier = ValueNotifier<bool>(
   true,
 );
 final ValueNotifier<bool> skipAuthGateNotifier = ValueNotifier<bool>(false);
+// Tracks whether the first-launch onboarding (Hadith, language, location) has
+// been completed or skipped, so it only shows once.
+final ValueNotifier<bool> onboardingCompletedNotifier = ValueNotifier<bool>(
+  false,
+);
 final ValueNotifier<String> translatorNotifier = ValueNotifier<String>(
   'Dr. Mustafa Khattab',
 );
@@ -331,6 +342,11 @@ Future<void> loadAppPreferences() async {
       skipAuthGateNotifier.value = skipAuthGate;
     }
 
+    final onboardingCompleted = json['onboardingCompleted'];
+    if (onboardingCompleted is bool) {
+      onboardingCompletedNotifier.value = onboardingCompleted;
+    }
+
     final translator = (json['translator'] ?? '').toString().trim();
     if (translator.isNotEmpty) {
       translatorNotifier.value = translator;
@@ -407,6 +423,7 @@ Future<void> saveAppPreferences() async {
     'showTajweed': showTajweedNotifier.value,
     'hapticFeedback': hapticFeedbackEnabledNotifier.value,
     'skipAuthGate': skipAuthGateNotifier.value,
+    'onboardingCompleted': onboardingCompletedNotifier.value,
     'translator': translatorNotifier.value,
     'reciter': reciterNotifier.value,
     'adzanVoice': adzanVoiceNotifier.value,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:first_project/firebase_options.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
   Widget _buildMaterialApp(AppFontSize fontSize, bool darkThemeEnabled) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: appNavigatorKey,
       title: 'Noorify',
       theme: ThemeData(
         useMaterial3: true,
@@ -69,13 +71,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<AppFontSize>(
-      valueListenable: appFontSizeNotifier,
-      builder: (context, fontSize, child) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: darkThemeEnabledNotifier,
-          builder: (context, isDark, child) {
-            return _buildMaterialApp(fontSize, isDark);
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // Adjust this to your design size
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return ValueListenableBuilder<AppFontSize>(
+          valueListenable: appFontSizeNotifier,
+          builder: (context, fontSize, child) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: darkThemeEnabledNotifier,
+              builder: (context, isDark, child) {
+                return _buildMaterialApp(fontSize, isDark);
+              },
+            );
           },
         );
       },

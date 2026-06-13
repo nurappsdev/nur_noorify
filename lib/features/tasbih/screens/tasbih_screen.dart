@@ -1,297 +1,55 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import 'package:first_project/core/theme/brand_colors.dart';
-import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/features/tasbih/models/tasbih_models.dart';
-import 'package:first_project/features/tasbih/services/tasbih_service.dart';
+import 'package:first_project/features/tasbih/providers/tasbih_provider.dart';
 
-class TasbihScreen extends StatefulWidget {
+class TasbihScreen extends StatelessWidget {
   const TasbihScreen({super.key});
 
   @override
-  State<TasbihScreen> createState() => _TasbihScreenState();
-}
-
-class _TasbihCopy {
-  const _TasbihCopy({
-    required this.arabic,
-    required this.transliteration,
-    required this.meaning,
-  });
-
-  final String arabic;
-  final String transliteration;
-  final String meaning;
-}
-
-class _TasbihScreenState extends State<TasbihScreen> {
-  static const List<TasbihPreset> _presets = <TasbihPreset>[
-    TasbihPreset(id: 'subhanallah', label: 'Subhanallah', target: 33),
-    TasbihPreset(id: 'alhamdulillah', label: 'Alhamdulillah', target: 33),
-    TasbihPreset(id: 'allahuakbar', label: 'Allahu Akbar', target: 34),
-    TasbihPreset(
-      id: 'lailahaillallah',
-      label: 'La ilaha illallah',
-      target: 100,
-    ),
-    TasbihPreset(id: 'astaghfirullah', label: 'Astaghfirullah', target: 100),
-  ];
-
-  static const Map<String, _TasbihCopy> _copyMap = <String, _TasbihCopy>{
-    'subhanallah': _TasbihCopy(
-      arabic: '\u0633\u0628\u062d\u0627\u0646 \u0627\u0644\u0644\u0647',
-      transliteration: 'Subhanallah',
-      meaning: 'Glory be to Allah',
-    ),
-    'alhamdulillah': _TasbihCopy(
-      arabic: '\u0627\u0644\u062d\u0645\u062f \u0644\u0644\u0647',
-      transliteration: 'Alhamdulillah',
-      meaning: 'All praise is for Allah',
-    ),
-    'allahuakbar': _TasbihCopy(
-      arabic: '\u0627\u0644\u0644\u0647 \u0623\u0643\u0628\u0631',
-      transliteration: 'Allahu Akbar',
-      meaning: 'Allah is the Greatest',
-    ),
-    'lailahaillallah': _TasbihCopy(
-      arabic:
-          '\u0644\u0627 \u0625\u0644\u0647 \u0625\u0644\u0627 \u0627\u0644\u0644\u0647',
-      transliteration: 'La ilaha illallah',
-      meaning: 'There is no god except Allah',
-    ),
-    'astaghfirullah': _TasbihCopy(
-      arabic: '\u0623\u0633\u062a\u063a\u0641\u0631 \u0627\u0644\u0644\u0647',
-      transliteration: 'Astaghfirullah',
-      meaning: 'I seek forgiveness from Allah',
-    ),
-  };
-
-  final TasbihService _service = TasbihService();
-  Timer? _ticker;
-  Timer? _targetEffectTimer;
-
-  TasbihCounterState _state = TasbihCounterState.initial();
-  List<TasbihHistoryEntry> _history = const <TasbihHistoryEntry>[];
-  DateTime? _sessionStartedAt;
-  int _reminderStep = 0;
-  String? _uiAlert;
-  bool _loading = true;
-  bool _targetReachedEffect = false;
-
-  TasbihPreset get _selectedPreset => _presets.firstWhere(
-    (preset) => preset.id == _state.regularPresetId,
-    orElse: () => _presets.first,
-  );
-
-  _TasbihCopy get _selectedCopy =>
-      _copyMap[_selectedPreset.id] ?? _copyMap.values.first;
-
-  int get _count => _state.regularCount;
-
-  int get _target => _state.regularTarget;
-
-  int get _todayTotal {
-    final now = DateTime.now();
-    final day = DateTime(now.year, now.month, now.day);
-    return _history
-        .where((entry) {
-          final d = entry.finishedAt;
-          return DateTime(d.year, d.month, d.day) == day;
-        })
-        .fold<int>(0, (sum, entry) => sum + entry.count);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    hapticFeedbackEnabledNotifier.addListener(_onGlobalHapticChanged);
-    _load();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
-  }
-
-  @override
-  void dispose() {
-    hapticFeedbackEnabledNotifier.removeListener(_onGlobalHapticChanged);
-    _ticker?.cancel();
-    _targetEffectTimer?.cancel();
-    super.dispose();
-  }
-
-  void _onGlobalHapticChanged() {
-    if (_loading) return;
-    final enabled = hapticFeedbackEnabledNotifier.value;
-    if (_state.hapticEnabled == enabled) return;
-
-    final next = _state.copyWith(hapticEnabled: enabled);
-    if (mounted) {
-      setState(() => _state = next);
-    }
-    unawaited(_save(next));
-  }
-
-  Future<void> _load() async {
-    var state = await _service.readState();
-    final history = await _service.readHistory();
-
-    if (state.mode != TasbihMode.regular) {
-      state = state.copyWith(
-        mode: TasbihMode.regular,
-        regularCount: state.currentCount,
-      );
-      await _save(state);
-    }
-
-    if (!_presets.any((preset) => preset.id == state.regularPresetId)) {
-      state = state.copyWith(
-        regularPresetId: _presets.first.id,
-        regularTarget: _presets.first.target,
-      );
-      await _save(state);
-    }
-
-    if (state.hapticEnabled != hapticFeedbackEnabledNotifier.value) {
-      state = state.copyWith(
-        hapticEnabled: hapticFeedbackEnabledNotifier.value,
-      );
-      await _save(state);
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _state = state;
-      _history = history;
-      _loading = false;
-    });
-  }
-
-  Future<void> _save([TasbihCounterState? next]) async {
-    await _service.saveState(next ?? _state);
-  }
-
-  Future<void> _setPreset(TasbihPreset preset) async {
-    if (_state.regularPresetId == preset.id) return;
-
-    await _finish(addHistory: _count > 0);
-
-    final next = _state.copyWith(
-      mode: TasbihMode.regular,
-      regularPresetId: preset.id,
-      regularTarget: preset.target,
-      regularCount: 0,
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<TasbihProvider>(
+      create: (_) => TasbihProvider(),
+      child: const _TasbihView(),
     );
-
-    setState(() {
-      _state = next;
-      _targetReachedEffect = false;
-    });
-    await _save(next);
   }
+}
+
+class _TasbihView extends StatefulWidget {
+  const _TasbihView();
+
+  @override
+  State<_TasbihView> createState() => _TasbihViewState();
+}
+
+class _TasbihViewState extends State<_TasbihView> {
+  TasbihProvider get _tasbih => context.read<TasbihProvider>();
+
+  TasbihCounterState get _state => _tasbih.state;
+  String? get _uiAlert => _tasbih.uiAlert;
+  bool get _loading => _tasbih.loading;
+  bool get _targetReachedEffect => _tasbih.targetReachedEffect;
+  TasbihPreset get _selectedPreset => _tasbih.selectedPreset;
+  TasbihCopy get _selectedCopy => _tasbih.selectedCopy;
+  int get _count => _tasbih.count;
+  int get _target => _tasbih.target;
+  int get _todayTotal => _tasbih.todayTotal;
+
+  void _setPreset(TasbihPreset preset) => _tasbih.setPreset(preset);
+
+  void _resetCount() => _tasbih.resetCount();
 
   Future<void> _increment() async {
-    if (_state.hapticEnabled) {
-      await HapticFeedback.selectionClick();
-    }
-
-    _sessionStartedAt ??= DateTime.now();
-    _uiAlert = null;
-
-    final next = _state.copyWith(regularCount: _state.regularCount + 1);
-    final reachedTarget = _count < _target && next.regularCount >= _target;
-
-    setState(() => _state = next);
-    await _save(next);
-
-    if (!mounted) return;
-    if (reachedTarget) {
-      await _triggerTargetReachedFeedback();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Target reached: ${_selectedPreset.label}')),
-      );
-    }
-  }
-
-  Future<void> _triggerTargetReachedFeedback() async {
-    _targetEffectTimer?.cancel();
-    if (mounted) {
-      setState(() => _targetReachedEffect = true);
-    }
-
-    if (_state.hapticEnabled) {
-      await HapticFeedback.heavyImpact();
-      await Future<void>.delayed(const Duration(milliseconds: 90));
-      await HapticFeedback.vibrate();
-    }
-
-    _targetEffectTimer = Timer(const Duration(milliseconds: 1400), () {
-      if (!mounted) return;
-      setState(() => _targetReachedEffect = false);
-    });
-  }
-
-  Future<void> _resetCount() async {
-    await _finish(addHistory: _count > 0);
-  }
-
-  Future<void> _finish({required bool addHistory}) async {
-    final beforeCount = _count;
-    final beforeTarget = _target;
-    final startedAt = _sessionStartedAt;
-    final endedAt = DateTime.now();
-    final seconds = startedAt == null
-        ? 0
-        : endedAt.difference(startedAt).inSeconds;
-
-    final next = _state.copyWith(mode: TasbihMode.regular, regularCount: 0);
-
-    setState(() {
-      _state = next;
-      _sessionStartedAt = null;
-      _reminderStep = 0;
-      _uiAlert = null;
-      _targetReachedEffect = false;
-    });
-    await _save(next);
-
-    if (!addHistory || beforeCount <= 0) return;
-
-    await _service.appendHistory(
-      TasbihHistoryEntry(
-        finishedAtMillis: endedAt.millisecondsSinceEpoch,
-        mode: TasbihMode.regular,
-        label: _selectedPreset.label,
-        count: beforeCount,
-        target: beforeTarget,
-        durationSeconds: seconds,
+    final reached = await _tasbih.increment();
+    if (!mounted || !reached) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Target reached: ${_tasbih.selectedPreset.label}'),
       ),
     );
-
-    final history = await _service.readHistory();
-    if (!mounted) return;
-    setState(() => _history = history);
-  }
-
-  void _tick() {
-    if (!mounted || _sessionStartedAt == null) return;
-
-    final reminder = _state.reminderMinutes;
-    if (reminder <= 0) return;
-
-    final elapsed = DateTime.now().difference(_sessionStartedAt!);
-    final step = elapsed.inSeconds ~/ (reminder * 60);
-    if (step <= 0 || step <= _reminderStep) return;
-
-    _reminderStep = step;
-    if (_state.hapticEnabled) {
-      HapticFeedback.mediumImpact();
-    }
-
-    setState(() {
-      _uiAlert = 'Reminder: you are counting for ${elapsed.inMinutes} min';
-    });
   }
 
   Future<void> _openSettings() async {
@@ -308,7 +66,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 20.h),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -317,7 +75,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Daily Goal'),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   DropdownButtonFormField<int>(
                     initialValue: reminder,
                     decoration: const InputDecoration(labelText: 'Reminder'),
@@ -352,17 +110,11 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               int.tryParse(goalController.text.trim()) ??
                               _state.dailyGoal;
 
-                          final next = _state.copyWith(
-                            dailyGoal: goal.clamp(10, 10000),
+                          await _tasbih.updateSettings(
+                            goal: goal,
                             reminderMinutes: reminder,
                             hapticEnabled: haptic,
-                            mode: TasbihMode.regular,
                           );
-
-                          setState(() => _state = next);
-                          await _save(next);
-                          hapticFeedbackEnabledNotifier.value = haptic;
-                          await saveAppPreferences();
                           if (!sheetContext.mounted) return;
                           Navigator.of(sheetContext).pop();
                         },
@@ -381,6 +133,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<TasbihProvider>();
     final progress = _target <= 0 ? 0.0 : (_count / _target).clamp(0.0, 1.0);
     final overallGoalProgress = _state.dailyGoal <= 0
         ? 0.0
@@ -457,7 +210,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                         icon: Icon(
                                           Icons.arrow_back_rounded,
                                           color: Colors.white,
-                                          size: 22 * scale,
+                                          size: 22.sp * scale,
                                         ),
                                       ),
                                     ),
@@ -479,7 +232,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                         icon: Icon(
                                           Icons.settings_outlined,
                                           color: Colors.white,
-                                          size: 21 * scale,
+                                          size: 21.sp * scale,
                                         ),
                                       ),
                                     ),
@@ -493,7 +246,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 style: TextStyle(
                                   color: BrandColors.primaryLight,
                                   letterSpacing: 0.9,
-                                  fontSize: 10.5 * scale,
+                                  fontSize: 10.5.sp * scale,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -515,7 +268,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: const Color(0xFFB9CAE1),
-                                    fontSize: 13 * scale,
+                                    fontSize: 13.sp * scale,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -525,7 +278,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 alignment: WrapAlignment.center,
                                 spacing: 6 * scale,
                                 runSpacing: 6 * scale,
-                                children: _presets
+                                children: TasbihProvider.presets
                                     .map(
                                       (preset) => ChoiceChip(
                                         showCheckmark: false,
@@ -533,8 +286,8 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             MaterialTapTargetSize.shrinkWrap,
                                         visualDensity: VisualDensity.compact,
                                         padding: EdgeInsets.symmetric(
-                                          horizontal: 8 * scale,
-                                          vertical: 7 * scale,
+                                          horizontal: 8.w * scale,
+                                          vertical: 7.h * scale,
                                         ),
                                         label: Text(
                                           preset.label,
@@ -565,8 +318,8 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               Container(
                                 width: double.infinity,
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 14 * scale,
-                                  vertical: 12 * scale,
+                                  horizontal: 14.w * scale,
+                                  vertical: 12.h * scale,
                                 ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF1E3556),
@@ -607,7 +360,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: const Color(0xFFBDD0E8),
-                                        fontSize: 14 * scale,
+                                        fontSize: 14.sp * scale,
                                       ),
                                     ),
                                   ],
@@ -620,14 +373,14 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 child: IgnorePointer(
                                   ignoring: !successOn,
                                   child: Container(
-                                    margin: EdgeInsets.only(bottom: 6 * scale),
+                                    margin: EdgeInsets.only(bottom: 6.h * scale),
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: 12 * scale,
-                                      vertical: 6 * scale,
+                                      horizontal: 12.w * scale,
+                                      vertical: 6.h * scale,
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0x1A7ED9EE),
-                                      borderRadius: BorderRadius.circular(999),
+                                      borderRadius: BorderRadius.circular(999.r),
                                       border: Border.all(
                                         color: const Color(0x667ED9EE),
                                       ),
@@ -637,7 +390,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: BrandColors.primaryLight,
-                                        fontSize: 12 * scale,
+                                        fontSize: 12.sp * scale,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -659,7 +412,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0xFFB6C9E2),
-                                  fontSize: 18 * scale,
+                                  fontSize: 18.sp * scale,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -684,7 +437,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                       '${(progress * 100).round()}%',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 14 * scale,
+                                        fontSize: 14.sp * scale,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -709,7 +462,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             ? const Color(0xFF27B5D0)
                                             : const Color(0xFF188DA8),
                                       ],
-                                      radius: 0.86,
+                                      radius: 0.86.r,
                                     ),
                                     boxShadow: <BoxShadow>[
                                       BoxShadow(
@@ -735,14 +488,14 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                             ? Icons.check_circle_rounded
                                             : Icons.touch_app_rounded,
                                         color: Colors.white,
-                                        size: 35 * scale,
+                                        size: 35.sp * scale,
                                       ),
                                       SizedBox(height: 2 * scale),
                                       Text(
                                         successOn ? 'DONE' : 'TAP',
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 21 * scale,
+                                          fontSize: 21.sp * scale,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0.7,
                                         ),
@@ -767,13 +520,13 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                           ),
                                           foregroundColor: Colors.white,
                                           textStyle: TextStyle(
-                                            fontSize: 13 * scale,
+                                            fontSize: 13.sp * scale,
                                           ),
                                           padding: EdgeInsets.zero,
                                         ),
                                         icon: Icon(
                                           Icons.restart_alt_rounded,
-                                          size: 16 * scale,
+                                          size: 16.sp * scale,
                                         ),
                                         label: const Text('Reset'),
                                       ),
@@ -797,7 +550,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                           'Total: $_todayTotal',
                                           style: TextStyle(
                                             color: BrandColors.primaryLight,
-                                            fontSize: 14 * scale,
+                                            fontSize: 14.sp * scale,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -808,7 +561,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               ),
                               SizedBox(height: 8 * scale),
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(99),
+                                borderRadius: BorderRadius.circular(99.r),
                                 child: SizedBox(
                                   height: 8 * scale,
                                   child: LinearProgressIndicator(
@@ -827,7 +580,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0xFFC2D3E8),
-                                  fontSize: 12.5 * scale,
+                                  fontSize: 12.5.sp * scale,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -838,7 +591,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: BrandColors.primaryLight,
-                                    fontSize: 12 * scale,
+                                    fontSize: 12.sp * scale,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -849,7 +602,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0x99D9E8FF),
-                                  fontSize: 14 * scale,
+                                  fontSize: 14.sp * scale,
                                 ),
                               ),
                             ],

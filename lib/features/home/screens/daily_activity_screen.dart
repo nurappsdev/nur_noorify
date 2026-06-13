@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:ponjika/ponjika.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -21,16 +23,52 @@ import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
 import 'package:first_project/features/announcements/models/announcement_item.dart';
+import 'package:first_project/features/calendar_waqt/screens/calendar_waqt_screen.dart';
+import 'package:first_project/features/age_calculator/screens/boyos_zacai_screen.dart';
+import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
+import 'package:first_project/features/prayer_time/screens/prayer_times_screen.dart';
+import 'package:first_project/features/discover/screens/discover_screen.dart';
+import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
+import 'package:first_project/features/amol_track/models/amol_track_models.dart';
+import 'package:first_project/features/amol_track/services/amol_track_service.dart';
+import 'package:first_project/features/amol_track/screens/amol_track_screen.dart';
 import 'package:first_project/features/announcements/services/announcement_service.dart';
 import 'package:first_project/features/quran/models/quran_models.dart';
 import 'package:first_project/features/quran/services/quran_api_service.dart';
 import 'package:first_project/features/quran/services/quran_last_read_service.dart';
 import 'package:first_project/features/quran/screens/surah_detail_screen.dart';
 import 'package:first_project/features/home/models/home_activity_models.dart';
+import 'package:first_project/features/home/widgets/home_sun_arc.dart';
+import 'package:first_project/features/home/widgets/home_moon_arc.dart';
+import 'package:first_project/features/home/widgets/home_mini_compass.dart';
 import 'package:first_project/features/mosque/models/mosque_item.dart';
 import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
+import 'package:first_project/shared/providers/bottom_nav_provider.dart';
 
+part '../controllers/daily_activity_state_mixin.dart';
+part '../controllers/daily_controller_utils_mixin.dart';
+part '../controllers/daily_controller_format_mixin.dart';
+part '../controllers/daily_controller_labels_mixin.dart';
+part '../controllers/daily_controller_prayer_calc_mixin.dart';
+part '../controllers/daily_controller_schedule_data_mixin.dart';
+part '../controllers/daily_controller_alerts_core_mixin.dart';
+part '../controllers/daily_controller_alerts_mixin.dart';
+part '../controllers/daily_controller_prayer_data_mixin.dart';
+part '../controllers/daily_controller_location_mixin.dart';
+part '../controllers/daily_controller_loaders_mixin.dart';
+part '../controllers/daily_controller_announcements_mixin.dart';
 part '../controllers/daily_activity_controller_mixin.dart';
+part '../widgets/sections/daily_activity_view_base_mixin.dart';
+part '../widgets/sections/sky_section_mixin.dart';
+part '../widgets/sections/tahajjud_section_mixin.dart';
+part '../widgets/sections/header_section_mixin.dart';
+part '../widgets/sections/prayer_section_mixin.dart';
+part '../widgets/sections/qibla_meal_section_mixin.dart';
+part '../widgets/sections/mosque_section_mixin.dart';
+part '../widgets/sections/quick_actions_section_mixin.dart';
+part '../widgets/sections/last_read_section_mixin.dart';
+part '../widgets/sections/activity_section_mixin.dart';
+part '../widgets/sections/forbidden_times_section_mixin.dart';
 part '../widgets/daily_activity_view_mixin.dart';
 
 class DailyActivityScreen extends StatefulWidget {
@@ -41,7 +79,32 @@ class DailyActivityScreen extends StatefulWidget {
 }
 
 class _DailyActivityScreenState extends State<DailyActivityScreen>
-    with DailyActivityControllerMixin, DailyActivityViewMixin {
+    with
+        DailyControllerStateMixin,
+        DailyControllerUtilsMixin,
+        DailyControllerFormatMixin,
+        DailyControllerLabelsMixin,
+        DailyControllerPrayerCalcMixin,
+        DailyControllerScheduleDataMixin,
+        DailyControllerAlertsCoreMixin,
+        DailyControllerAlertsMixin,
+        DailyControllerPrayerDataMixin,
+        DailyControllerLocationMixin,
+        DailyControllerLoadersMixin,
+        DailyControllerAnnouncementsMixin,
+        DailyActivityControllerMixin,
+        DailyActivityViewBaseMixin,
+        DailySkySectionMixin,
+        DailyTahajjudSectionMixin,
+        DailyHeaderSectionMixin,
+        DailyPrayerSectionMixin,
+        DailyQiblaMealSectionMixin,
+        DailyMosqueSectionMixin,
+        DailyQuickActionsSectionMixin,
+        DailyLastReadSectionMixin,
+        DailyActivitySectionMixin,
+        DailyForbiddenTimesSectionMixin,
+        DailyActivityViewMixin {
   @override
   void initState() {
     super.initState();

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/features/chat/screens/chat_users_screen.dart';
 import 'package:first_project/features/discover/screens/discover_screen.dart';
+import 'package:first_project/features/dua_jikir/screens/dua_jikir_screen.dart';
 import 'package:first_project/features/home/screens/daily_activity_screen.dart';
-import 'package:first_project/features/prayer_time/screens/prayer_times_screen.dart';
+import 'package:first_project/features/islamic_quiz/screens/islamic_quiz_screen.dart';
 import 'package:first_project/features/profile/screens/profile_preferences_screen.dart';
 import 'package:first_project/features/quran/screens/quran_screen.dart';
 import 'package:first_project/shared/providers/bottom_nav_provider.dart';
@@ -20,28 +23,26 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  static const List<Widget> _tabsWithQuran = <Widget>[
-    DailyActivityScreen(),
-    DiscoverScreen(),
-    QuranScreen(),
-    PrayerTimesScreen(),
-    ProfilePreferencesScreen(),
-  ];
+  List<Widget> get _tabs {
+    final user = AuthService.instance.currentUser;
+    final isGuest = user == null;
 
-  static const List<Widget> _tabsWithoutQuran = <Widget>[
-    DailyActivityScreen(),
-    DiscoverScreen(),
-    PrayerTimesScreen(),
-    ProfilePreferencesScreen(),
-  ];
-
-  List<Widget> get _tabs =>
-      kQuranFeatureEnabled ? _tabsWithQuran : _tabsWithoutQuran;
+    return <Widget>[
+      const DailyActivityScreen(),
+      const IslamicQuizScreen(),
+      // if (kQuranFeatureEnabled) const QuranScreen(),
+      const DuaJikirScreen(),
+      if (!isGuest) const ChatUsersScreen(),
+      const ProfilePreferencesScreen(),
+      const DiscoverScreen(),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
-    final clamped = widget.initialIndex.clamp(0, _tabs.length - 1);
+    final initialTabs = _tabs;
+    final clamped = widget.initialIndex.clamp(0, initialTabs.length - 1);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<BottomNavProvider>().setIndex(clamped);

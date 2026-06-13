@@ -6,9 +6,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
 import 'package:first_project/firebase_options.dart';
 import 'package:first_project/shared/services/app_globals.dart';
+import 'package:first_project/shared/services/fcm_token_service.dart';
 
 const String noorifyBroadcastTopic = 'noorify_all';
 const String noorifyGeneralChannelId = 'noorify_general';
@@ -127,6 +129,9 @@ class PushNotificationService {
     _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
       (token) {
         debugPrint('FCM token refreshed: $token');
+        // Keep the user's stored token list current so targeted pushes keep
+        // reaching this device after a rotation.
+        FcmTokenService.instance.saveToken(token);
       },
       onError: (error) {
         debugPrint('FCM token refresh listener failed: $error');
@@ -216,6 +221,25 @@ class PushNotificationService {
     if (kDebugMode) {
       debugPrint('FCM message opened: ${message.messageId}');
       debugPrint('FCM data: ${message.data}');
+    }
+    _routeFromData(message.data);
+  }
+
+  /// Deep-links from a notification tap. A family request opens the incoming
+  /// requests inbox; an acceptance opens the profile so the user sees the new
+  /// family member.
+  void _routeFromData(Map<String, dynamic> data) {
+    final type = (data['type'] ?? '').toString();
+    final navigator = appNavigatorKey.currentState;
+    if (navigator == null) return;
+
+    switch (type) {
+      case 'family_request':
+        navigator.pushNamed(RouteNames.familyRequests);
+        break;
+      case 'family_accepted':
+        navigator.pushNamed(RouteNames.preferences);
+        break;
     }
   }
 }

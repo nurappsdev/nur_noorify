@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the signed-in user an admin (per users/{uid}.role)?
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+             in ['admin', 'super_admin', 'superadmin'];
+    }
+
+    // Any signed-in user can read the people list; you may only edit your own doc.
+    // `family_members` is intentionally NOT client-writable: it is set only by
+    // the trusted Cloud Function when a family request is accepted, so a name
+    // can never appear on a profile without the other person accepting.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create, delete: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data)
+                          .affectedKeys().hasAny(['family_members']);
+
+      // A user's private date-wise amal tracker
+      // (users/{uid}/amol_track/{yyyy-MM-dd}). Only the owner may read or write
+      // their own deed history; it powers the daily, weekly and monthly views.
+      match /amol_track/{dateId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Directed family requests. Doc id is "fromUid_toUid"; uids never contain
+    // "_", so the pair is unambiguous.
+    match /family_requests/{reqId} {
+      // Single-doc reads (e.g. the existence check in sendRequest) authorize
+      // from the doc id's uid pair, so they work even when the document does
+      // not exist yet (a null resource would otherwise deny with
+      // PERMISSION_DENIED).
+      allow get: if request.auth != null
+                 && request.auth.uid in reqId.split('_');
+
+      // Collection queries (the incoming / outgoing request streams) must
+      // authorize from resource.data: Firestore validates a list query against
+      // its potential result set, not per-document, so an id-based rule
+      // (reqId.split) can't be proven from a field filter and the whole query
+      // is rejected. The where('to_uid'==me) / where('from_uid'==me) filters
+      // statically satisfy this rule.
+      allow list: if request.auth != null
+                  && (request.auth.uid == resource.data.from_uid
+                      || request.auth.uid == resource.data.to_uid);
+
+      // Only the requester may create their own outgoing, pending request,
+      // and not to themselves.
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.from_uid
+                    && request.resource.data.from_uid != request.resource.data.to_uid
+                    && request.resource.data.status == 'pending';
+
+      // Only the recipient may respond, and only to accept/decline. The
+      // from/to pair stays fixed so the request can't be retargeted.
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.to_uid
+                    && request.resource.data.from_uid == resource.data.from_uid
+                    && request.resource.data.to_uid == resource.data.to_uid
+                    && request.resource.data.status in ['accepted', 'declined'];
+
+      // The requester may cancel a request they sent.
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.from_uid;
+    }
+
+    // Anyone signed in can read announcements; only admins can manage them.
+    match /announcements/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // 1-to-1 chats. chatId is the two uids sorted and joined with "_".
+    // Firebase Auth uids never contain "_", so splitting yields exactly the pair,
+    // which means we never need the parent doc to exist to authorize access.
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid in chatId.split('_');
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null
+                    && request.auth.uid in chatId.split('_');
+        // You can only send questions as yourself.
+        allow create: if request.auth != null
+                      && request.auth.uid in chatId.split('_')
+                      && request.resource.data.senderId == request.auth.uid;
+        // Only the recipient (not the sender) may answer, and only while the
+        // question is still unanswered — the first answer is final, so the
+        // same user can't reply to the same question again. Question
+        // text/sender stay fixed.
+        allow update: if request.auth != null
+                      && request.auth.uid in chatId.split('_')
+                      && request.auth.uid != resource.data.senderId
+                      && resource.data.answer == null
+                      && request.resource.data.answer != null
+                      && request.resource.data.senderId == resource.data.senderId
+                      && request.resource.data.text == resource.data.text;
+      }
+    }
+  }
+}

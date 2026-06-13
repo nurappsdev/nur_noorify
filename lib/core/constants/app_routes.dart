@@ -7,12 +7,19 @@ import 'package:first_project/features/admin/screens/admin_panel_screen.dart';
 import 'package:first_project/features/asmaul_husna/screens/asma_screen.dart';
 import 'package:first_project/features/dua/screens/dua_screen.dart';
 import 'package:first_project/features/tasbih/screens/tasbih_screen.dart';
+import 'package:first_project/features/zakat/screens/zakat_calculator_screen.dart';
 import 'package:first_project/features/hadith/screens/hadith_screen.dart';
 import 'package:first_project/features/mosque/screens/find_mosque_screen.dart';
 import 'package:first_project/features/legal/screens/privacy_policy_screen.dart';
 import 'package:first_project/features/qibla/screens/qibla_compass_screen.dart';
 import 'package:first_project/features/islamic_calendar/screens/islamic_calendar_screen.dart';
+import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
+import 'package:first_project/features/family/screens/family_requests_screen.dart';
+import 'package:first_project/features/notifications/screens/notifications_screen.dart';
 import 'package:first_project/features/splash/screens/ramadan_splash_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_hadith_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_language_screen.dart';
+import 'package:first_project/features/onboarding/screens/onboarding_location_screen.dart';
 import 'package:first_project/features/auth/screens/signin_screen.dart';
 import 'package:first_project/features/auth/screens/signup_screen.dart';
 import 'package:first_project/shared/services/app_globals.dart';
@@ -20,12 +27,16 @@ import 'package:first_project/shared/widgets/home_shell.dart';
 
 class AppRoutes {
   // Index in HomeShell for each tab route. Kept in sync with the items list
-  // in bottom_nav.dart and the tab list in HomeShell.
+  // in bottom_nav.dart and the tab list in HomeShell. Discover is no longer in
+  // the bottom bar, so it sits last (after Profile) and is only reached via
+  // its route.
   static const int _tabHome = 0;
-  static const int _tabDiscover = 1;
+  static const int _tabElmNoor = 1;
   static const int _tabQuran = 2;
   static int get _tabPrayer => kQuranFeatureEnabled ? 3 : 2;
-  static int get _tabProfile => kQuranFeatureEnabled ? 4 : 3;
+  static int get _tabChat => kQuranFeatureEnabled ? 4 : 3;
+  static int get _tabProfile => kQuranFeatureEnabled ? 5 : 4;
+  static int get _tabDiscover => kQuranFeatureEnabled ? 6 : 5;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -33,6 +44,12 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabHome), settings);
       case RouteNames.splash:
         return _page(const RamadanSplashScreen(), settings);
+      case RouteNames.onboardingHadith:
+        return _page(const OnboardingHadithScreen(), settings);
+      case RouteNames.onboardingLanguage:
+        return _page(const OnboardingLanguageScreen(), settings);
+      case RouteNames.onboardingLocation:
+        return _page(const OnboardingLocationScreen(), settings);
       case RouteNames.signIn:
         return _page(const SignInScreen(), settings);
       case RouteNames.signUp:
@@ -44,7 +61,15 @@ class AppRoutes {
       case RouteNames.activity:
         return _page(const HomeShell(initialIndex: _tabHome), settings);
       case RouteNames.discover:
-        return _page(const HomeShell(initialIndex: _tabDiscover), settings);
+        return _page(HomeShell(initialIndex: _tabDiscover), settings);
+      case RouteNames.elmNoor:
+        return _page(const HomeShell(initialIndex: _tabElmNoor), settings);
+      case RouteNames.leaderboard:
+        return _page(const LeaderboardScreen(), settings);
+      case RouteNames.familyRequests:
+        return _page(const FamilyRequestsScreen(), settings);
+      case RouteNames.notifications:
+        return _page(const NotificationsScreen(), settings);
       case RouteNames.asma:
         return _page(const AsmaScreen(), settings);
       case RouteNames.hadith:
@@ -53,6 +78,8 @@ class AppRoutes {
         return _page(const DuaScreen(), settings);
       case RouteNames.tasbih:
         return _page(const TasbihScreen(), settings);
+      case RouteNames.zakatCalculator:
+        return _page(const ZakatCalculatorScreen(), settings);
       case RouteNames.quran:
         if (!kQuranFeatureEnabled) {
           return _page(const HomeShell(initialIndex: _tabHome), settings);
@@ -60,6 +87,8 @@ class AppRoutes {
         return _page(const HomeShell(initialIndex: _tabQuran), settings);
       case RouteNames.prayerTimes:
         return _page(HomeShell(initialIndex: _tabPrayer), settings);
+      case RouteNames.chat:
+        return _page(HomeShell(initialIndex: _tabChat), settings);
       case RouteNames.islamicCalendar:
         return _page(const IslamicCalendarScreen(), settings);
       case RouteNames.prayerCompass:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -10,73 +11,82 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('About')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(color: const Color(0xFFE1E8EC)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'ilMify',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.w700),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   'Prayer, Quran, and daily Islamic activity companion.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(color: const Color(0xFFE1E8EC)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline, color: Color(0xFF14A3B8)),
-                SizedBox(width: 10),
+                const Icon(Icons.info_outline, color: Color(0xFF14A3B8)),
+                SizedBox(width: 10.w),
                 Text(
                   'Version',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
                 ),
-                Spacer(),
+                const Spacer(),
                 Text(
                   _appVersion,
-                  style: TextStyle(fontSize: 14, color: Color(0xFF475569)),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: const Color(0xFF475569),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(color: const Color(0xFFE1E8EC)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Build Notes',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   'This minimal build includes prayer timing, Sehri/Iftar alerts, Quran reading, and offline cache support.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: const Color(0xFF334155),
+                  ),
                 ),
               ],
             ),

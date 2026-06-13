@@ -2,48 +2,54 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:provider/provider.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
+import 'package:first_project/features/auth/providers/sign_in_provider.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<SignInProvider>(
+      create: (_) => SignInProvider(),
+      child: const _SignInView(),
+    );
+  }
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInView extends StatefulWidget {
+  const _SignInView();
+
+  @override
+  State<_SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<_SignInView> {
   static const _bgPath = 'assets/images/Login.jpg';
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _guestNameController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _isLoading = false;
+  SignInProvider get _auth => context.read<SignInProvider>();
+  bool get _isLoading => _auth.isLoading;
+  bool get _obscurePassword => _auth.obscurePassword;
 
-  bool get _isBangla => appLanguageNotifier.value == AppLanguage.bangla;
+  bool get _isBangla => context.read<LanguageProvider>().isBangla;
   String _text(String en, String bn) => _isBangla ? bn : en;
 
   @override
-  void initState() {
-    super.initState();
-    appLanguageNotifier.addListener(_onLanguageChanged);
-  }
-
-  void _onLanguageChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  @override
   void dispose() {
-    appLanguageNotifier.removeListener(_onLanguageChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _guestNameController.dispose();
@@ -58,11 +64,11 @@ class _SignInScreenState extends State<SignInScreen> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: glass.textMuted, fontSize: 10),
+      labelStyle: TextStyle(color: glass.textMuted, fontSize: 10.sp),
       hintText: hint,
       hintStyle: TextStyle(
         color: glass.textSecondary,
-        fontSize: 12,
+        fontSize: 12.sp,
         fontWeight: FontWeight.w600,
       ),
       filled: true,
@@ -70,17 +76,17 @@ class _SignInScreenState extends State<SignInScreen> {
           ? const Color(0x3F122634)
           : const Color(0xDFFFFFFF),
       suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.glassBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: glass.accent.withValues(alpha: 0.7)),
       ),
     );
@@ -114,9 +120,9 @@ class _SignInScreenState extends State<SignInScreen> {
         SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.r),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
+                constraints: BoxConstraints(maxWidth: 360.w),
                 child: child,
               ),
             ),
@@ -131,12 +137,12 @@ class _SignInScreenState extends State<SignInScreen> {
       children: [
         Expanded(child: Divider(color: glass.glassBorder)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
           child: Text(
             _text('OR', '\u0985\u09a5\u09ac\u09be'),
             style: TextStyle(
               color: glass.textMuted,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -204,9 +210,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         'You can set these now and change later from Profile.',
                         '\u098f\u0997\u09c1\u09b2\u09cb \u098f\u0996\u09a8 \u09b8\u09c7\u099f \u0995\u09b0\u09c1\u09a8, \u09aa\u09b0\u09c7 \u09aa\u09cd\u09b0\u09cb\u09ab\u09be\u0987\u09b2 \u09a5\u09c7\u0995\u09c7 \u09ac\u09a6\u09b2\u09be\u09a4\u09c7 \u09aa\u09be\u09b0\u09ac\u09c7\u09a8\u0964',
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(fontSize: 13.sp),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     TextField(
                       controller: _guestNameController,
                       textInputAction: TextInputAction.next,
@@ -222,7 +228,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     DropdownButtonFormField<AppLanguage>(
                       initialValue: language,
                       decoration: InputDecoration(
@@ -246,7 +252,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         setDialogState(() => language = value);
                       },
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     SwitchListTile(
                       value: prayerAlerts,
                       contentPadding: EdgeInsets.zero,
@@ -362,7 +368,7 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signInWithEmail(
         email: email,
@@ -384,7 +390,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
@@ -424,7 +430,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> _signInWithGoogle() async {
     if (!await _ensureInternetOrShowMessage()) return;
-    setState(() => _isLoading = true);
+    _auth.setLoading(true);
     try {
       await AuthService.instance.signInWithGoogle();
       await _setSkipAuthGate(false);
@@ -445,13 +451,15 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        _auth.setLoading(false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
+    context.watch<SignInProvider>();
     final glass = NoorifyGlassTheme(context);
 
     return Scaffold(
@@ -459,8 +467,8 @@ class _SignInScreenState extends State<SignInScreen> {
       body: _authShell(
         context,
         NoorifyGlassCard(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-          radius: BorderRadius.circular(24),
+          padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 16.h),
+          radius: BorderRadius.circular(24.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -469,20 +477,20 @@ class _SignInScreenState extends State<SignInScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: glass.textPrimary,
-                  fontSize: 34,
+                  fontSize: 34.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Center(
                 child: SizedBox(
-                  width: 80,
+                  width: 80.w,
                   child: Divider(
                     color: glass.accent.withValues(alpha: 0.5),
                     thickness: 1,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -495,11 +503,11 @@ class _SignInScreenState extends State<SignInScreen> {
                   suffixIcon: Icon(
                     Icons.email_outlined,
                     color: glass.accentSoft,
-                    size: 16,
+                    size: 16.sp,
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -518,19 +526,19 @@ class _SignInScreenState extends State<SignInScreen> {
                   hint: '........',
                   suffixIcon: IconButton(
                     onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
+                      _auth.toggleObscurePassword();
                     },
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       color: glass.accentSoft,
-                      size: 16,
+                      size: 16.sp,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -543,13 +551,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       'Forgot Password?',
                       '\u09aa\u09be\u09b8\u0993\u09df\u09be\u09b0\u09cd\u09a1 \u09ad\u09c1\u09b2\u09c7 \u0997\u09c7\u099b\u09c7\u09a8?',
                     ),
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               SizedBox(
-                height: 42,
+                height: 42.h,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: glass.accent,
@@ -557,14 +565,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         ? const Color(0xFF072734)
                         : Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   onPressed: _isLoading ? null : _signIn,
                   child: _isLoading
                       ? SizedBox(
-                          width: 18,
-                          height: 18,
+                          width: 18.w,
+                          height: 18.h,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: glass.isDark
@@ -584,14 +592,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14.h),
               _orDivider(glass),
-              const SizedBox(height: 14),
+              SizedBox(height: 14.h),
               SizedBox(
-                height: 40,
+                height: 40.h,
                 child: FilledButton.tonalIcon(
                   onPressed: _isLoading ? null : _signInWithGoogle,
-                  icon: const Icon(Icons.g_mobiledata, size: 20),
+                  icon: Icon(Icons.g_mobiledata, size: 20.sp),
                   label: Text(
                     _isLoading
                         ? _text(
@@ -611,7 +619,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -620,7 +628,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       "Don't have any account? ",
                       '\u0985\u09cd\u09af\u09be\u0995\u09be\u0989\u09a8\u09cd\u099f \u09a8\u09c7\u0987? ',
                     ),
-                    style: TextStyle(color: glass.textSecondary, fontSize: 12),
+                    style: TextStyle(color: glass.textSecondary, fontSize: 12.sp),
                   ),
                   GestureDetector(
                     onTap: () =>
@@ -632,24 +640,14 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       style: TextStyle(
                         color: glass.accent,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: _isLoading ? null : _continueWithoutSignIn,
-                child: Text(
-                  _text(
-                    'Skip for now',
-                    '\u098f\u0996\u09a8 \u09b8\u09cd\u0995\u09bf\u09aa \u0995\u09b0\u09c1\u09a8',
-                  ),
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
+              SizedBox(height: 8.h),
             ],
           ),
         ),
