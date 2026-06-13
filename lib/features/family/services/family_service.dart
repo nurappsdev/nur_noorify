@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -193,31 +195,91 @@ class FamilyService {
 
   /// The signed-in user's accepted family members, shown on their profile.
   ///
-  /// Derived directly from the requests this user sent that the recipient has
-  /// accepted — no Cloud Function or `family_members` array needed. A name can
-  /// still never appear without acceptance, because only the recipient can flip
-  /// a request to `accepted` (enforced by the `family_requests` update rule).
+  /// Combines both directions of an accepted request, so the relationship is
+  /// reflected on *both* profiles:
+  ///  * requests this user sent (`from_uid == me`) — the other person appears
+  ///    with the relation this user chose (e.g. "Father");
+  ///  * requests this user received (`to_uid == me`) — the requester appears
+  ///    with the inverted relation (whoever called us their father appears as
+  ///    our "Child").
+  /// No Cloud Function or `family_members` array is needed: a name can still
+  /// never appear without acceptance, because only the recipient can flip a
+  /// request to `accepted` (enforced by the `family_requests` update rule).
   Stream<List<FamilyMember>> watchFamilyMembers() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
       return Stream<List<FamilyMember>>.value(const []);
     }
-    return _requests.where('from_uid', isEqualTo: me).snapshots().map((snap) {
-      return snap.docs
-          .map((d) => FamilyRequest.fromMap(d.id, d.data()))
-          .where((r) => r.status == FamilyRequestStatus.accepted)
-          .map(
-            (r) => FamilyMember(
-              uid: r.toUid,
-              name: r.toName,
-              photoUrl: r.toPhoto,
-              email: r.toEmail,
-              since: r.createdAt,
-              relation: r.relation,
-            ),
-          )
-          .where((m) => m.uid.isNotEmpty)
-          .toList();
+
+    // Stream.multi runs this setup fresh for each listener, so the result is a
+    // re-listenable (multi-subscription) stream — matching Firestore's own
+    // snapshots(). A single-subscription controller would throw "Stream has
+    // already been listened to" when a StreamBuilder re-subscribes (e.g. when
+    // its list sliver is recycled on scroll).
+    return Stream.multi((controller) {
+      var sent = const <FamilyMember>[];
+      var received = const <FamilyMember>[];
+      var sentReady = false;
+      var receivedReady = false;
+
+      void emit() {
+        if (!sentReady && !receivedReady) return;
+        controller.add(<FamilyMember>[...sent, ...received]);
+      }
+
+      final subs = <StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>[
+        _requests.where('from_uid', isEqualTo: me).snapshots().listen((snap) {
+          sent = _acceptedMembers(snap, asRecipient: false);
+          sentReady = true;
+          emit();
+        }, onError: controller.addError),
+        _requests.where('to_uid', isEqualTo: me).snapshots().listen((snap) {
+          received = _acceptedMembers(snap, asRecipient: true);
+          receivedReady = true;
+          emit();
+        }, onError: controller.addError),
+      ];
+
+      controller.onCancel = () async {
+        for (final s in subs) {
+          await s.cancel();
+        }
+      };
     });
+  }
+
+  /// Maps a request snapshot to accepted [FamilyMember]s. When [asRecipient] is
+  /// true the snapshot holds requests addressed to us, so the member is the
+  /// *sender* and the relationship is inverted; otherwise it is the recipient
+  /// of requests we sent.
+  List<FamilyMember> _acceptedMembers(
+    QuerySnapshot<Map<String, dynamic>> snap, {
+    required bool asRecipient,
+  }) {
+    return snap.docs
+        .map((d) => FamilyRequest.fromMap(d.id, d.data()))
+        .where((r) => r.status == FamilyRequestStatus.accepted)
+        .map(
+          (r) => asRecipient
+              ? FamilyMember(
+                  uid: r.fromUid,
+                  name: r.resolvedFromName,
+                  photoUrl: r.fromPhoto,
+                  email: r.fromEmail,
+                  since: r.createdAt,
+                  relation: r.relation,
+                  inverse: true,
+                )
+              : FamilyMember(
+                  uid: r.toUid,
+                  name: r.toName,
+                  photoUrl: r.toPhoto,
+                  email: r.toEmail,
+                  since: r.createdAt,
+                  relation: r.relation,
+                ),
+        )
+        .where((m) => m.uid.isNotEmpty)
+        .toList();
   }
 }

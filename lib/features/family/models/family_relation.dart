@@ -47,6 +47,35 @@ extension FamilyRelationX on FamilyRelation {
         return isBangla ? 'অন্যান্য' : 'Other';
     }
   }
+
+  /// Label for the *reverse* relationship, shown to the recipient once they
+  /// accept. The requester picked this relation from their own point of view
+  /// ("you are my father"), so from the recipient's side it is inverted ("they
+  /// are my child"). No gender is stored, so the parent role defaults to
+  /// Father, and child/sibling/grandchild fall back to neutral terms; spouse
+  /// inverts exactly (husband ↔ wife).
+  String inverseLabel(bool isBangla) {
+    switch (this) {
+      case FamilyRelation.father:
+      case FamilyRelation.mother:
+        return isBangla ? 'সন্তান' : 'Child';
+      case FamilyRelation.son:
+      case FamilyRelation.daughter:
+        return isBangla ? 'বাবা' : 'Father';
+      case FamilyRelation.brother:
+      case FamilyRelation.sister:
+        return isBangla ? 'ভাই-বোন' : 'Sibling';
+      case FamilyRelation.husband:
+        return isBangla ? 'স্ত্রী' : 'Wife';
+      case FamilyRelation.wife:
+        return isBangla ? 'স্বামী' : 'Husband';
+      case FamilyRelation.grandfather:
+      case FamilyRelation.grandmother:
+        return isBangla ? 'নাতি-নাতনি' : 'Grandchild';
+      case FamilyRelation.other:
+        return isBangla ? 'অন্যান্য' : 'Other';
+    }
+  }
 }
 
 /// Resolves a stored key back to a relation, or null when absent/unknown so

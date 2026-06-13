@@ -100,6 +100,10 @@ mixin DailyActivityViewMixin
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 18.h),
                         children: [
+
+
+                          _buildAmolTrackCard(),
+                          SizedBox(height: 12.h),
                           _buildSunArcCard(),
 
                           if (_isLastThirdOfNight()) ...[
@@ -110,8 +114,7 @@ mixin DailyActivityViewMixin
                           SizedBox(height: 12.h),
                           _buildPrayerStrip(),
 
-                          SizedBox(height: 12.h),
-                          _buildAmolTrackCard(),
+
                           SizedBox(height: 12.h),
                           _buildForbiddenTimesCard(),
 

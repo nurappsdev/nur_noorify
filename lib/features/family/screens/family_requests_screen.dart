@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import 'package:first_project/features/family/models/family_relation.dart';
 import 'package:first_project/features/family/models/family_request.dart';
 import 'package:first_project/features/family/services/family_service.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
@@ -77,6 +78,7 @@ class FamilyRequestsScreen extends StatelessWidget {
                       itemBuilder: (context, index) => _RequestTile(
                         glass: glass,
                         request: requests[index],
+                        isBangla: isBangla,
                         t: t,
                       ),
                     );
@@ -95,12 +97,29 @@ class _RequestTile extends StatelessWidget {
   const _RequestTile({
     required this.glass,
     required this.request,
+    required this.isBangla,
     required this.t,
   });
 
   final NoorifyGlassTheme glass;
   final FamilyRequest request;
+  final bool isBangla;
   final String Function(String, String) t;
+
+  /// Names the relationship the requester chose ("wants to add you as their
+  /// father"), falling back to the generic line for requests saved before
+  /// relationships were stored.
+  String _subtitle() {
+    final relation = request.relation;
+    if (relation == null) {
+      return t('wants to add you as family', 'আপনাকে পরিবারে যোগ করতে চায়');
+    }
+    final label = relation.label(isBangla);
+    return t(
+      'wants to add you as their ${label.toLowerCase()}',
+      'আপনাকে তাদের $label হিসেবে যোগ করতে চায়',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +162,7 @@ class _RequestTile extends StatelessWidget {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  t('wants to add you as family', 'আপনাকে পরিবারে যোগ করতে চায়'),
+                  _subtitle(),
                   style: TextStyle(
                     color: glass.textSecondary,
                     fontSize: 11.5.sp,

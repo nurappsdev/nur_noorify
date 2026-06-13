@@ -76,10 +76,10 @@ mixin ProfilePrefsFamilySectionMixin
                   color: glass.textPrimary,
                 ),
               ),
-              if (member.relation != null) ...[
+              if (member.relationLabel(_isBangla) != null) ...[
                 SizedBox(height: 2.h),
                 Text(
-                  member.relation!.label(_isBangla),
+                  member.relationLabel(_isBangla)!,
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w500,

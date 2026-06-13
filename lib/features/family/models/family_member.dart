@@ -14,6 +14,7 @@ class FamilyMember {
     this.email,
     this.since,
     this.relation,
+    this.inverse = false,
   });
 
   final String uid;
@@ -25,6 +26,19 @@ class FamilyMember {
   /// How the requester related to this member (null for members saved before
   /// relationships existed).
   final FamilyRelation? relation;
+
+  /// Whether this member is derived from a request the *other* person sent us
+  /// (we are the recipient). When true the relationship is shown inverted —
+  /// the requester who called us their father appears here as our child.
+  final bool inverse;
+
+  /// Relationship label from this user's point of view, inverting [relation]
+  /// for members we received rather than sent. Null when no relation is known.
+  String? relationLabel(bool isBangla) {
+    final r = relation;
+    if (r == null) return null;
+    return inverse ? r.inverseLabel(isBangla) : r.label(isBangla);
+  }
 
   /// Name to show, falling back to a generic label.
   String get resolvedName => name.trim().isEmpty ? 'Noorify user' : name.trim();
