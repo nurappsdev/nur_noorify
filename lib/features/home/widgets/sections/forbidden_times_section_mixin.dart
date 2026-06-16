@@ -229,17 +229,35 @@ mixin DailyForbiddenTimesSectionMixin
             ),
             SizedBox(height: 9.h),
 
-            for (int i = 0; i < periods.length; i++) ...[
-              _buildForbiddenRow(periods[i], isActive: i == activeIndex),
-              if (i != periods.length - 1) SizedBox(height: 6.h),
-            ],
+            // Three periods side by side: title on top, time range below.
+            // IntrinsicHeight bounds the row to its tallest cell so the
+            // stretched columns share one height (instead of an infinite one).
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < periods.length; i++) ...[
+                    Expanded(
+                      child: _buildForbiddenColumn(
+                        periods[i],
+                        isActive: i == activeIndex,
+                      ),
+                    ),
+                    if (i != periods.length - 1) SizedBox(width: 8.w),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildForbiddenRow(
+  /// A single forbidden period rendered as a vertical cell — icon and bilingual
+  /// title on top, the start–end range stacked below — so the three periods sit
+  /// next to each other in columns.
+  Widget _buildForbiddenColumn(
     ({
       IconData icon,
       String titleEn,
@@ -251,7 +269,7 @@ mixin DailyForbiddenTimesSectionMixin
     required bool isActive,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 7.h),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 9.h),
       decoration: BoxDecoration(
         color: isActive
             ? (_isDarkTheme ? const Color(0x33FF7043) : const Color(0x1FD24A28))
@@ -263,25 +281,37 @@ mixin DailyForbiddenTimesSectionMixin
           color: isActive ? _forbiddenStrong : _forbiddenBorder,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(period.icon, size: 18.sp, color: _forbiddenStrong),
-          SizedBox(width: 9.w),
-          // Bilingual title — both English and Bangla always visible.
-          Expanded(
+          SizedBox(height: 5.h),
+          Text(
+            _text(period.titleEn, period.titleBn),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 11.5.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          FittedBox(
+            fit: BoxFit.scaleDown,
             child: Text(
-              '${period.titleEn} · ${period.titleBn}',
+              _forbiddenRange(period.start, period.end),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: _textPrimary,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w700,
+                color: _forbiddenStrong,
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
           if (isActive) ...[
-            SizedBox(width: 6.w),
+            SizedBox(height: 6.h),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
@@ -298,15 +328,6 @@ mixin DailyForbiddenTimesSectionMixin
               ),
             ),
           ],
-          SizedBox(width: 8.w),
-          Text(
-            _forbiddenRange(period.start, period.end),
-            style: TextStyle(
-              color: _forbiddenStrong,
-              fontSize: 11.5.sp,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
         ],
       ),
     );
