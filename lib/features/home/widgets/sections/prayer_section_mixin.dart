@@ -239,6 +239,7 @@ mixin DailyPrayerSectionMixin
                   ],
                 ),
               ),
+           //   _buildHeroDateStripContent(),
               SizedBox(width: 8.w),
               Tooltip(
                 message: _isShowingActivePrayer
@@ -336,7 +337,7 @@ mixin DailyPrayerSectionMixin
             padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
           ),
           SizedBox(
-            height: 116.h,
+            height: 114.h,
             child: PageView.builder(
               controller: _prayerPageController,
               itemCount: _prayerCarouselItemsCount,
@@ -485,7 +486,7 @@ mixin DailyPrayerSectionMixin
                             : (_isDarkTheme
                                   ? Colors.white
                                   : const Color(0xFF214259)),
-                        fontSize: 10.8.sp,
+                        fontSize: 14.8.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -517,7 +518,7 @@ mixin DailyPrayerSectionMixin
                         : (_isDarkTheme
                               ? Colors.white
                               : const Color(0xFF214259)),
-                    fontSize: 13.sp,
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w900,
                     height: 1,
                   ),

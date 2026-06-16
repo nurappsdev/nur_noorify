@@ -164,20 +164,20 @@ mixin DailySkySectionMixin
           children: [
             Flexible(
               child: Text(
-                '$_formattedHijriDate । ${_arabicWeekdayLabel()}',
+                '$_formattedHijriDate',
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: _textPrimary,
-                  fontSize: 12.5.sp,
+                  fontSize: 10.sp,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                 ),
               ),
             ),
             SizedBox(width: 6.w),
-            Icon(Icons.nightlight_round, size: 14.sp, color: _accentGold),
+            Icon(Icons.nightlight_round, size: 12.sp, color: _accentGold),
           ],
         ),
         SizedBox(height: 4.h),
@@ -189,7 +189,7 @@ mixin DailySkySectionMixin
               _formattedTimeWithSeconds,
               style: TextStyle(
                 color: _textPrimary,
-                fontSize: 14.sp,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -201,7 +201,7 @@ mixin DailySkySectionMixin
                 overflow: TextOverflow.visible,
                 style: TextStyle(
                   color: _textSecondary,
-                  fontSize: 11.sp,
+                  fontSize: 9.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -291,7 +291,7 @@ mixin DailySkySectionMixin
   Widget _buildSunArcCard() {
     final isNight = _isNightTime;
     return _buildGlassCard(
-      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
+      padding: EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 10.h),
       ornamentedCorners: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,66 +348,32 @@ mixin DailySkySectionMixin
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.nightlight_round,
-                                            size: 12.sp,
-                                            color: _accentGold,
-                                          ),
-                                          SizedBox(width: 5.w),
-                                          Flexible(
-                                            child: Text(
-                                              _greetingText(),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: _isDarkTheme
-                                                    ? const Color(0xB3D8E5F7)
-                                                    : const Color(0xFF4B687F),
-                                                fontSize: 10.sp,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.2,
-                                              ),
-                                            ),
-                                          ),
-                                          //---location------
-                                          Flexible(
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on_outlined,
-                                                  size: 12.sp,
-                                                  color: _isDarkTheme
-                                                      ? const Color(0xFF8FB5CC)
-                                                      : const Color(0xFF5D7B93),
-                                                ),
-                                                SizedBox(width: 4.w),
-                                                Expanded(
-                                                  child: Text(
-                                                    _locationLabel,
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      color: _isDarkTheme
-                                                          ? const Color(
-                                                              0xFFB6CFE5,
-                                                            )
-                                                          : const Color(
-                                                              0xFF56758E,
-                                                            ),
-                                                      fontSize: 10.sp,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                      // Row(
+                                      //   children: [
+                                      //     Icon(
+                                      //       Icons.nightlight_round,
+                                      //       size: 12.sp,
+                                      //       color: _accentGold,
+                                      //     ),
+                                      //     SizedBox(width: 5.w),
+                                      //     Flexible(
+                                      //       child: Text(
+                                      //         _greetingText(),
+                                      //         maxLines: 1,
+                                      //         overflow: TextOverflow.ellipsis,
+                                      //         style: TextStyle(
+                                      //           color: _isDarkTheme
+                                      //               ? const Color(0xB3D8E5F7)
+                                      //               : const Color(0xFF4B687F),
+                                      //           fontSize: 10.sp,
+                                      //           fontWeight: FontWeight.w500,
+                                      //           letterSpacing: 0.2,
+                                      //         ),
+                                      //       ),
+                                      //     ),
+                                      //
+                                      //   ],
+                                      // ),
                                       SizedBox(height: 2.h),
                                       if (hasName)
                                         Text(
@@ -495,11 +461,12 @@ mixin DailySkySectionMixin
             ],
           ),
 
-          SizedBox(height: 8.h),
-          _buildHeroDateStripContent(),
+
+           _buildHeroDateStripContent(),
           _ornamentDivider(
-            padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+            padding: EdgeInsets.only(top: 4.h, bottom: 4.h),
           ),
+          SizedBox(height: 8.h),
 
           if (isNight) _buildMoonArcArea() else _buildSunArcArea(),
 
