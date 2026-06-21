@@ -53,16 +53,16 @@ class NoorifyGlassBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: glass.isDark ? 0.08 : 1.0,
-              child: Image.asset(
-                'assets/397.png',
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-              ),
-            ),
-          ),
+          // Positioned.fill(
+          //   child: Opacity(
+          //     opacity: glass.isDark ? 0.08 : 1.0,
+          //     child: Image.asset(
+          //       'assets/397.png',
+          //       fit: BoxFit.cover,
+          //       alignment: Alignment.center,
+          //     ),
+          //   ),
+          // ),
           Positioned(
             top: -130,
             left: -90,

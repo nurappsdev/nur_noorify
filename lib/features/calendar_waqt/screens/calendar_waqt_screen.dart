@@ -120,58 +120,23 @@ class _CalendarWaqtViewState extends State<_CalendarWaqtView> {
     'রবিবার',
   ];
 
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _todayKey = GlobalKey();
-
-  // Approximate height of one day card + separator, used for the initial jump
-  // before refining the position with [Scrollable.ensureVisible].
-  static const double _estimatedCardExtent = 316;
-
   int get _selectedMonth => context.read<CalendarWaqtProvider>().selectedMonth;
   int get _selectedYear => context.read<CalendarWaqtProvider>().selectedYear;
 
   bool get _isBangla => context.read<LanguageProvider>().isBangla;
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
-  @override
-  void initState() {
-    super.initState();
-    // After the first layout, bring today's card into view.
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _scrollToToday(DateTime.now()),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  /// Scrolls the list so the card for [today] is visible. The list is lazily
-  /// built, so we first jump to an estimated offset (forcing the target card to
-  /// build), then refine to the exact position once it has a render box.
-  void _scrollToToday(DateTime today) {
-    if (!mounted || !_scrollController.hasClients) return;
-    if (today.year != _selectedYear || today.month != _selectedMonth) return;
-
-    final position = _scrollController.position;
-    final estimated = ((today.day - 1) * _estimatedCardExtent).clamp(
-      0.0,
-      position.maxScrollExtent,
-    );
-    _scrollController.jumpTo(estimated);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _todayKey.currentContext;
-      if (context == null) return;
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-        alignment: 0.1,
-      );
-    });
+  /// Day-of-month numbers in display order. When the selected month is the
+  /// current one, today leads the list and the remaining days wrap around after
+  /// it (today, today+1, …, monthEnd, 1, …, today-1) so the "Today" card always
+  /// appears first. Other months keep their natural 1…N order.
+  List<int> _orderedDays(DateTime now, int dayCount) {
+    final days = <int>[for (var d = 1; d <= dayCount; d++) d];
+    final isCurrentMonth =
+        now.year == _selectedYear && now.month == _selectedMonth;
+    if (!isCurrentMonth) return days;
+    final todayIndex = now.day - 1;
+    return [...days.sublist(todayIndex), ...days.sublist(0, todayIndex)];
   }
 
   // ---------------------------------------------------------------------------
@@ -259,6 +224,7 @@ class _CalendarWaqtViewState extends State<_CalendarWaqtView> {
     final calendar = context.watch<CalendarWaqtProvider>();
     final now = DateTime.now();
     final dayCount = _daysInMonth(calendar.selectedYear, calendar.selectedMonth);
+    final orderedDays = _orderedDays(now, dayCount);
 
     return Scaffold(
       backgroundColor: _bg,
@@ -308,24 +274,20 @@ class _CalendarWaqtViewState extends State<_CalendarWaqtView> {
               ),
             Expanded(
               child: ListView.separated(
-                controller: _scrollController,
                 padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 20.h),
-                itemCount: dayCount,
+                itemCount: orderedDays.length,
                 separatorBuilder: (_, _) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   final date = DateTime(
                     _selectedYear,
                     _selectedMonth,
-                    index + 1,
+                    orderedDays[index],
                   );
                   final isToday =
                       date.year == now.year &&
                       date.month == now.month &&
                       date.day == now.day;
-                  return KeyedSubtree(
-                    key: isToday ? _todayKey : null,
-                    child: _buildDayCard(date, isToday: isToday),
-                  );
+                  return _buildDayCard(date, isToday: isToday);
                 },
               ),
             ),

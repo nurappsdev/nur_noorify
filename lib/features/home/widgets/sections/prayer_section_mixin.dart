@@ -64,12 +64,18 @@ mixin DailyPrayerSectionMixin
     }
   }
 
-  /// Localized "start – end" range for a prayer, e.g. `11:57 – 04:38`.
+  /// Localized "start – end" range for a prayer, e.g. `11:57 – 04:41`.
+  ///
+  /// A prayer's window closes the minute before the next prayer begins: if Asr
+  /// starts at 04:42, Zuhr is shown ending at 04:41. So the displayed end is one
+  /// minute before [_prayerEndDateTime] (the next prayer's start), keeping
+  /// consecutive ranges non-overlapping.
   String _prayerTimeRangeLabel(String prayer) {
     final start = _localizedPrayerTime(_prayerTimes[prayer] ?? '--:--');
     final end = _prayerEndDateTime(prayer);
+    final displayEnd = end?.subtract(const Duration(minutes: 1));
     final endLabel = _localizedPrayerTime(
-      end == null ? '--:--' : _formatPrayerTime(end),
+      displayEnd == null ? '--:--' : _formatPrayerTime(displayEnd),
     );
     return '$start – $endLabel';
   }
@@ -239,6 +245,7 @@ mixin DailyPrayerSectionMixin
                   ],
                 ),
               ),
+           //   _buildHeroDateStripContent(),
               SizedBox(width: 8.w),
               Tooltip(
                 message: _isShowingActivePrayer
@@ -336,7 +343,7 @@ mixin DailyPrayerSectionMixin
             padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
           ),
           SizedBox(
-            height: 116.h,
+            height: 114.h,
             child: PageView.builder(
               controller: _prayerPageController,
               itemCount: _prayerCarouselItemsCount,
@@ -485,7 +492,7 @@ mixin DailyPrayerSectionMixin
                             : (_isDarkTheme
                                   ? Colors.white
                                   : const Color(0xFF214259)),
-                        fontSize: 10.8.sp,
+                        fontSize: 14.8.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -517,7 +524,7 @@ mixin DailyPrayerSectionMixin
                         : (_isDarkTheme
                               ? Colors.white
                               : const Color(0xFF214259)),
-                    fontSize: 13.sp,
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w900,
                     height: 1,
                   ),
