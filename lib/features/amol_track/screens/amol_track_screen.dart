@@ -121,8 +121,9 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
       : _weekdayShortEn[_weekdayIndex(d)];
 
   String _fullDateLabel(DateTime d) {
-    final weekday =
-        _isBangla ? _weekdayFullBn[_weekdayIndex(d)] : _weekdayFullEn[_weekdayIndex(d)];
+    final weekday = _isBangla
+        ? _weekdayFullBn[_weekdayIndex(d)]
+        : _weekdayFullEn[_weekdayIndex(d)];
     final month = _isBangla ? _monthBn[d.month - 1] : _monthEn[d.month - 1];
     final day = _digits(d.day.toString().padLeft(2, '0'));
     final year = _digits(d.year.toString());
@@ -160,15 +161,78 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
   /// The 7-day window shown in the strip: two days before the selected date
   /// through four days after, so the selected day sits near the start like the
   /// reference design.
-  List<DateTime> get _weekWindow => List.generate(
-        7,
-        (i) => _selectedDate.subtract(Duration(days: 2 - i)),
-      );
+  List<DateTime> get _weekWindow =>
+      List.generate(7, (i) => _selectedDate.subtract(Duration(days: 2 - i)));
+
+  DateTime _firstDayOfMonth(DateTime date) => DateTime(date.year, date.month);
+
+  DateTime _startOfWeek(DateTime date) =>
+      date.subtract(Duration(days: _weekdayIndex(date)));
+
+  DateTime _sameDayInMonth(DateTime anchor, int monthDelta) {
+    final targetFirst = DateTime(anchor.year, anchor.month + monthDelta);
+    final daysInTargetMonth = DateTime(
+      targetFirst.year,
+      targetFirst.month + 1,
+      0,
+    ).day;
+    final day = math.min(anchor.day, daysInTargetMonth);
+    return DateTime(targetFirst.year, targetFirst.month, day);
+  }
+
+  bool get _canGoNextTrendPeriod {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_range == _AmolRange.month) {
+      return _firstDayOfMonth(_selectedDate).isBefore(_firstDayOfMonth(today));
+    }
+    if (_range == _AmolRange.week) {
+      return _startOfWeek(_selectedDate).isBefore(_startOfWeek(today));
+    }
+    return false;
+  }
+
+  String _trendPeriodLabel() {
+    if (_range == _AmolRange.month) {
+      final month = _isBangla
+          ? _monthBn[_selectedDate.month - 1]
+          : _monthEn[_selectedDate.month - 1];
+      return '$month ${_digits(_selectedDate.year.toString())}';
+    }
+
+    final days = _weekDays(_selectedDate);
+    final start = days.first;
+    final end = days.last;
+    final startMonth = _isBangla
+        ? _monthBn[start.month - 1]
+        : _monthEn[start.month - 1];
+    final endMonth = _isBangla
+        ? _monthBn[end.month - 1]
+        : _monthEn[end.month - 1];
+    final startDay = _digits(start.day.toString());
+    final endDay = _digits(end.day.toString());
+    final year = _digits(end.year.toString());
+    if (start.month == end.month && start.year == end.year) {
+      return '$startMonth $startDay-$endDay, $year';
+    }
+    return '$startMonth $startDay - $endMonth $endDay, $year';
+  }
 
   // ----- actions ------------------------------------------------------------
 
   void _selectDate(DateTime date) {
     _amol.selectDate(date);
+  }
+
+  void _shiftTrendPeriod(int direction) {
+    if (direction > 0 && !_canGoNextTrendPeriod) return;
+    if (_range == _AmolRange.month) {
+      _selectDate(_sameDayInMonth(_selectedDate, direction));
+      return;
+    }
+    if (_range == _AmolRange.week) {
+      _selectDate(_selectedDate.add(Duration(days: 7 * direction)));
+    }
   }
 
   void _showFutureAmolAlert() {
@@ -181,11 +245,7 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
             borderRadius: BorderRadius.circular(18.r),
             side: BorderSide(color: _cardBorder),
           ),
-          icon: Icon(
-            Icons.event_busy_rounded,
-            color: _gold,
-            size: 30.sp,
-          ),
+          icon: Icon(Icons.event_busy_rounded, color: _gold, size: 30.sp),
           content: Text(
             _t(
               'Future Amol track not possible.',
@@ -205,10 +265,7 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               style: TextButton.styleFrom(foregroundColor: _accent),
               child: Text(
                 _t('OK', 'ঠিক আছে'),
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -257,17 +314,14 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
             ),
             child: SafeArea(
               child: _loading
-                  ? Center(
-                      child: CircularProgressIndicator(color: _accent),
-                    )
+                  ? Center(child: CircularProgressIndicator(color: _accent))
                   : Column(
                       children: [
                         _buildAppBar(),
                         Expanded(
                           child: ListView(
                             physics: const BouncingScrollPhysics(),
-                            padding:
-                                EdgeInsets.fromLTRB(14.w, 6.h, 14.w, 20.h),
+                            padding: EdgeInsets.fromLTRB(14.w, 6.h, 14.w, 20.h),
                             children: [
                               _buildRangeTabs(),
                               SizedBox(height: 12.h),
@@ -282,8 +336,11 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                                   _buildSection(section),
                                   SizedBox(height: 12.h),
                                 ],
-                              ] else
+                              ] else ...[
+                                _buildTrendPeriodSelector(),
+                                SizedBox(height: 12.h),
                                 _buildTrend(),
+                              ],
                             ],
                           ),
                         ),
@@ -352,8 +409,7 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
       child: Row(
         children: [
-          for (final day in _weekWindow)
-            Expanded(child: _buildDayCell(day)),
+          for (final day in _weekWindow) Expanded(child: _buildDayCell(day)),
         ],
       ),
     );
@@ -480,8 +536,10 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                 ),
                 SizedBox(height: 3.h),
                 Text(
-                  _t('Tap a deed below to mark it done',
-                      'নিচের আমলে ট্যাপ করে সম্পন্ন চিহ্নিত করুন'),
+                  _t(
+                    'Tap a deed below to mark it done',
+                    'নিচের আমলে ট্যাপ করে সম্পন্ন চিহ্নিত করুন',
+                  ),
                   style: TextStyle(
                     color: _textSecondary,
                     fontSize: 10.5.sp,
@@ -649,11 +707,7 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               _pointsChip(item.weight, done),
               SizedBox(width: 10.w),
               if (locked)
-                Icon(
-                  Icons.lock_outline_rounded,
-                  color: _textMuted,
-                  size: 18.sp,
-                )
+                Icon(Icons.lock_outline_rounded, color: _textMuted, size: 18.sp)
               else
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -668,8 +722,11 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                     ),
                   ),
                   child: done
-                      ? Icon(Icons.check_rounded,
-                          color: Colors.white, size: 15.sp)
+                      ? Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 15.sp,
+                        )
                       : null,
                 ),
             ],
@@ -744,6 +801,96 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
 
   /// Builds the bar list and average for the active (week or month) range, then
   /// hands it to [AmolTrendView].
+  Widget _buildTrendPeriodSelector() {
+    final isMonth = _range == _AmolRange.month;
+    final previousLabel = isMonth
+        ? _t('Previous month', 'আগের মাস')
+        : _t('Previous week', 'আগের সপ্তাহ');
+    final nextLabel = isMonth
+        ? _t('Next month', 'পরের মাস')
+        : _t('Next week', 'পরের সপ্তাহ');
+
+    return _card(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      child: Row(
+        children: [
+          _periodArrowButton(
+            icon: Icons.chevron_left_rounded,
+            tooltip: previousLabel,
+            enabled: true,
+            onTap: () => _shiftTrendPeriod(-1),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _trendPeriodLabel(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  isMonth
+                      ? _t('Monthly amol track', 'মাসিক আমল ট্র্যাক')
+                      : _t('Weekly amol track', 'সাপ্তাহিক আমল ট্র্যাক'),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textSecondary,
+                    fontSize: 10.5.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _periodArrowButton(
+            icon: Icons.chevron_right_rounded,
+            tooltip: nextLabel,
+            enabled: _canGoNextTrendPeriod,
+            onTap: () => _shiftTrendPeriod(1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _periodArrowButton({
+    required IconData icon,
+    required String tooltip,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          width: 38.r,
+          height: 38.r,
+          decoration: BoxDecoration(
+            color: enabled ? _surface : _surface.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Icon(
+            icon,
+            color: enabled ? _accent : _textMuted.withValues(alpha: 0.55),
+            size: 24.sp,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTrend() {
     final isMonth = _range == _AmolRange.month;
     final days = isMonth ? _monthDays(_selectedDate) : _weekDays(_selectedDate);
