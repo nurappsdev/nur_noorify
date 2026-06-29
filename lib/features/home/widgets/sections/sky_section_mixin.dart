@@ -517,26 +517,376 @@ mixin DailySkySectionMixin
       trailingTimeLabel = _skyClock(schedule?.maghrib);
     }
 
-    return SunArcArea(
-      currentProgress: _sunPathProgress(),
-      isBangla: _isBangla,
-      accentStrong: _accentStrong,
-      accentSoft: _accentSoft,
-      accentGold: _accentGold,
-      trackColor: _isDarkTheme
-          ? const Color(0x33A4D8E2)
-          : const Color(0x40274F6B),
-      isDark: _isDarkTheme,
-      textPrimary: _textPrimary,
-      textSecondary: _textSecondary,
-      leadingTitle: leadingTitle,
-      leadingTimeLabel: leadingTimeLabel,
-      trailingTitle: trailingTitle,
-      trailingTimeLabel: trailingTimeLabel,
-      sunriseClockText: _skyClock(schedule?.sunrise ?? schedule?.fajr),
-      sunsetClockText: _skyClock(schedule?.maghrib),
-      currentTimeLabel: _skyClock(_now),
-      replayTick: _arcReplayTick,
+    return Stack(
+      children: [
+        SunArcArea(
+          currentProgress: _sunPathProgress(),
+          isBangla: _isBangla,
+          accentStrong: _accentStrong,
+          accentSoft: _accentSoft,
+          accentGold: _accentGold,
+          trackColor: _isDarkTheme
+              ? const Color(0x33A4D8E2)
+              : const Color(0x40274F6B),
+          isDark: _isDarkTheme,
+          textPrimary: _textPrimary,
+          textSecondary: _textSecondary,
+          leadingTitle: leadingTitle,
+          leadingTimeLabel: leadingTimeLabel,
+          trailingTitle: trailingTitle,
+          trailingTimeLabel: trailingTimeLabel,
+          sunriseClockText: _skyClock(schedule?.sunrise ?? schedule?.fajr),
+          sunsetClockText: _skyClock(schedule?.maghrib),
+          currentTimeLabel: _skyClock(_now),
+          replayTick: _arcReplayTick,
+        ),
+        Positioned.fill(
+          child: Align(
+            alignment: const Alignment(0, 0.62),
+            child: _buildAmolAlertButton(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Pill button centered inside the sun arc that opens the "Amol Alert"
+  /// dialog (a relevant hadith plus any time-sensitive amol reminders such as
+  /// the Ayyamul Bidh fast).
+  Widget _buildAmolAlertButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999.r),
+        onTap: _showAmolAlertDialog,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [_accentStrong, _accentGold]),
+            borderRadius: BorderRadius.circular(999.r),
+            boxShadow: [
+              BoxShadow(
+                color: _accentStrong.withValues(alpha: 0.4),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.notifications_active_rounded,
+                size: 13.sp,
+                color: Colors.white,
+              ),
+              SizedBox(width: 5.w),
+              Text(
+                _text('Amol Alert', 'আমল এলার্ট'),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Today's time-sensitive amol reminders, localized. Currently covers the
+  /// Ayyamul Bidh (White Days: 13th–15th of every Hijri month) fast and the
+  /// Monday/Thursday Sunnah fast; falls back to a consistency nudge.
+  List<String> _amolAlertReminders() {
+    final hijri = HijriCalendar.fromDate(_now);
+    final hDay = hijri.hDay;
+    final reminders = <String>[];
+
+    if (hDay >= 13 && hDay <= 15) {
+      reminders.add(
+        _text(
+          'Today is one of the White Days (Ayyamul Bidh) — a recommended day to fast.',
+          'আজ আইয়ামে বীজের একটি দিন — রোজা রাখা মুস্তাহাব।',
+        ),
+      );
+    } else if (hDay >= 10 && hDay < 13) {
+      final left = 13 - hDay;
+      reminders.add(
+        _text(
+          'Ayyamul Bidh fasting (13th–15th) is coming in $left day(s) — get ready.',
+          'আইয়ামে বীজের রোজা (১৩–১৫) আর ${_toBanglaDigits(left.toString())} দিন পর — প্রস্তুতি নিন।',
+        ),
+      );
+    }
+
+    if (_now.weekday == DateTime.monday || _now.weekday == DateTime.thursday) {
+      reminders.add(
+        _text(
+          'Today is a recommended day for the Sunnah fast (Monday/Thursday).',
+          'আজ সুন্নত রোজার দিন (সোম/বৃহস্পতিবার)।',
+        ),
+      );
+    }
+
+    if (_now.weekday == DateTime.friday) {
+      reminders.add(
+        _text(
+          "It's Jummah — recite Surah Al-Kahf and send abundant Durood.",
+          'আজ জুমুআ — সূরা কাহফ পড়ুন ও বেশি বেশি দরুদ পাঠ করুন।',
+        ),
+      );
+    }
+
+    if (reminders.isEmpty) {
+      reminders.add(
+        _text(
+          'Keep up your daily amol — consistency is most beloved to Allah.',
+          'প্রতিদিনের আমল চালিয়ে যান — নিয়মিত আমলই আল্লাহর কাছে সবচেয়ে প্রিয়।',
+        ),
+      );
+    }
+    return reminders;
+  }
+
+  /// One relevant hadith, rotated daily so it varies over time.
+  ({String text, String source}) _amolAlertHadith() {
+    final hadiths = <({String text, String source})>[
+      (
+        text: _text(
+          'Actions are but by intentions, and every person will have only what he intended.',
+          'নিশ্চয়ই সকল কাজ নিয়তের উপর নির্ভরশীল, আর প্রত্যেকে তা-ই পাবে যা সে নিয়ত করেছে।',
+        ),
+        source: _text(
+          'Sahih al-Bukhari 1; Sahih Muslim 1907',
+          'সহীহ বুখারী ১; সহীহ মুসলিম ১৯০৭',
+        ),
+      ),
+      (
+        text: _text(
+          'The most beloved of deeds to Allah are those done consistently, even if they are few.',
+          'আল্লাহর কাছে সবচেয়ে প্রিয় আমল হলো যা নিয়মিত করা হয়, যদিও তা অল্প হয়।',
+        ),
+        source: _text(
+          'Sahih al-Bukhari 6464; Sahih Muslim 783',
+          'সহীহ বুখারী ৬৪৬৪; সহীহ মুসলিম ৭৮৩',
+        ),
+      ),
+      (
+        text: _text(
+          'None of you truly believes until he loves for his brother what he loves for himself.',
+          'তোমাদের কেউ ততক্ষণ পূর্ণ ঈমানদার হবে না, যতক্ষণ না সে তার ভাইয়ের জন্য তা-ই পছন্দ করে যা সে নিজের জন্য পছন্দ করে।',
+        ),
+        source: _text(
+          'Sahih al-Bukhari 13; Sahih Muslim 45',
+          'সহীহ বুখারী ১৩; সহীহ মুসলিম ৪৫',
+        ),
+      ),
+      (
+        text: _text(
+          'Whoever believes in Allah and the Last Day, let him speak good or keep silent.',
+          'যে ব্যক্তি আল্লাহ ও শেষ দিবসে বিশ্বাস করে, সে যেন ভালো কথা বলে অথবা চুপ থাকে।',
+        ),
+        source: _text(
+          'Sahih al-Bukhari 6018; Sahih Muslim 47',
+          'সহীহ বুখারী ৬০১৮; সহীহ মুসলিম ৪৭',
+        ),
+      ),
+      (
+        text: _text(
+          'A good word is charity.',
+          'উত্তম কথা বলা সদকাস্বরূপ।',
+        ),
+        source: _text(
+          'Sahih al-Bukhari 2989; Sahih Muslim 1009',
+          'সহীহ বুখারী ২৯৮৯; সহীহ মুসলিম ১০০৯',
+        ),
+      ),
+      (
+        text: _text(
+          'So remember Me; I will remember you. And be grateful to Me and do not deny Me.',
+          'অতএব তোমরা আমাকে স্মরণ করো, আমিও তোমাদের স্মরণ করব। আর তোমরা আমার কৃতজ্ঞতা প্রকাশ করো এবং আমার অকৃতজ্ঞ হয়ো না।',
+        ),
+        source: _text(
+          "Al-Qur'an — Al-Baqarah 2:152",
+          'আল-কুরআন — সূরা আল-বাকারা ২:১৫২',
+        ),
+      ),
+      (
+        text: _text(
+          'Indeed, prayer prohibits immorality and wrongdoing.',
+          'নিশ্চয়ই নামাজ অশ্লীল ও মন্দ কাজ থেকে বিরত রাখে।',
+        ),
+        source: _text(
+          "Al-Qur'an — Al-Ankabut 29:45",
+          'আল-কুরআন — সূরা আল-আনকাবূত ২৯:৪৫',
+        ),
+      ),
+    ];
+    final index =
+        (_now.year * 1000 + _dayOfYear(_now)) % hadiths.length;
+    return hadiths[index];
+  }
+
+  int _dayOfYear(DateTime date) =>
+      date.difference(DateTime(date.year)).inDays;
+
+  void _showAmolAlertDialog() {
+    final hadith = _amolAlertHadith();
+    final reminders = _amolAlertReminders();
+
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: _isDarkTheme
+              ? const Color(0xFF14242F)
+              : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(18.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.notifications_active_rounded,
+                      size: 18.sp,
+                      color: _accentStrong,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      _text('Amol Alert', 'আমল এলার্ট'),
+                      style: TextStyle(
+                        color: _textPrimary,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 14.h),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: _accentSoft.withValues(
+                      alpha: _isDarkTheme ? 0.16 : 0.10,
+                    ),
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.menu_book_rounded,
+                            size: 13.sp,
+                            color: _accentStrong,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            hadith.source.contains('Qur') ||
+                                    hadith.source.contains('কুরআন')
+                                ? _text('Al-Qur\'an', 'আল-কুরআন')
+                                : _text('Hadith', 'হাদিস'),
+                            style: TextStyle(
+                              color: _accentStrong,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        hadith.text,
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 12.5.sp,
+                          height: 1.45,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 5.h),
+                      Text(
+                        '— ${hadith.source}',
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 10.5.sp,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 14.h),
+                Text(
+                  _text("Today's Reminders", 'আজকের রিমাইন্ডার'),
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                for (final reminder in reminders)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 8.h),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 3.h),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 13.sp,
+                            color: _accentGold,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            reminder,
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 12.sp,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                SizedBox(height: 6.h),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      _text('Close', 'বন্ধ করুন'),
+                      style: TextStyle(
+                        color: _accentStrong,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
