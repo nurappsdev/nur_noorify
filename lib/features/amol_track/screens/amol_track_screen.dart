@@ -158,11 +158,11 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
     return time.isAfter(DateTime.now());
   }
 
-  /// The 7-day window shown in the strip: two days before the selected date
-  /// through four days after, so the selected day sits near the start like the
-  /// reference design.
+  /// The 7-day window shown in the strip: three days before the selected date
+  /// through three days after, so the selected day (today on open) sits in the
+  /// middle with three days on each side.
   List<DateTime> get _weekWindow =>
-      List.generate(7, (i) => _selectedDate.subtract(Duration(days: 2 - i)));
+      List.generate(7, (i) => _selectedDate.subtract(Duration(days: 3 - i)));
 
   DateTime _firstDayOfMonth(DateTime date) => DateTime(date.year, date.month);
 
@@ -327,13 +327,16 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                               SizedBox(height: 12.h),
                               if (_range == _AmolRange.today) ...[
                                 _buildDateStrip(),
+
+                                SizedBox(height: 12.h),
+                                _buildDashboard(),
                                 SizedBox(height: 12.h),
                                 _buildWeekStrip(),
                                 SizedBox(height: 12.h),
                                 _buildOverallCard(),
                                 SizedBox(height: 14.h),
                                 for (final section in kAmolSections) ...[
-                                  _buildSection(section),
+                                _buildSection(section),
                                   SizedBox(height: 12.h),
                                 ],
                               ] else ...[
@@ -482,6 +485,122 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// A compact at-a-glance dashboard for the selected day: a 2x2 grid of stat
+  /// tiles (score, deeds done, remaining, completion %).
+  Widget _buildDashboard() {
+    final doneScore = _amol.selectedScore;
+    final totalScore = kAmolMaxScore;
+    final doneCount = _completed.length;
+    final totalCount = kAmolTotalCount;
+    final remaining = (totalCount - doneCount).clamp(0, totalCount);
+    final percent = totalScore == 0
+        ? 0
+        : (doneScore / totalScore * 100).round();
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _statTile(
+                icon: Icons.star_rounded,
+                iconColor: _gold,
+                value:
+                    '${_digits(doneScore.toString())} / ${_digits(totalScore.toString())}',
+                label: _t('Score', 'স্কোর'),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: _statTile(
+                icon: Icons.check_circle_rounded,
+                iconColor: _done,
+                value:
+                    '${_digits(doneCount.toString())} / ${_digits(totalCount.toString())}',
+                label: _t('Deeds done', 'সম্পন্ন আমল'),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        Row(
+          children: [
+            Expanded(
+              child: _statTile(
+                icon: Icons.timelapse_rounded,
+                iconColor: _accent,
+                value: _digits(remaining.toString()),
+                label: _t('Remaining', 'বাকি'),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: _statTile(
+                icon: Icons.donut_large_rounded,
+                iconColor: _accent,
+                value: '${_digits(percent.toString())}%',
+                label: _t('Complete', 'সম্পন্ন'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _statTile({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+  }) {
+    return _card(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      child: Row(
+        children: [
+          Container(
+            width: 36.r,
+            height: 36.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: iconColor.withValues(alpha: 0.14),
+            ),
+            child: Icon(icon, color: iconColor, size: 18.sp),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textSecondary,
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

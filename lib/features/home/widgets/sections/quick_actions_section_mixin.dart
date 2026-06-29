@@ -226,14 +226,11 @@ mixin DailyQuickActionsSectionMixin
       'maghrib': schedule.maghrib,
       'isha': schedule.isha,
       'tahajjud': schedule.isha,
-      'witr': schedule.isha,
-      'morning_adhkar': schedule.fajr,
-      'evening_adhkar': schedule.ashr,
+      'maghrib_nafl': schedule.maghrib,
     };
     final sunrise = schedule.sunrise;
     if (sunrise != null) {
-      times['ishraq'] = sunrise;
-      times['chasht'] = sunrise;
+      times['ishraq_chasht_awwabin'] = sunrise;
     }
     return times;
   }
