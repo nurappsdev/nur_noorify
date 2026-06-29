@@ -142,9 +142,7 @@ class FamilyService {
     }
     return _requests.where('from_uid', isEqualTo: me).snapshots().map((snap) {
       final list =
-          snap.docs
-              .map((d) => FamilyRequest.fromMap(d.id, d.data()))
-              .toList()
+          snap.docs.map((d) => FamilyRequest.fromMap(d.id, d.data())).toList()
             ..sort((a, b) {
               final at = a.createdAt;
               final bt = b.createdAt;
@@ -211,11 +209,10 @@ class FamilyService {
       return Stream<List<FamilyMember>>.value(const []);
     }
 
-    // Stream.multi runs this setup fresh for each listener, so the result is a
-    // re-listenable (multi-subscription) stream — matching Firestore's own
-    // snapshots(). A single-subscription controller would throw "Stream has
-    // already been listened to" when a StreamBuilder re-subscribes (e.g. when
-    // its list sliver is recycled on scroll).
+    // Stream.multi with isBroadcast runs this setup fresh for each listener,
+    // matching Firestore's own snapshots(). A single-subscription controller
+    // would throw "Stream has already been listened to" when a StreamBuilder
+    // re-subscribes (e.g. when its list sliver is recycled on scroll).
     return Stream.multi((controller) {
       var sent = const <FamilyMember>[];
       var received = const <FamilyMember>[];
@@ -245,7 +242,7 @@ class FamilyService {
           await s.cancel();
         }
       };
-    });
+    }, isBroadcast: true);
   }
 
   /// Maps a request snapshot to accepted [FamilyMember]s. When [asRecipient] is

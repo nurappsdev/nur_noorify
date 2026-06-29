@@ -33,6 +33,8 @@ class AnnouncementService {
   }
 
   Future<AnnouncementItem?> fetchLatestActiveModalAnnouncement() async {
+    if (FirebaseAuth.instance.currentUser == null) return null;
+
     final items = await fetchAnnouncements(limit: 60);
     final now = DateTime.now();
     for (final item in items) {
