@@ -226,7 +226,6 @@ mixin DailyQuickActionsSectionMixin
       'maghrib': schedule.maghrib,
       'isha': schedule.isha,
       'tahajjud': schedule.isha,
-      'maghrib_nafl': schedule.maghrib,
     };
     final sunrise = schedule.sunrise;
     if (sunrise != null) {

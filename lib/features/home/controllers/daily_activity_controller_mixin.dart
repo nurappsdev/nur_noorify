@@ -34,8 +34,7 @@ mixin DailyActivityControllerMixin on State<DailyActivityScreen>, DailyControlle
     if (kQuranFeatureEnabled) {
       _loadLastReadCard();
     }
-    unawaited(_loadNearbyMosquePreview());
-    unawaited(_showAnnouncementModalIfNeeded());
+   unawaited(_showAnnouncementModalIfNeeded());
     _amolTrackService.revision.addListener(_onAmolProgressChanged);
     unawaited(_loadAmolProgress());
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {

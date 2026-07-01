@@ -490,66 +490,46 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
     );
   }
 
-  /// A compact at-a-glance dashboard for the selected day: a 2x2 grid of stat
-  /// tiles (score, deeds done, remaining, completion %).
+  /// A compact at-a-glance dashboard for the selected day: one stat tile per
+  /// amol section (e.g. Fardh Prayers, Sunnah & Witr), each showing that
+  /// section's done/total score, laid out in a 2-column grid.
   Widget _buildDashboard() {
-    final doneScore = _amol.selectedScore;
-    final totalScore = kAmolMaxScore;
-    final doneCount = _completed.length;
-    final totalCount = kAmolTotalCount;
-    final remaining = (totalCount - doneCount).clamp(0, totalCount);
-    final percent = totalScore == 0
-        ? 0
-        : (doneScore / totalScore * 100).round();
+    final tiles = [
+      for (final section in kAmolSections) _sectionStatTile(section),
+    ];
 
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _statTile(
-                icon: Icons.star_rounded,
-                iconColor: _gold,
-                value:
-                    '${_digits(doneScore.toString())} / ${_digits(totalScore.toString())}',
-                label: _t('Score', 'স্কোর'),
+        for (int i = 0; i < tiles.length; i += 2) ...[
+          Row(
+            children: [
+              Expanded(child: tiles[i]),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: i + 1 < tiles.length
+                    ? tiles[i + 1]
+                    : const SizedBox.shrink(),
               ),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: _statTile(
-                icon: Icons.check_circle_rounded,
-                iconColor: _done,
-                value:
-                    '${_digits(doneCount.toString())} / ${_digits(totalCount.toString())}',
-                label: _t('Deeds done', 'সম্পন্ন আমল'),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 10.h),
-        Row(
-          children: [
-            Expanded(
-              child: _statTile(
-                icon: Icons.timelapse_rounded,
-                iconColor: _accent,
-                value: _digits(remaining.toString()),
-                label: _t('Remaining', 'বাকি'),
-              ),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: _statTile(
-                icon: Icons.donut_large_rounded,
-                iconColor: _accent,
-                value: '${_digits(percent.toString())}%',
-                label: _t('Complete', 'সম্পন্ন'),
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          if (i + 2 < tiles.length) SizedBox(height: 10.h),
+        ],
       ],
+    );
+  }
+
+  /// One dashboard tile for [section]: its icon, title and the day's
+  /// done/total score for that section.
+  Widget _sectionStatTile(AmolSection section) {
+    final done = section.items
+        .where((item) => _completed.contains(item.id))
+        .fold(0, (sum, item) => sum + item.weight);
+    final total = section.maxScore;
+    return _statTile(
+      icon: section.icon,
+      iconColor: _gold,
+      value: '${_digits(done.toString())}/${_digits(total.toString())}',
+      label: _t(section.titleEn, section.titleBn),
     );
   }
 

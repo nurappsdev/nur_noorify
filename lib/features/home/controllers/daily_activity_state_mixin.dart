@@ -56,8 +56,7 @@ mixin DailyControllerStateMixin on State<DailyActivityScreen> {
   String? _selectedPrayer;
   final QuranLastReadService _lastReadService = QuranLastReadService();
   final QuranApiService _quranApiService = QuranApiService();
-  final MosqueResultsCacheService _mosqueResultsCacheService =
-      MosqueResultsCacheService();
+
   final Dio _prayerApi = Dio(
     BaseOptions(
       baseUrl: 'https://api.aladhan.com',
@@ -76,8 +75,6 @@ mixin DailyControllerStateMixin on State<DailyActivityScreen> {
   ];
   final AmolTrackService _amolTrackService = AmolTrackService();
   int _amolScoreToday = 0;
-  List<MosqueItem> _nearbyMosquePreview = const [];
-  DateTime? _nearbyMosquePreviewUpdatedAt;
   bool _announcementModalChecked = false;
   bool _announcementModalFetchInProgress = false;
   static String? _lastShownAnnouncementId;

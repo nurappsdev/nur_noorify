@@ -41,8 +41,7 @@ import 'package:first_project/features/home/models/home_activity_models.dart';
 import 'package:first_project/features/home/widgets/home_sun_arc.dart';
 import 'package:first_project/features/home/widgets/home_moon_arc.dart';
 import 'package:first_project/features/home/widgets/home_mini_compass.dart';
-import 'package:first_project/features/mosque/models/mosque_item.dart';
-import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
+
 import 'package:first_project/shared/providers/bottom_nav_provider.dart';
 
 part '../controllers/daily_activity_state_mixin.dart';
@@ -64,7 +63,7 @@ part '../widgets/sections/tahajjud_section_mixin.dart';
 part '../widgets/sections/header_section_mixin.dart';
 part '../widgets/sections/prayer_section_mixin.dart';
 part '../widgets/sections/qibla_meal_section_mixin.dart';
-part '../widgets/sections/mosque_section_mixin.dart';
+
 part '../widgets/sections/quick_actions_section_mixin.dart';
 part '../widgets/sections/last_read_section_mixin.dart';
 part '../widgets/sections/activity_section_mixin.dart';
@@ -99,7 +98,6 @@ class _DailyActivityScreenState extends State<DailyActivityScreen>
         DailyHeaderSectionMixin,
         DailyPrayerSectionMixin,
         DailyQiblaMealSectionMixin,
-        DailyMosqueSectionMixin,
         DailyQuickActionsSectionMixin,
         DailyLastReadSectionMixin,
         DailyActivitySectionMixin,

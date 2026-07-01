@@ -15,6 +15,9 @@ class MosqueLookupException implements Exception {
   String toString() => message;
 }
 
+/// Fetches nearby mosques from the OpenStreetMap Overpass API. These are the
+/// same places-of-worship that show up on Google Maps, sourced from the open
+/// OSM dataset so no API key is required.
 class MosqueService {
   MosqueService({Dio? dio})
     : _dio =
@@ -35,7 +38,7 @@ class MosqueService {
     required double latitude,
     required double longitude,
     int radiusMeters = 5000,
-    int limit = 30,
+    int limit = 40,
   }) async {
     final radius = radiusMeters.clamp(500, 25000);
     final maxItems = limit.clamp(1, 100);

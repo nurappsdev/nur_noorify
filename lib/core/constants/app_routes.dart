@@ -9,9 +9,9 @@ import 'package:first_project/features/dua/screens/dua_screen.dart';
 import 'package:first_project/features/tasbih/screens/tasbih_screen.dart';
 import 'package:first_project/features/zakat/screens/zakat_calculator_screen.dart';
 import 'package:first_project/features/hadith/screens/hadith_screen.dart';
-import 'package:first_project/features/mosque/screens/find_mosque_screen.dart';
 import 'package:first_project/features/legal/screens/privacy_policy_screen.dart';
 import 'package:first_project/features/qibla/screens/qibla_compass_screen.dart';
+import 'package:first_project/features/mosque/screens/find_mosque_screen.dart';
 import 'package:first_project/features/islamic_calendar/screens/islamic_calendar_screen.dart';
 import 'package:first_project/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:first_project/features/family/screens/family_requests_screen.dart';
@@ -95,6 +95,7 @@ class AppRoutes {
         return _page(const QiblaCompassScreen(), settings);
       case RouteNames.findMosque:
         return _page(const FindMosqueScreen(), settings);
+
       case RouteNames.privacyPolicy:
         return _page(const PrivacyPolicyScreen(), settings);
       case RouteNames.about:

@@ -85,31 +85,8 @@ mixin DailyControllerLoadersMixin on State<DailyActivityScreen>, DailyController
     await _loadLastReadCard();
   }
 
-  Future<void> _openFindMosque() async {
-    await Navigator.of(context).pushNamed(RouteNames.findMosque);
-    if (!mounted) return;
-    await _loadNearbyMosquePreview();
-  }
 
-  Future<void> _loadNearbyMosquePreview() async {
-    final cached = await _mosqueResultsCacheService.load();
-    if (!mounted) return;
 
-    if (cached == null || cached.items.isEmpty) {
-      _safeSetState(() {
-        _nearbyMosquePreview = const [];
-        _nearbyMosquePreviewUpdatedAt = null;
-      });
-      return;
-    }
-
-    final topItems = [...cached.items]
-      ..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
-    _safeSetState(() {
-      _nearbyMosquePreview = topItems.take(3).toList(growable: false);
-      _nearbyMosquePreviewUpdatedAt = cached.updatedAt;
-    });
-  }
 
   /// Loads today's tracked amal score from local storage so the home card
   /// reflects progress made on the Amol tracker. Safe to call repeatedly.
