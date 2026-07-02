@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:first_project/features/amol_track/models/amol_track_models.dart';
 import 'package:first_project/features/amol_track/providers/amol_track_provider.dart';
 import 'package:first_project/features/amol_track/widgets/amol_trend_view.dart';
+import 'package:first_project/features/quran/screens/quran_screen.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 
 /// "Today Amol Track" — a daily deeds tracker. The user can mark fardh prayers
@@ -767,11 +768,20 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
     );
   }
 
+  void _openQuranScreen() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const QuranScreen()),
+    );
+  }
+
   Widget _buildItemRow(AmolItem item) {
     final done = _completed.contains(item.id);
     final locked = _isNotYetAvailable(item);
+    // "Quran Tilawat" opens the Quran reader; marking it done stays on the
+    // trailing check circle.
+    final opensQuran = item.id == 'quran';
     return InkWell(
-      onTap: () => _toggleItem(item),
+      onTap: opensQuran ? _openQuranScreen : () => _toggleItem(item),
       borderRadius: BorderRadius.circular(12.r),
       child: Opacity(
         opacity: locked ? 0.45 : 1.0,
@@ -808,25 +818,29 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               if (locked)
                 Icon(Icons.lock_outline_rounded, color: _textMuted, size: 18.sp)
               else
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  width: 24.r,
-                  height: 24.r,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: done ? _done : Colors.transparent,
-                    border: Border.all(
-                      color: done ? _done : _textMuted,
-                      width: 1.6,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _toggleItem(item),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: done ? _done : Colors.transparent,
+                      border: Border.all(
+                        color: done ? _done : _textMuted,
+                        width: 1.6,
+                      ),
                     ),
+                    child: done
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 15.sp,
+                          )
+                        : null,
                   ),
-                  child: done
-                      ? Icon(
-                          Icons.check_rounded,
-                          color: Colors.white,
-                          size: 15.sp,
-                        )
-                      : null,
                 ),
             ],
           ),
