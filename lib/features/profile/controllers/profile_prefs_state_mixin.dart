@@ -6,7 +6,7 @@ mixin ProfilePrefsStateMixin on State<ProfilePreferencesScreen> {
   final Color _teal = const Color(0xFF14A3B8);
 
   late final Stream<bool> _adminStream =
-      AdminRoleService.instance.watchCurrentUserAdmin().asBroadcastStream();
+      AdminRoleService.instance.watchCurrentUserAdmin();
 
   bool get _isBangla =>
       context.read<LanguageProvider>().current == AppLanguage.bangla;

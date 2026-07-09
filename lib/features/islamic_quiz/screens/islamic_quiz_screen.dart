@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'package:first_project/features/islamic_quiz/models/quiz_banks.dart';
 import 'package:first_project/features/islamic_quiz/models/quiz_question.dart';
+import 'package:first_project/features/islamic_quiz/services/quiz_admin_service.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_components.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_menu_views.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_question_view.dart';
@@ -66,15 +67,28 @@ class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
     });
   }
 
-  void _startTopic(QuizTopic topic) {
+  Future<void> _startTopic(QuizTopic topic) async {
+    // Enter the quiz stage immediately (spinner while remote questions load).
     setState(() {
-      _questions = questionsForTopic(topic);
+      _questions = const [];
       _index = 0;
       _points = 0;
       _correct = 0;
       _selected = null;
       _finished = false;
       _stage = _Stage.quiz;
+    });
+
+    // Admin-added questions live in Firestore; offline or on error the
+    // bundled bank alone is used.
+    var remote = const <QuizQuestion>[];
+    try {
+      remote = await QuizAdminService.instance.fetchActiveQuestions(topic);
+    } catch (_) {}
+
+    if (!mounted || _stage != _Stage.quiz) return;
+    setState(() {
+      _questions = [...questionsForTopic(topic), ...remote];
     });
     _startTimer();
   }
@@ -164,7 +178,7 @@ class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
       children: [
         QuizHeader(
           title: t('Elm Noor', 'ইলম নূর'),
-          subtitle: _finished
+          subtitle: _finished || _questions.isEmpty
               ? ''
               : t(
                   'Question ${_index + 1} of ${_questions.length}',
@@ -174,7 +188,9 @@ class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
         ),
         SizedBox(height: 14.h),
         Expanded(
-          child: _finished
+          child: _questions.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : _finished
               ? QuizResultView(
                   points: _points,
                   correct: _correct,

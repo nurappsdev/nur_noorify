@@ -107,8 +107,8 @@ mixin ProfilePrefsQuranAdminSectionMixin
                     '\u0985\u09cd\u09af\u09be\u09a1\u09ae\u09bf\u09a8 \u09aa\u09cd\u09af\u09be\u09a8\u09c7\u09b2',
                   ),
                   subtitle: _text(
-                    'Manage app announcements and modal banners',
-                    '\u0985\u09cd\u09af\u09be\u09aa\u09c7\u09b0 \u0985\u09cd\u09af\u09be\u09a8\u09be\u0989\u09a8\u09cd\u09b8\u09ae\u09c7\u09a8\u09cd\u099f \u0993 \u09ae\u09cb\u09a1\u09be\u09b2 \u09ac\u09cd\u09af\u09be\u09a8\u09be\u09b0 \u09aa\u09b0\u09bf\u099a\u09be\u09b2\u09a8\u09be \u0995\u09b0\u09c1\u09a8',
+                    'Manage announcements, quizzes and users',
+                    '\u0985\u09cd\u09af\u09be\u09a8\u09be\u0989\u09a8\u09cd\u09b8\u09ae\u09c7\u09a8\u09cd\u099f, \u0995\u09c1\u0987\u099c \u0993 \u0987\u0989\u099c\u09be\u09b0 \u09aa\u09b0\u09bf\u099a\u09be\u09b2\u09a8\u09be \u0995\u09b0\u09c1\u09a8',
                   ),
                   onTap: () {
                     Navigator.of(context).pushNamed(RouteNames.adminPanel);

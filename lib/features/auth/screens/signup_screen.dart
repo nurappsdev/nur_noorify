@@ -11,6 +11,7 @@ import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/core/utils/network_utils.dart';
 import 'package:first_project/features/auth/providers/sign_up_provider.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/features/auth/utils/post_login_route.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
@@ -427,10 +428,11 @@ class _SignupViewState extends State<_SignupView> {
     try {
       await AuthService.instance.signInWithGoogle();
       await _setSkipAuthGate(false);
+      final nextRoute = await resolvePostLoginRoute();
       if (!mounted) return;
       Navigator.of(
         context,
-      ).pushNamedAndRemoveUntil(RouteNames.home, (route) => false);
+      ).pushNamedAndRemoveUntil(nextRoute, (route) => false);
     } on GoogleSignInException catch (e) {
       _showMessage(AuthService.instance.messageForGoogleException(e));
     } on FirebaseAuthException catch (e) {

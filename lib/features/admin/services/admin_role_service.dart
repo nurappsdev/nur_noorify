@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
+
 class AdminRoleService {
   AdminRoleService._();
 
@@ -46,13 +48,28 @@ class AdminRoleService {
   }
 
   Stream<bool> watchCurrentUserAdmin() {
-    if (!_firebaseReady) return Stream<bool>.value(false);
+    if (!_firebaseReady) return broadcastValueStream(false);
     final user = _auth.currentUser;
-    if (user == null) return Stream<bool>.value(false);
+    if (user == null) return broadcastValueStream(false);
     return _users.doc(user.uid).snapshots().map((snapshot) {
       return _isAdminFromMap(snapshot.data());
     });
   }
+
+  /// Live stream of every registered user document — for the admin panel.
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchAllUsers() {
+    return _users.snapshots();
+  }
+
+  /// Grants or revokes the admin role on `users/{uid}`.
+  Future<void> setUserRole(String uid, String role) async {
+    await _users.doc(uid).set({
+      'role': role,
+      'updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  bool isAdminData(Map<String, dynamic>? data) => _isAdminFromMap(data);
 
   bool _isAdminFromMap(Map<String, dynamic>? data) {
     if (data == null) return false;

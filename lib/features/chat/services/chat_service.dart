@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
 import 'package:first_project/features/chat/models/chat_message.dart';
 import 'package:first_project/features/chat/models/chat_user.dart';
 import 'package:first_project/shared/services/user_points_service.dart';
@@ -41,7 +42,7 @@ class ChatService {
   /// Live stream of every registered user except the signed-in one,
   /// sorted by display name.
   Stream<List<ChatUser>> watchUsers() {
-    if (!_firebaseReady) return Stream<List<ChatUser>>.value(const []);
+    if (!_firebaseReady) return broadcastValueStream(const <ChatUser>[]);
 
     return _users.snapshots().map((snapshot) {
       final me = currentUid;
@@ -62,7 +63,7 @@ class ChatService {
   Stream<List<ChatMessage>> watchMessages(String otherUid) {
     final me = currentUid;
     if (me == null || !_firebaseReady) {
-      return Stream<List<ChatMessage>>.value(const []);
+      return broadcastValueStream(const <ChatMessage>[]);
     }
 
     return _chats

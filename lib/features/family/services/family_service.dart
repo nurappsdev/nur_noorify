@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
 import 'package:first_project/features/family/models/family_member.dart';
 import 'package:first_project/features/family/models/family_relation.dart';
 import 'package:first_project/features/family/models/family_request.dart';
@@ -108,7 +109,7 @@ class FamilyService {
   Stream<List<FamilyRequest>> watchIncomingRequests() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyRequest>>.value(const []);
+      return broadcastValueStream(const <FamilyRequest>[]);
     }
     return _requests.where('to_uid', isEqualTo: me).snapshots().map((snap) {
       final list =
@@ -138,7 +139,7 @@ class FamilyService {
   Stream<List<FamilyRequest>> watchOutgoingRequests() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyRequest>>.value(const []);
+      return broadcastValueStream(const <FamilyRequest>[]);
     }
     return _requests.where('from_uid', isEqualTo: me).snapshots().map((snap) {
       final list =
@@ -206,7 +207,7 @@ class FamilyService {
   Stream<List<FamilyMember>> watchFamilyMembers() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyMember>>.value(const []);
+      return broadcastValueStream(const <FamilyMember>[]);
     }
 
     // Stream.multi with isBroadcast runs this setup fresh for each listener,

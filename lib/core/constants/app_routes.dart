@@ -81,9 +81,6 @@ class AppRoutes {
       case RouteNames.zakatCalculator:
         return _page(const ZakatCalculatorScreen(), settings);
       case RouteNames.quran:
-        if (!kQuranFeatureEnabled) {
-          return _page(const HomeShell(initialIndex: _tabHome), settings);
-        }
         return _page(const HomeShell(initialIndex: _tabQuran), settings);
       case RouteNames.prayerTimes:
         return _page(HomeShell(initialIndex: _tabPrayer), settings);
