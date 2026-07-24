@@ -7,6 +7,7 @@ import 'package:first_project/features/chat/models/chat_question.dart';
 import 'package:first_project/features/chat/models/chat_user.dart';
 import 'package:first_project/features/chat/services/chat_service.dart'
     show ChatService, QuestionAlreadySentTodayException;
+import 'package:first_project/features/family/widgets/add_family_dialog.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
@@ -155,6 +156,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: t('Add to family', 'পরিবারে যোগ করুন'),
+            icon: Icon(Icons.person_add_alt_1_rounded, size: 22.r),
+            onPressed: () => AddFamilyDialog.show(
+              context,
+              targetUid: widget.peer.uid,
+              targetName: widget.peer.resolvedName,
+              targetPhoto: widget.peer.photoUrl,
+              targetEmail: widget.peer.email,
+              isBangla: isBangla,
+            ),
+          ),
+        ],
       ),
       body: NoorifyGlassBackground(
         child: SafeArea(
