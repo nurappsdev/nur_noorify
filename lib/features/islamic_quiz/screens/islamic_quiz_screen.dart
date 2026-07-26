@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:first_project/features/islamic_quiz/models/quiz_banks.dart';
 import 'package:first_project/features/islamic_quiz/models/quiz_question.dart';
 import 'package:first_project/features/islamic_quiz/services/quiz_admin_service.dart';
+import 'package:first_project/features/islamic_quiz/services/quiz_attempt_service.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_components.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_menu_views.dart';
 import 'package:first_project/features/islamic_quiz/widgets/quiz_question_view.dart';
@@ -35,6 +36,7 @@ class IslamicQuizScreen extends StatefulWidget {
 
 class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
   _Stage _stage = _Stage.home;
+  QuizTopic? _topic;
   List<QuizQuestion> _questions = const [];
   int _index = 0;
   int _points = 0;
@@ -70,6 +72,7 @@ class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
   Future<void> _startTopic(QuizTopic topic) async {
     // Enter the quiz stage immediately (spinner while remote questions load).
     setState(() {
+      _topic = topic;
       _questions = const [];
       _index = 0;
       _points = 0;
@@ -109,6 +112,17 @@ class _IslamicQuizScreenState extends State<IslamicQuizScreen> {
     if (_index + 1 >= _questions.length) {
       _timer?.cancel();
       setState(() => _finished = true);
+      final topic = _topic;
+      if (topic != null) {
+        unawaited(
+          QuizAttemptService.instance.recordAttempt(
+            topic: topic,
+            correct: _correct,
+            total: _questions.length,
+            sessionPoints: _points,
+          ),
+        );
+      }
       return;
     }
     setState(() {

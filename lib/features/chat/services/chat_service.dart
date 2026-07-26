@@ -125,6 +125,13 @@ class ChatService {
       'points': FieldValue.increment(UserPointsService.pointsPerQuestion),
     }, SetOptions(merge: true));
 
+    // Log the award so the admin panel can show a point-earning history.
+    batch.set(_users.doc(me).collection('points_history').doc(), {
+      'source': 'chat_checkin',
+      'amount': UserPointsService.pointsPerQuestion,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
     await batch.commit();
   }
 

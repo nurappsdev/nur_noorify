@@ -13,6 +13,8 @@ import 'package:first_project/shared/widgets/noorify_glass.dart';
 
 enum _LeaderboardScope { global, family }
 
+enum _LeaderboardPeriod { all, month, year }
+
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
 
@@ -22,6 +24,18 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   _LeaderboardScope _scope = _LeaderboardScope.global;
+  _LeaderboardPeriod _period = _LeaderboardPeriod.all;
+
+  /// Members are filtered by *join date* falling in the selected period —
+  /// points themselves are a lifetime running total with no award history,
+  /// so this can't filter "points earned in period", only "who joined when".
+  bool _inPeriod(DateTime? createdAt) {
+    if (_period == _LeaderboardPeriod.all) return true;
+    if (createdAt == null) return false;
+    final now = DateTime.now();
+    if (_period == _LeaderboardPeriod.year) return createdAt.year == now.year;
+    return createdAt.year == now.year && createdAt.month == now.month;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +108,57 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         color: glass.textSecondary,
                       ),
                     ),
+                    SizedBox(height: 10.h),
+                    Container(
+                      padding: EdgeInsets.all(5.r),
+                      decoration: BoxDecoration(
+                        color: glass.isDark
+                            ? const Color(0x3816232F)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(
+                          color: glass.isDark
+                              ? const Color(0x6AA9C7DB)
+                              : const Color(0x88D1E1EC),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: FilterChipButton(
+                              label: t('All time', 'সব সময়'),
+                              selected: _period == _LeaderboardPeriod.all,
+                              isSegment: true,
+                              onTap: () => setState(
+                                () => _period = _LeaderboardPeriod.all,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: FilterChipButton(
+                              label: t('This Month', 'এই মাস'),
+                              selected: _period == _LeaderboardPeriod.month,
+                              isSegment: true,
+                              onTap: () => setState(
+                                () => _period = _LeaderboardPeriod.month,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: FilterChipButton(
+                              label: t('This Year', 'এই বছর'),
+                              selected: _period == _LeaderboardPeriod.year,
+                              isSegment: true,
+                              onTap: () => setState(
+                                () => _period = _LeaderboardPeriod.year,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -117,8 +182,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       );
                     }
 
-                    final allEntries =
-                        snapshot.data ?? const <LeaderboardEntry>[];
+                    final allEntries = (snapshot.data ?? const <LeaderboardEntry>[])
+                        .where((entry) => _inPeriod(entry.createdAt))
+                        .toList();
+
+                    String emptyTextFor(String allTime, String month, String year) {
+                      switch (_period) {
+                        case _LeaderboardPeriod.month:
+                          return month;
+                        case _LeaderboardPeriod.year:
+                          return year;
+                        case _LeaderboardPeriod.all:
+                          return allTime;
+                      }
+                    }
 
                     if (_scope == _LeaderboardScope.global) {
                       return _LeaderboardList(
@@ -126,7 +203,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         entries: allEntries,
                         me: me,
                         t: t,
-                        emptyText: t('No members yet', 'এখনো কোনো সদস্য নেই'),
+                        emptyText: emptyTextFor(
+                          t('No members yet', 'এখনো কোনো সদস্য নেই'),
+                          t(
+                            'No members joined this month',
+                            'এই মাসে কোনো সদস্য যোগ দেননি',
+                          ),
+                          t(
+                            'No members joined this year',
+                            'এই বছর কোনো সদস্য যোগ দেননি',
+                          ),
+                        ),
                       );
                     }
 
@@ -147,9 +234,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           entries: entries,
                           me: me,
                           t: t,
-                          emptyText: t(
-                            'No family members yet',
-                            'এখনো কোনো পরিবারের সদস্য নেই',
+                          emptyText: emptyTextFor(
+                            t(
+                              'No family members yet',
+                              'এখনো কোনো পরিবারের সদস্য নেই',
+                            ),
+                            t(
+                              'No family members joined this month',
+                              'এই মাসে পরিবারের কোনো সদস্য যোগ দেননি',
+                            ),
+                            t(
+                              'No family members joined this year',
+                              'এই বছর পরিবারের কোনো সদস্য যোগ দেননি',
+                            ),
                           ),
                         );
                       },

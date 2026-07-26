@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// One row of the leaderboard: a user from the `users` collection together
 /// with their reward [points]. Built from the same document shape as the chat
 /// people list, plus the `points` field awarded for sending check-in questions.
@@ -8,6 +10,7 @@ class LeaderboardEntry {
     required this.email,
     required this.photoUrl,
     required this.points,
+    required this.createdAt,
   });
 
   final String uid;
@@ -15,6 +18,9 @@ class LeaderboardEntry {
   final String email;
   final String? photoUrl;
   final int points;
+
+  /// When this member joined, used for the "this month" / "this year" filters.
+  final DateTime? createdAt;
 
   /// Name to show, falling back to the email handle, then a generic label.
   String get resolvedName {
@@ -35,6 +41,7 @@ class LeaderboardEntry {
     final map = data ?? const <String, dynamic>{};
     final rawPoints = map['points'];
     final points = rawPoints is num ? rawPoints.toInt() : 0;
+    final rawCreatedAt = map['created_at'];
     return LeaderboardEntry(
       uid: uid,
       displayName: (map['display_name'] ?? '').toString(),
@@ -44,6 +51,7 @@ class LeaderboardEntry {
         return url.isEmpty ? null : url;
       }(),
       points: points,
+      createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
     );
   }
 }

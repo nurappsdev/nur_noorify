@@ -1,0 +1,15 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "points_history",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "created_at", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "quiz_attempts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "created_at", "order": "DESCENDING" }]
+    }
+  ],
+  "fieldOverrides": []
+}

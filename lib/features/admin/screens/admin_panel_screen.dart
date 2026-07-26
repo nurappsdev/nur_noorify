@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/features/admin/services/admin_role_service.dart';
+import 'package:first_project/features/admin/widgets/admin_leaderboard_tab.dart';
 import 'package:first_project/features/admin/widgets/admin_quiz_tab.dart';
 import 'package:first_project/features/auth/services/auth_service.dart';
 import 'package:first_project/features/admin/widgets/admin_users_tab.dart';
@@ -28,7 +29,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (_tabIndex != _tabController.index) {
         setState(() => _tabIndex = _tabController.index);
@@ -771,10 +772,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                       labelColor: glass.accent,
                       unselectedLabelColor: glass.textMuted,
                       indicatorColor: glass.accent,
+                      isScrollable: true,
                       tabs: const [
                         Tab(text: 'Announcements'),
                         Tab(text: 'Quizzes'),
                         Tab(text: 'Users'),
+                        Tab(text: 'Leaderboard'),
                       ],
                     ),
                   Expanded(
@@ -787,6 +790,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                                     _buildAdminBody(context),
                                     AdminQuizTab(key: _quizTabKey),
                                     const AdminUsersTab(),
+                                    const AdminLeaderboardTab(),
                                   ],
                                 )
                               : _buildAccessDenied(context)),
