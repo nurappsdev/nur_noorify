@@ -96,6 +96,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Admin-authored quiz questions, merged into the bundled bank at quiz
+    // start. Any signed-in user can read them (needed to play); only admins
+    // can create/edit/delete from the admin panel.
+    match /quiz_questions/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
     // 1-to-1 chats. chatId is the two uids sorted and joined with "_".
     // Firebase Auth uids never contain "_", so splitting yields exactly the pair,
     // which means we never need the parent doc to exist to authorize access.
