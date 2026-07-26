@@ -1,18 +1,20 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as maps;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:first_project/features/mosque/models/mosque_item.dart';
 import 'package:first_project/features/mosque/services/mosque_service.dart';
 
-/// Shows an OpenStreetMap map (via flutter_map) centred on the user, with
-/// pinch / button zoom and markers for the nearby mosques. Tapping a mosque
-/// opens its details and lets the user route to it in Google Maps.
+/// Shows a regular Google map centred on the user when location is available,
+/// with nearby mosques highlighted as green markers.
 class FindMosqueScreen extends StatefulWidget {
   const FindMosqueScreen({super.key});
 
@@ -21,20 +23,39 @@ class FindMosqueScreen extends StatefulWidget {
 }
 
 class _FindMosqueScreenState extends State<FindMosqueScreen> {
-  // Baitul Mukarram, Dhaka — used as a fallback when location is unavailable.
-  static const LatLng _fallbackCenter = LatLng(23.7308, 90.4128);
+  // Baitul Mukarram, Dhaka - used as a fallback when location is unavailable.
+  static const maps.LatLng _fallbackCenter = maps.LatLng(23.7308, 90.4128);
   static const double _initialZoom = 14;
   static const double _minZoom = 4;
-  static const double _maxZoom = 18;
+  static const double _maxZoom = 19;
+  static const String _googleDirectionsApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY',
+    defaultValue: 'AIzaSyASCb268NsxS1RGEhZ4N43xW9UuuDL750E',
+  );
 
-  final MapController _mapController = MapController();
+  final Completer<maps.GoogleMapController> _mapController = Completer();
   final MosqueService _mosqueService = MosqueService();
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://maps.googleapis.com/maps/api',
+      connectTimeout: Duration(seconds: 12),
+      receiveTimeout: Duration(seconds: 15),
+      responseType: ResponseType.json,
+    ),
+  );
 
-  LatLng _center = _fallbackCenter;
-  LatLng? _userLocation;
-  List<MosqueItem> _mosques = const [];
-  bool _isLoading = true;
-  String? _error;
+  maps.LatLng _center = _fallbackCenter;
+  maps.LatLng? _userLocation;
+  maps.LatLng? _selectedDestination;
+  String _destinationLabel = 'Selected location';
+  maps.BitmapDescriptor? _mosqueMarkerIcon;
+  Set<maps.Marker> _mosqueMarkers = const {};
+  Set<maps.Marker> _routeMarkers = const {};
+  Set<maps.Polyline> _polylines = const {};
+  _RouteSummary? _routeSummary;
+  double _zoom = _initialZoom;
+  bool _isLocating = true;
+  bool _isRouting = false;
 
   @override
   void initState() {
@@ -43,24 +64,23 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
   }
 
   Future<void> _initialize() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() => _isLocating = true);
+    }
 
     final position = await _resolveUserPosition();
     final center = position != null
-        ? LatLng(position.latitude, position.longitude)
+        ? maps.LatLng(position.latitude, position.longitude)
         : _fallbackCenter;
 
     if (!mounted) return;
     setState(() {
       _center = center;
       _userLocation = position == null ? null : center;
+      _isLocating = false;
     });
-    _mapController.move(center, _initialZoom);
-
-    await _loadMosques(center);
+    await _moveCamera(center, _initialZoom);
+    unawaited(_loadNearbyMosques(center));
   }
 
   /// Tries to read the device location, requesting permission if needed.
@@ -93,168 +113,348 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
     }
   }
 
-  Future<void> _loadMosques(LatLng center) async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    try {
-      final mosques = await _mosqueService.fetchNearbyMosques(
-        latitude: center.latitude,
-        longitude: center.longitude,
-      );
-      if (!mounted) return;
-      setState(() {
-        _mosques = mosques;
-        _isLoading = false;
-      });
-    } on MosqueLookupException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.message;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Could not load nearby mosques.';
-        _isLoading = false;
-      });
+  Future<void> _moveCamera(maps.LatLng target, double zoom) async {
+    if (!_mapController.isCompleted) return;
+    final controller = await _mapController.future;
+    await controller.animateCamera(
+      maps.CameraUpdate.newCameraPosition(
+        maps.CameraPosition(target: target, zoom: zoom),
+      ),
+    );
+  }
+
+  Future<void> _zoomBy(double delta) async {
+    final next = (_zoom + delta).clamp(_minZoom, _maxZoom).toDouble();
+    setState(() => _zoom = next);
+    await _moveCamera(_center, next);
+  }
+
+  Future<void> _fitCameraToPoints(List<maps.LatLng> points) async {
+    if (!_mapController.isCompleted || points.isEmpty) return;
+    final controller = await _mapController.future;
+    await controller.animateCamera(
+      maps.CameraUpdate.newLatLngBounds(_boundsFor(points), 72.r),
+    );
+  }
+
+  Future<void> _recenterOnUser() async {
+    if (_userLocation == null) {
+      await _initialize();
     }
-  }
 
-  void _zoomBy(double delta) {
-    final camera = _mapController.camera;
-    final next = (camera.zoom + delta).clamp(_minZoom, _maxZoom);
-    _mapController.move(camera.center, next);
-  }
-
-  void _recenterOnUser() {
     final user = _userLocation;
     if (user == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Current location is not available.')),
       );
       return;
     }
-    _mapController.move(user, _initialZoom);
+
+    setState(() {
+      _center = user;
+      _zoom = _initialZoom;
+    });
+    await _moveCamera(user, _initialZoom);
+    unawaited(_loadNearbyMosques(user));
   }
 
-  Future<void> _openInGoogleMaps(MosqueItem mosque) async {
+  Future<void> _loadNearbyMosques(maps.LatLng center) async {
+    try {
+      _mosqueMarkerIcon ??= await _createMosqueMarkerIcon();
+      final mosques = await _mosqueService.fetchNearbyMosques(
+        latitude: center.latitude,
+        longitude: center.longitude,
+        radiusMeters: 10000,
+        limit: 80,
+      );
+      if (!mounted) return;
+      setState(() {
+        _mosqueMarkers = mosques.map(_buildMosqueMarker).toSet();
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _mosqueMarkers = const {});
+    }
+  }
+
+  maps.Marker _buildMosqueMarker(MosqueItem mosque) {
+    return maps.Marker(
+      markerId: maps.MarkerId('mosque_${mosque.id}'),
+      position: maps.LatLng(mosque.latitude, mosque.longitude),
+      icon: _mosqueMarkerIcon ?? maps.BitmapDescriptor.defaultMarker,
+      consumeTapEvents: true,
+      infoWindow: maps.InfoWindow(
+        title: mosque.name,
+        snippet: '${mosque.distanceKm.toStringAsFixed(1)} km away',
+        onTap: () => unawaited(_selectMosqueDestination(mosque)),
+      ),
+      onTap: () => unawaited(_selectMosqueDestination(mosque)),
+    );
+  }
+
+  Future<maps.BitmapDescriptor> _createMosqueMarkerIcon() async {
+    const size = 112.0;
+    const markerGreen = Color(0xFF159447);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint()..isAntiAlias = true;
+    final shadowPaint = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final iconCenter = Offset(size / 2, size * 0.43);
+
+    final pinPath = Path()
+      ..addOval(Rect.fromCircle(center: iconCenter, radius: 34))
+      ..moveTo(size / 2 - 17, size * 0.69)
+      ..quadraticBezierTo(size / 2, size * 0.94, size / 2 + 17, size * 0.69)
+      ..close();
+    canvas.drawPath(pinPath.shift(const Offset(0, 3)), shadowPaint);
+    paint.color = markerGreen;
+    canvas.drawPath(pinPath, paint);
+    paint.color = Colors.white;
+    canvas.drawCircle(iconCenter, 25, paint);
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(Icons.mosque_rounded.codePoint),
+        style: TextStyle(
+          fontFamily: Icons.mosque_rounded.fontFamily,
+          package: Icons.mosque_rounded.fontPackage,
+          color: markerGreen,
+          fontSize: 35,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(
+      canvas,
+      iconCenter - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final bytes = byteData?.buffer.asUint8List();
+    if (bytes == null || bytes.isEmpty) {
+      return maps.BitmapDescriptor.defaultMarker;
+    }
+
+    return maps.BitmapDescriptor.bytes(
+      bytes,
+      width: 56,
+      height: 56,
+      imagePixelRatio: 2,
+    );
+  }
+
+  Future<void> _selectMosqueDestination(MosqueItem mosque) {
+    return _selectDestination(
+      maps.LatLng(mosque.latitude, mosque.longitude),
+      label: mosque.name,
+    );
+  }
+
+  Future<void> _selectDestination(
+    maps.LatLng destination, {
+    String label = 'Selected location',
+  }) async {
+    if (_userLocation == null) {
+      await _initialize();
+    }
+
+    final origin = _userLocation;
+    if (origin == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Current location is not available.')),
+      );
+      return;
+    }
+
+    setState(() => _isRouting = true);
+    try {
+      final route = await _fetchRoute(origin, destination);
+      if (!mounted) return;
+      final points = route.points;
+      setState(() {
+        _isRouting = false;
+        _selectedDestination = destination;
+        _destinationLabel = label;
+        _routeSummary = route.summary;
+        _routeMarkers = {
+          maps.Marker(
+            markerId: const maps.MarkerId('selected_destination'),
+            position: destination,
+            infoWindow: maps.InfoWindow(title: label),
+          ),
+        };
+        _polylines = {
+          maps.Polyline(
+            polylineId: const maps.PolylineId('route_to_selected_destination'),
+            points: points,
+            color: Theme.of(context).colorScheme.primary,
+            width: 6,
+          ),
+        };
+      });
+      await _fitCameraToPoints([origin, ...points, destination]);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isRouting = false);
+      await _openSelectedDestinationInGoogleMaps(origin, destination);
+    }
+  }
+
+  Future<_RouteResult> _fetchRoute(
+    maps.LatLng origin,
+    maps.LatLng destination,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/directions/json',
+      queryParameters: {
+        'origin': '${origin.latitude},${origin.longitude}',
+        'destination': '${destination.latitude},${destination.longitude}',
+        'mode': 'driving',
+        'key': _googleDirectionsApiKey,
+      },
+    );
+    final data = response.data;
+    if (data == null || data['status'] != 'OK') {
+      return _RouteResult.empty(origin, destination);
+    }
+
+    final routes = data['routes'];
+    if (routes is! List || routes.isEmpty) {
+      return _RouteResult.empty(origin, destination);
+    }
+
+    final firstRoute = routes.first;
+    if (firstRoute is! Map) return _RouteResult.empty(origin, destination);
+
+    final overviewPolyline = firstRoute['overview_polyline'];
+    if (overviewPolyline is! Map) {
+      return _RouteResult.empty(origin, destination);
+    }
+
+    final encoded = overviewPolyline['points'];
+    if (encoded is! String || encoded.isEmpty) {
+      return _RouteResult.empty(origin, destination);
+    }
+
+    final points = _decodePolyline(encoded);
+    final legs = firstRoute['legs'];
+    final firstLeg = legs is List && legs.isNotEmpty && legs.first is Map
+        ? Map<String, dynamic>.from(legs.first as Map)
+        : const <String, dynamic>{};
+    final distance = firstLeg['distance'] is Map
+        ? Map<String, dynamic>.from(firstLeg['distance'] as Map)
+        : const <String, dynamic>{};
+    final duration = firstLeg['duration'] is Map
+        ? Map<String, dynamic>.from(firstLeg['duration'] as Map)
+        : const <String, dynamic>{};
+
+    return _RouteResult(
+      points: points.isEmpty ? [origin, destination] : points,
+      summary: _RouteSummary(
+        distanceText: (distance['text'] ?? '').toString(),
+        durationText: (duration['text'] ?? '').toString(),
+      ),
+    );
+  }
+
+  List<maps.LatLng> _decodePolyline(String encoded) {
+    final points = <maps.LatLng>[];
+    var index = 0;
+    var latitude = 0;
+    var longitude = 0;
+
+    while (index < encoded.length) {
+      final latResult = _decodePolylineValue(encoded, index);
+      index = latResult.nextIndex;
+      latitude += latResult.value;
+
+      final lngResult = _decodePolylineValue(encoded, index);
+      index = lngResult.nextIndex;
+      longitude += lngResult.value;
+
+      points.add(maps.LatLng(latitude / 1E5, longitude / 1E5));
+    }
+
+    return points;
+  }
+
+  _PolylineValue _decodePolylineValue(String encoded, int startIndex) {
+    var index = startIndex;
+    var shift = 0;
+    var result = 0;
+
+    while (index < encoded.length) {
+      final byte = encoded.codeUnitAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+      if (byte < 0x20) break;
+    }
+
+    final value = (result & 1) == 1 ? ~(result >> 1) : result >> 1;
+    return _PolylineValue(value: value, nextIndex: index);
+  }
+
+  maps.LatLngBounds _boundsFor(List<maps.LatLng> points) {
+    var south = points.first.latitude;
+    var north = points.first.latitude;
+    var west = points.first.longitude;
+    var east = points.first.longitude;
+
+    for (final point in points.skip(1)) {
+      south = math.min(south, point.latitude);
+      north = math.max(north, point.latitude);
+      west = math.min(west, point.longitude);
+      east = math.max(east, point.longitude);
+    }
+
+    return maps.LatLngBounds(
+      southwest: maps.LatLng(south, west),
+      northeast: maps.LatLng(north, east),
+    );
+  }
+
+  Future<void> _openSelectedDestinationInGoogleMaps(
+    maps.LatLng origin,
+    maps.LatLng destination,
+  ) async {
     final uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query='
-      '${mosque.latitude},${mosque.longitude}',
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=${origin.latitude},${origin.longitude}'
+      '&destination=${destination.latitude},${destination.longitude}'
+      '&travelmode=driving',
     );
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open Google Maps.')),
+        const SnackBar(content: Text('Could not open directions.')),
       );
     }
   }
 
-  void _showMosqueDetails(MosqueItem mosque) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        final theme = Theme.of(sheetContext);
-        return Padding(
-          padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 24.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.mosque_rounded, color: theme.colorScheme.primary),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Text(
-                      mosque.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                mosque.address,
-                style: theme.textTheme.bodyMedium,
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                '${mosque.distanceKm.toStringAsFixed(1)} km away',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    unawaited(_openInGoogleMaps(mosque));
-                  },
-                  icon: const Icon(Icons.directions_rounded),
-                  label: const Text('Open in Google Maps'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  Future<bool> _openSelectedNavigation(maps.LatLng destination) async {
+    final navigationUri = switch (defaultTargetPlatform) {
+      TargetPlatform.iOS => Uri.parse(
+        'comgooglemaps://?daddr=${destination.latitude},${destination.longitude}'
+        '&directionsmode=driving',
+      ),
+      _ => Uri.parse(
+        'google.navigation:q=${destination.latitude},${destination.longitude}'
+        '&mode=d',
+      ),
+    };
 
-  List<Marker> _buildMarkers() {
-    final markers = <Marker>[];
-
-    final user = _userLocation;
-    if (user != null) {
-      markers.add(
-        Marker(
-          point: user,
-          width: 28.r,
-          height: 28.r,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 6),
-              ],
-            ),
-          ),
-        ),
-      );
+    try {
+      return launchUrl(navigationUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
     }
-
-    for (final mosque in _mosques) {
-      markers.add(
-        Marker(
-          point: LatLng(mosque.latitude, mosque.longitude),
-          width: 40.r,
-          height: 40.r,
-          alignment: Alignment.topCenter,
-          child: GestureDetector(
-            onTap: () => _showMosqueDetails(mosque),
-            child: Icon(
-              Icons.mosque_rounded,
-              color: Colors.teal.shade700,
-              size: 34.r,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return markers;
   }
 
   @override
@@ -264,133 +464,99 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
         title: const Text('Find Mosque'),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
-            onPressed: _isLoading ? null : () => _loadMosques(_center),
+            tooltip: 'Refresh location',
+            onPressed: _isLocating ? null : () => unawaited(_initialize()),
             icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _center,
-              initialZoom: _initialZoom,
-              minZoom: _minZoom,
-              maxZoom: _maxZoom,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all,
-              ),
+          maps.GoogleMap(
+            initialCameraPosition: maps.CameraPosition(
+              target: _center,
+              zoom: _initialZoom,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.noorify.app',
-                maxZoom: _maxZoom,
-              ),
-              MarkerLayer(markers: _buildMarkers()),
-              const RichAttributionWidget(
-                attributions: [
-                  TextSourceAttribution('© OpenStreetMap contributors'),
-                ],
-              ),
-            ],
+            mapType: maps.MapType.normal,
+            minMaxZoomPreference: const maps.MinMaxZoomPreference(
+              _minZoom,
+              _maxZoom,
+            ),
+            myLocationEnabled: _userLocation != null,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: true,
+            mapToolbarEnabled: true,
+            markers: {..._mosqueMarkers, ..._routeMarkers},
+            polylines: _polylines,
+            onTap: _selectDestination,
+            onMapCreated: (controller) {
+              if (!_mapController.isCompleted) {
+                _mapController.complete(controller);
+              }
+              unawaited(_moveCamera(_center, _zoom));
+            },
+            onCameraMove: (position) {
+              _center = position.target;
+              _zoom = position.zoom;
+            },
           ),
-          if (_isLoading)
+          if (_isLocating)
             const Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: LinearProgressIndicator(),
             ),
-          if (_error != null) _buildErrorBanner(),
+          if (_isRouting)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(),
+            ),
+          if (_selectedDestination != null)
+            Positioned(
+              left: 14.w,
+              right: 14.w,
+              top: 14.h,
+              child: _buildDirectionsHeader(),
+            ),
+          if (_selectedDestination == null)
+            Positioned(left: 16.w, bottom: 24.h, child: _selectionHint()),
+          if (_selectedDestination != null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildRouteSummary(),
+            ),
           Positioned(
             right: 16.w,
-            bottom: 24.h,
+            bottom: _selectedDestination == null ? 24.h : 164.h,
             child: Column(
               children: [
                 _mapButton(
                   icon: Icons.add_rounded,
                   tooltip: 'Zoom in',
-                  onPressed: () => _zoomBy(1),
+                  onPressed: () => unawaited(_zoomBy(1)),
                 ),
                 SizedBox(height: 10.h),
                 _mapButton(
                   icon: Icons.remove_rounded,
                   tooltip: 'Zoom out',
-                  onPressed: () => _zoomBy(-1),
+                  onPressed: () => unawaited(_zoomBy(-1)),
                 ),
                 SizedBox(height: 10.h),
                 _mapButton(
                   icon: Icons.my_location_rounded,
                   tooltip: 'My location',
-                  onPressed: _recenterOnUser,
+                  onPressed: () => unawaited(_recenterOnUser()),
                 ),
               ],
             ),
           ),
-          if (!_isLoading && _error == null)
-            Positioned(
-              left: 16.w,
-              bottom: 24.h,
-              child: _resultChip(),
-            ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildErrorBanner() {
-    return Positioned(
-      left: 16.w,
-      right: 16.w,
-      top: 16.h,
-      child: Material(
-        borderRadius: BorderRadius.circular(12.r),
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-          child: Row(
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                color: Theme.of(context).colorScheme.onErrorContainer,
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: Text(
-                  _error ?? '',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () => _loadMosques(_center),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _resultChip() {
-    return Material(
-      borderRadius: BorderRadius.circular(999.r),
-      color: Theme.of(context).colorScheme.surface,
-      elevation: 3,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-        child: Text(
-          '${_mosques.length} mosque(s) nearby',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
       ),
     );
   }
@@ -411,4 +577,249 @@ class _FindMosqueScreenState extends State<FindMosqueScreen> {
       ),
     );
   }
+
+  Widget _selectionHint() {
+    return Material(
+      borderRadius: BorderRadius.circular(999.r),
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 3,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.route_rounded,
+              size: 18.r,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              _isRouting ? 'Loading route...' : 'Tap map to select route',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectionsHeader() {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 4,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+        child: Row(
+          children: [
+            Column(
+              children: [
+                Icon(Icons.my_location_rounded, color: Colors.blue, size: 18.r),
+                Container(width: 1, height: 20.h, color: Colors.grey.shade300),
+                Icon(Icons.location_on, color: Colors.red, size: 20.r),
+              ],
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Your location',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Divider(height: 18.h),
+                  Text(
+                    _destinationLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Clear route',
+              onPressed: _clearRoute,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRouteSummary() {
+    final summary = _routeSummary;
+    final duration = summary?.durationText.isNotEmpty == true
+        ? summary!.durationText
+        : '--';
+    final distance = summary?.distanceText.isNotEmpty == true
+        ? summary!.distanceText
+        : '';
+
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 8,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 14.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 42.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(99.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 14.h),
+              Row(
+                children: [
+                  Text(
+                    'Drive',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Share',
+                    onPressed: _shareSelectedRoute,
+                    icon: const Icon(Icons.share_rounded),
+                  ),
+                  IconButton(
+                    tooltip: 'Close',
+                    onPressed: _clearRoute,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              Row(
+                children: [
+                  Icon(
+                    Icons.directions_car_rounded,
+                    size: 18.r,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '$duration ${distance.isEmpty ? '' : '($distance)'}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: _openSelectedRoute,
+                    icon: const Icon(Icons.navigation_rounded),
+                    label: const Text('Start'),
+                  ),
+                  SizedBox(width: 8.w),
+                  _routeActionButton(
+                    Icons.add_location_alt_rounded,
+                    'Add stops',
+                  ),
+                  SizedBox(width: 8.w),
+                  _routeActionButton(Icons.share_rounded, 'Share'),
+                  SizedBox(width: 8.w),
+                  _routeActionButton(Icons.bookmark_border_rounded, 'Save'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _routeActionButton(IconData icon, String label) {
+    return Expanded(
+      child: FilledButton.tonalIcon(
+        onPressed: label == 'Share' ? _shareSelectedRoute : null,
+        icon: Icon(icon, size: 18.r),
+        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+    );
+  }
+
+  void _clearRoute() {
+    setState(() {
+      _selectedDestination = null;
+      _destinationLabel = 'Selected location';
+      _routeSummary = null;
+      _routeMarkers = const {};
+      _polylines = const {};
+      _isRouting = false;
+    });
+  }
+
+  void _shareSelectedRoute() {
+    final origin = _userLocation;
+    final destination = _selectedDestination;
+    if (origin == null || destination == null) return;
+    unawaited(_openSelectedDestinationInGoogleMaps(origin, destination));
+  }
+
+  void _openSelectedRoute() {
+    final destination = _selectedDestination;
+    if (destination == null) return;
+    unawaited(() async {
+      final opened = await _openSelectedNavigation(destination);
+      if (opened) return;
+      final origin = _userLocation;
+      if (origin == null) return;
+      await _openSelectedDestinationInGoogleMaps(origin, destination);
+    }());
+  }
+}
+
+class _PolylineValue {
+  const _PolylineValue({required this.value, required this.nextIndex});
+
+  final int value;
+  final int nextIndex;
+}
+
+class _RouteResult {
+  const _RouteResult({required this.points, required this.summary});
+
+  factory _RouteResult.empty(maps.LatLng origin, maps.LatLng destination) {
+    return _RouteResult(
+      points: [origin, destination],
+      summary: const _RouteSummary(distanceText: '', durationText: ''),
+    );
+  }
+
+  final List<maps.LatLng> points;
+  final _RouteSummary summary;
+}
+
+class _RouteSummary {
+  const _RouteSummary({required this.distanceText, required this.durationText});
+
+  final String distanceText;
+  final String durationText;
 }

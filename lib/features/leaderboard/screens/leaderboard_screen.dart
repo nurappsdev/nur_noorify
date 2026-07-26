@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:first_project/features/family/models/family_member.dart';
 import 'package:first_project/features/family/services/family_service.dart';
-import 'package:first_project/features/family/widgets/add_family_dialog.dart';
 import 'package:first_project/features/leaderboard/models/leaderboard_entry.dart';
 import 'package:first_project/features/leaderboard/services/leaderboard_service.dart';
 import 'package:first_project/features/quran/widgets/quran_list_widgets.dart';
@@ -126,7 +125,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         glass: glass,
                         entries: allEntries,
                         me: me,
-                        isBangla: isBangla,
                         t: t,
                         emptyText: t('No members yet', 'এখনো কোনো সদস্য নেই'),
                       );
@@ -148,7 +146,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           glass: glass,
                           entries: entries,
                           me: me,
-                          isBangla: isBangla,
                           t: t,
                           emptyText: t(
                             'No family members yet',
@@ -173,7 +170,6 @@ class _LeaderboardList extends StatelessWidget {
     required this.glass,
     required this.entries,
     required this.me,
-    required this.isBangla,
     required this.t,
     required this.emptyText,
   });
@@ -181,7 +177,6 @@ class _LeaderboardList extends StatelessWidget {
   final NoorifyGlassTheme glass;
   final List<LeaderboardEntry> entries;
   final String? me;
-  final bool isBangla;
   final String Function(String en, String bn) t;
   final String emptyText;
 
@@ -201,23 +196,12 @@ class _LeaderboardList extends StatelessWidget {
       separatorBuilder: (_, _) => SizedBox(height: 8.h),
       itemBuilder: (context, index) {
         final entry = entries[index];
-        final isMe = entry.uid == me;
         return _LeaderboardTile(
           glass: glass,
           rank: index + 1,
           entry: entry,
-          isMe: isMe,
+          isMe: entry.uid == me,
           pointsLabel: t('pts', 'পয়েন্ট'),
-          onTap: isMe
-              ? null
-              : () => AddFamilyDialog.show(
-                  context,
-                  targetUid: entry.uid,
-                  targetName: entry.resolvedName,
-                  targetPhoto: entry.photoUrl,
-                  targetEmail: entry.email,
-                  isBangla: isBangla,
-                ),
         );
       },
     );
@@ -231,7 +215,6 @@ class _LeaderboardTile extends StatelessWidget {
     required this.entry,
     required this.isMe,
     required this.pointsLabel,
-    this.onTap,
   });
 
   final NoorifyGlassTheme glass;
@@ -239,7 +222,6 @@ class _LeaderboardTile extends StatelessWidget {
   final LeaderboardEntry entry;
   final bool isMe;
   final String pointsLabel;
-  final VoidCallback? onTap;
 
   /// Medal colours for the top three ranks; null for the rest.
   Color? get _medalColor {
@@ -273,7 +255,6 @@ class _LeaderboardTile extends StatelessWidget {
               )
             : null,
         child: ListTile(
-          onTap: onTap,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
           leading: Row(
             mainAxisSize: MainAxisSize.min,
