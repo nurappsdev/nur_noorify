@@ -93,24 +93,44 @@ mixin DailyControllerFormatMixin on State<DailyActivityScreen>, DailyControllerU
     return Ponjika.format(date: _now, format: 'DD MM YY');
   }
 
+  static const List<String> _gregorianMonthsEn = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  static const List<String> _gregorianMonthsBn = [
+    'জানুয়ারি',
+    'ফেব্রুয়ারি',
+    'মার্চ',
+    'এপ্রিল',
+    'মে',
+    'জুন',
+    'জুলাই',
+    'আগস্ট',
+    'সেপ্টেম্বর',
+    'অক্টোবর',
+    'নভেম্বর',
+    'ডিসেম্বর',
+  ];
+
   String get _formattedBritishDate {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+    final months = _isBangla ? _gregorianMonthsBn : _gregorianMonthsEn;
     final day = _now.day.toString().padLeft(2, '0');
-    final value = '$day ${months[_now.month - 1]} ${_now.year}';
-    return _isBangla ? _toBanglaDigits(value) : value;
+    final monthName = months[_now.month - 1];
+    if (_isBangla) {
+      return '${_toBanglaDigits(day)} $monthName ${_toBanglaDigits(_now.year.toString())}';
+    }
+    return '$day $monthName ${_now.year}';
   }
 
   List<String> get _headerDateVariants {

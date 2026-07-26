@@ -32,16 +32,10 @@ Widget bottomNav(
       icon: Icons.quiz_outlined,
       routeName: RouteNames.elmNoor,
     ),
-    if (kQuranFeatureEnabled)
-      (
-        label: t('Quran', '\u0995\u09c1\u09b0\u0986\u09a8'),
-        icon: Icons.menu_book_outlined,
-        routeName: RouteNames.quran,
-      ),
     (
-      label: t('Dua Jikir', '\u09a6\u09cb\u09df\u09be \u099c\u09bf\u0995\u09bf\u09b0'),
-      icon: Icons.self_improvement_outlined,
-      routeName: RouteNames.prayerTimes,
+      label: t('Quran', '\u0995\u09c1\u09b0\u0986\u09a8'),
+      icon: Icons.menu_book_outlined,
+      routeName: RouteNames.quran,
     ),
     if (!isGuest)
       (

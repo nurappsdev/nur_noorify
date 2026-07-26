@@ -18,7 +18,7 @@ class AmolItem {
   final IconData icon;
 
   /// Points this deed contributes to the day's total score when completed.
-  /// All weights across every section sum to [kAmolMaxScore] (40).
+  /// All weights across every section sum to [kAmolMaxScore] (30).
   final int weight;
 }
 
@@ -43,7 +43,7 @@ class AmolSection {
 }
 
 /// The fixed catalogue of deeds the tracker follows. The total count across all
-/// sections (currently 14) drives the overall "today" progress badge.
+/// sections (currently 20) drives the overall "today" progress badge.
 const List<AmolSection> kAmolSections = [
   AmolSection(
     id: 'fardh',
@@ -56,7 +56,7 @@ const List<AmolSection> kAmolSections = [
         titleEn: 'Fajr',
         titleBn: 'ফজর',
         icon: Icons.wb_twilight_rounded,
-        weight: 4,
+        weight: 2,
       ),
       AmolItem(
         id: 'zuhr',
@@ -84,14 +84,57 @@ const List<AmolSection> kAmolSections = [
         titleEn: 'Isha',
         titleBn: 'ইশা',
         icon: Icons.nights_stay_rounded,
-        weight: 3,
+        weight: 2,
+      ),
+    ],
+  ),
+  AmolSection(
+    id: 'sunnah_witr',
+    titleEn: 'Sunnah & Witr',
+    titleBn: 'সুন্নত ও বিতর',
+    icon: Icons.auto_awesome_rounded,
+    items: [
+      AmolItem(
+        id: 'witr',
+        titleEn: 'Witr',
+        titleBn: 'বিতর',
+        icon: Icons.brightness_3_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'fajr_sunnah',
+        titleEn: 'Fajr Sunnah',
+        titleBn: 'ফজর সুন্নত',
+        icon: Icons.wb_twilight_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'zuhr_sunnah',
+        titleEn: 'Zuhr Sunnah',
+        titleBn: 'যুহর সুন্নত',
+        icon: Icons.wb_sunny_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'maghrib_sunnah',
+        titleEn: 'Maghrib Sunnah',
+        titleBn: 'মাগরিব সুন্নত',
+        icon: Icons.bedtime_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'isha_sunnah',
+        titleEn: 'Isha Sunnah',
+        titleBn: 'ইশা সুন্নত',
+        icon: Icons.nights_stay_rounded,
+        weight: 1,
       ),
     ],
   ),
   AmolSection(
     id: 'sunnah',
-    titleEn: 'Sunnah & Nafl',
-    titleBn: 'সুন্নত ও নফল',
+    titleEn: 'Nafl Salat',
+    titleBn: 'নফল সালাত',
     icon: Icons.star_rounded,
     items: [
       AmolItem(
@@ -99,28 +142,14 @@ const List<AmolSection> kAmolSections = [
         titleEn: 'Tahajjud',
         titleBn: 'তাহাজ্জুদ',
         icon: Icons.nightlight_round,
-        weight: 5,
-      ),
-      AmolItem(
-        id: 'ishraq',
-        titleEn: 'Ishraq',
-        titleBn: 'ইশরাক',
-        icon: Icons.wb_sunny_outlined,
-        weight: 2,
-      ),
-      AmolItem(
-        id: 'chasht',
-        titleEn: 'Chasht',
-        titleBn: 'চাশত',
-        icon: Icons.light_mode_outlined,
-        weight: 2,
-      ),
-      AmolItem(
-        id: 'witr',
-        titleEn: 'Witr',
-        titleBn: 'বিতর',
-        icon: Icons.brightness_3_rounded,
         weight: 3,
+      ),
+      AmolItem(
+        id: 'ishraq_chasht_awwabin',
+        titleEn: 'Ishraq/Chasht/Awwabin',
+        titleBn: 'ইশরাক/চাশত/আওয়াবিন',
+        icon: Icons.wb_sunny_outlined,
+        weight: 1,
       ),
     ],
   ),
@@ -135,21 +164,35 @@ const List<AmolSection> kAmolSections = [
         titleEn: 'Quran Tilawat',
         titleBn: 'কুরআন তিলাওয়াত',
         icon: Icons.auto_stories_rounded,
-        weight: 6,
+        weight: 3,
       ),
       AmolItem(
-        id: 'morning_adhkar',
-        titleEn: 'Morning Adhkar',
+        id: 'hadith',
+        titleEn: 'Hadith Reading',
+        titleBn: 'হাদিস পড়া',
+        icon: Icons.history_edu_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'skill_develop',
+        titleEn: 'Skill Development',
+        titleBn: 'স্কিল ডেভেলপ',
+        icon: Icons.psychology_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'morning_dhikr',
+        titleEn: 'Morning Dhikr',
         titleBn: 'সকালের যিকির',
-        icon: Icons.wb_twilight_outlined,
-        weight: 3,
+        icon: Icons.light_mode_rounded,
+        weight: 2,
       ),
       AmolItem(
-        id: 'evening_adhkar',
-        titleEn: 'Evening Adhkar',
+        id: 'evening_dhikr',
+        titleEn: 'Evening Dhikr',
         titleBn: 'সন্ধ্যার যিকির',
-        icon: Icons.nights_stay_outlined,
-        weight: 3,
+        icon: Icons.dark_mode_rounded,
+        weight: 1,
       ),
     ],
   ),
@@ -164,14 +207,42 @@ const List<AmolSection> kAmolSections = [
         titleEn: 'Sadaqah',
         titleBn: 'সদকা',
         icon: Icons.favorite_rounded,
-        weight: 3,
+        weight: 2,
       ),
       AmolItem(
         id: 'durood',
         titleEn: 'Durood',
         titleBn: 'দরুদ',
         icon: Icons.spa_rounded,
-        weight: 3,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'nafl_siam',
+        titleEn: 'Nafl Fasting',
+        titleBn: 'নফল সিয়াম',
+        icon: Icons.no_food_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'physical_exercise',
+        titleEn: 'Physical Exercise',
+        titleBn: 'শরীর চর্চা',
+        icon: Icons.fitness_center_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'good_advice',
+        titleEn: 'Giving Good Advice',
+        titleBn: 'সৎ উপদেশ দেওয়া',
+        icon: Icons.record_voice_over_rounded,
+        weight: 1,
+      ),
+      AmolItem(
+        id: 'sin_free',
+        titleEn: 'Staying Sin-Free',
+        titleBn: 'পাপ মুক্ত থাকা',
+        icon: Icons.shield_rounded,
+        weight: 2,
       ),
     ],
   ),
@@ -181,7 +252,7 @@ const List<AmolSection> kAmolSections = [
 int get kAmolTotalCount =>
     kAmolSections.fold(0, (sum, section) => sum + section.items.length);
 
-/// The maximum achievable daily score — the sum of every deed's weight (40).
+/// The maximum achievable daily score — the sum of every deed's weight (30).
 /// This is the denominator for the "today" progress badge and all trend views.
 int get kAmolMaxScore => kAmolSections.fold(
       0,

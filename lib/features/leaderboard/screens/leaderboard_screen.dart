@@ -2,15 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-import 'package:first_project/features/family/widgets/add_family_dialog.dart';
+import 'package:first_project/features/family/models/family_member.dart';
+import 'package:first_project/features/family/services/family_service.dart';
 import 'package:first_project/features/leaderboard/models/leaderboard_entry.dart';
 import 'package:first_project/features/leaderboard/services/leaderboard_service.dart';
+import 'package:first_project/features/quran/widgets/quran_list_widgets.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class LeaderboardScreen extends StatelessWidget {
+enum _LeaderboardScope { global, family }
+
+class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
+
+  @override
+  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+}
+
+class _LeaderboardScreenState extends State<LeaderboardScreen> {
+  _LeaderboardScope _scope = _LeaderboardScope.global;
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +58,28 @@ class LeaderboardScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                        Text(
-                          t('Leaderboard', 'লিডারবোর্ড'),
-                          style: TextStyle(
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.w700,
-                            color: glass.textPrimary,
+                        Expanded(
+                          child: Text(
+                            t('Leaderboard', 'লিডারবোর্ড'),
+                            style: TextStyle(
+                              fontSize: 22.sp,
+                              fontWeight: FontWeight.w700,
+                              color: glass.textPrimary,
+                            ),
                           ),
+                        ),
+                        FilterChipButton(
+                          label: t('Global', 'গ্লোবাল'),
+                          selected: _scope == _LeaderboardScope.global,
+                          onTap: () =>
+                              setState(() => _scope = _LeaderboardScope.global),
+                        ),
+                        SizedBox(width: 6.w),
+                        FilterChipButton(
+                          label: t('Family', 'পরিবার'),
+                          selected: _scope == _LeaderboardScope.family,
+                          onTap: () =>
+                              setState(() => _scope = _LeaderboardScope.family),
                         ),
                       ],
                     ),
@@ -91,39 +117,40 @@ class LeaderboardScreen extends StatelessWidget {
                       );
                     }
 
-                    final entries =
+                    final allEntries =
                         snapshot.data ?? const <LeaderboardEntry>[];
-                    if (entries.isEmpty) {
-                      return _CenterMessage(
+
+                    if (_scope == _LeaderboardScope.global) {
+                      return _LeaderboardList(
                         glass: glass,
-                        icon: Icons.emoji_events_outlined,
-                        text: t('No members yet', 'এখনো কোনো সদস্য নেই'),
+                        entries: allEntries,
+                        me: me,
+                        t: t,
+                        emptyText: t('No members yet', 'এখনো কোনো সদস্য নেই'),
                       );
                     }
 
-                    return ListView.separated(
-                      padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 14.h),
-                      itemCount: entries.length,
-                      separatorBuilder: (_, _) => SizedBox(height: 8.h),
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        final isMe = entry.uid == me;
-                        return _LeaderboardTile(
+                    return StreamBuilder<List<FamilyMember>>(
+                      stream: FamilyService.instance.watchFamilyMembers(),
+                      builder: (context, familySnapshot) {
+                        final familyUids = <String>{
+                          ?me,
+                          ...(familySnapshot.data ?? const <FamilyMember>[])
+                              .map((member) => member.uid),
+                        };
+                        final entries = allEntries
+                            .where((entry) => familyUids.contains(entry.uid))
+                            .toList();
+
+                        return _LeaderboardList(
                           glass: glass,
-                          rank: index + 1,
-                          entry: entry,
-                          isMe: isMe,
-                          pointsLabel: t('pts', 'পয়েন্ট'),
-                          onTap: isMe
-                              ? null
-                              : () => AddFamilyDialog.show(
-                                  context,
-                                  targetUid: entry.uid,
-                                  targetName: entry.resolvedName,
-                                  targetPhoto: entry.photoUrl,
-                                  targetEmail: entry.email,
-                                  isBangla: isBangla,
-                                ),
+                          entries: entries,
+                          me: me,
+                          t: t,
+                          emptyText: t(
+                            'No family members yet',
+                            'এখনো কোনো পরিবারের সদস্য নেই',
+                          ),
                         );
                       },
                     );
@@ -138,6 +165,49 @@ class LeaderboardScreen extends StatelessWidget {
   }
 }
 
+class _LeaderboardList extends StatelessWidget {
+  const _LeaderboardList({
+    required this.glass,
+    required this.entries,
+    required this.me,
+    required this.t,
+    required this.emptyText,
+  });
+
+  final NoorifyGlassTheme glass;
+  final List<LeaderboardEntry> entries;
+  final String? me;
+  final String Function(String en, String bn) t;
+  final String emptyText;
+
+  @override
+  Widget build(BuildContext context) {
+    if (entries.isEmpty) {
+      return _CenterMessage(
+        glass: glass,
+        icon: Icons.emoji_events_outlined,
+        text: emptyText,
+      );
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.fromLTRB(14.w, 8.h, 14.w, 14.h),
+      itemCount: entries.length,
+      separatorBuilder: (_, _) => SizedBox(height: 8.h),
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        return _LeaderboardTile(
+          glass: glass,
+          rank: index + 1,
+          entry: entry,
+          isMe: entry.uid == me,
+          pointsLabel: t('pts', 'পয়েন্ট'),
+        );
+      },
+    );
+  }
+}
+
 class _LeaderboardTile extends StatelessWidget {
   const _LeaderboardTile({
     required this.glass,
@@ -145,7 +215,6 @@ class _LeaderboardTile extends StatelessWidget {
     required this.entry,
     required this.isMe,
     required this.pointsLabel,
-    this.onTap,
   });
 
   final NoorifyGlassTheme glass;
@@ -153,7 +222,6 @@ class _LeaderboardTile extends StatelessWidget {
   final LeaderboardEntry entry;
   final bool isMe;
   final String pointsLabel;
-  final VoidCallback? onTap;
 
   /// Medal colours for the top three ranks; null for the rest.
   Color? get _medalColor {
@@ -187,7 +255,6 @@ class _LeaderboardTile extends StatelessWidget {
               )
             : null,
         child: ListTile(
-          onTap: onTap,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
           leading: Row(
             mainAxisSize: MainAxisSize.min,

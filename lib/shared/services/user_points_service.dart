@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
+
 /// Reads the reward points stored on a user's profile document
 /// (`users/{uid}.points`).
 ///
@@ -35,7 +37,7 @@ class UserPointsService {
     _cachedUid = uid;
 
     if (!_firebaseReady || uid == null) {
-      _cachedStream = Stream<int>.value(0).asBroadcastStream();
+      _cachedStream = broadcastValueStream(0);
     } else {
       _cachedStream = _db
           .collection('users')

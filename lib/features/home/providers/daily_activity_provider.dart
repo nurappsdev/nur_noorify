@@ -13,8 +13,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:first_project/features/home/models/home_activity_models.dart';
-import 'package:first_project/features/mosque/models/mosque_item.dart';
-import 'package:first_project/features/mosque/services/mosque_results_cache_service.dart';
+
 import 'package:first_project/features/quran/models/quran_models.dart';
 import 'package:first_project/features/quran/services/quran_api_service.dart';
 import 'package:first_project/features/quran/services/quran_last_read_service.dart';
@@ -75,7 +74,6 @@ class DailyActivityProvider extends ChangeNotifier {
     if (kQuranFeatureEnabled) {
       unawaited(loadLastReadCard());
     }
-    unawaited(loadNearbyMosquePreview());
 
     _clockTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
   }
@@ -127,15 +125,10 @@ class DailyActivityProvider extends ChangeNotifier {
   int? _lastReadSurahNo;
   QuranChapter? _lastReadChapter;
 
-  // Mosque preview state
-  List<MosqueItem> _nearbyMosquePreview = const [];
-  DateTime? _nearbyMosquePreviewUpdatedAt;
-
   // Async services
   final QuranLastReadService _lastReadService = QuranLastReadService();
   final QuranApiService _quranApiService = QuranApiService();
-  final MosqueResultsCacheService _mosqueResultsCacheService =
-      MosqueResultsCacheService();
+
   final Dio _prayerApi = Dio(
     BaseOptions(
       baseUrl: 'https://api.aladhan.com',
@@ -173,8 +166,6 @@ class DailyActivityProvider extends ChangeNotifier {
   String? get selectedPrayer => _selectedPrayer;
   int? get lastReadSurahNo => _lastReadSurahNo;
   QuranChapter? get lastReadChapter => _lastReadChapter;
-  List<MosqueItem> get nearbyMosquePreview => _nearbyMosquePreview;
-  DateTime? get nearbyMosquePreviewUpdatedAt => _nearbyMosquePreviewUpdatedAt;
 
   String get displayPrayer => _selectedPrayer ?? _activePrayer;
   bool get isShowingActivePrayer => displayPrayer == _activePrayer;
@@ -1072,25 +1063,6 @@ class DailyActivityProvider extends ChangeNotifier {
     if (_disposed) return;
     _lastReadSurahNo = savedSurahNo;
     _lastReadChapter = chapter;
-    _safeNotify();
-  }
-
-  // Mosque preview
-  Future<void> loadNearbyMosquePreview() async {
-    final cached = await _mosqueResultsCacheService.load();
-    if (_disposed) return;
-
-    if (cached == null || cached.items.isEmpty) {
-      _nearbyMosquePreview = const [];
-      _nearbyMosquePreviewUpdatedAt = null;
-      _safeNotify();
-      return;
-    }
-
-    final topItems = [...cached.items]
-      ..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
-    _nearbyMosquePreview = topItems.take(3).toList(growable: false);
-    _nearbyMosquePreviewUpdatedAt = cached.updatedAt;
     _safeNotify();
   }
 

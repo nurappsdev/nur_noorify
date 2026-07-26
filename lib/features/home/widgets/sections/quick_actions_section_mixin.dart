@@ -226,14 +226,17 @@ mixin DailyQuickActionsSectionMixin
       'maghrib': schedule.maghrib,
       'isha': schedule.isha,
       'tahajjud': schedule.isha,
+      // Each prayer's Sunnah unlocks at the same time as its fardh prayer.
+      'fajr_sunnah': schedule.fajr,
+      'zuhr_sunnah': schedule.dzuhr,
+      'maghrib_sunnah': schedule.maghrib,
+      'isha_sunnah': schedule.isha,
+      // Witr is prayed after Isha, so it unlocks with Isha.
       'witr': schedule.isha,
-      'morning_adhkar': schedule.fajr,
-      'evening_adhkar': schedule.ashr,
     };
     final sunrise = schedule.sunrise;
     if (sunrise != null) {
-      times['ishraq'] = sunrise;
-      times['chasht'] = sunrise;
+      times['ishraq_chasht_awwabin'] = sunrise;
     }
     return times;
   }

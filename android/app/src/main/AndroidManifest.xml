@@ -11,6 +11,9 @@
         android:label="Noorify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyASCb268NsxS1RGEhZ4N43xW9UuuDL750E" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

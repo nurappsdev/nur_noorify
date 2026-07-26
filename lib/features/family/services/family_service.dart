@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
 import 'package:first_project/features/family/models/family_member.dart';
 import 'package:first_project/features/family/models/family_relation.dart';
 import 'package:first_project/features/family/models/family_request.dart';
@@ -108,7 +109,7 @@ class FamilyService {
   Stream<List<FamilyRequest>> watchIncomingRequests() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyRequest>>.value(const []);
+      return broadcastValueStream(const <FamilyRequest>[]);
     }
     return _requests.where('to_uid', isEqualTo: me).snapshots().map((snap) {
       final list =
@@ -138,13 +139,11 @@ class FamilyService {
   Stream<List<FamilyRequest>> watchOutgoingRequests() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyRequest>>.value(const []);
+      return broadcastValueStream(const <FamilyRequest>[]);
     }
     return _requests.where('from_uid', isEqualTo: me).snapshots().map((snap) {
       final list =
-          snap.docs
-              .map((d) => FamilyRequest.fromMap(d.id, d.data()))
-              .toList()
+          snap.docs.map((d) => FamilyRequest.fromMap(d.id, d.data())).toList()
             ..sort((a, b) {
               final at = a.createdAt;
               final bt = b.createdAt;
@@ -208,14 +207,13 @@ class FamilyService {
   Stream<List<FamilyMember>> watchFamilyMembers() {
     final me = currentUid;
     if (!_firebaseReady || me == null) {
-      return Stream<List<FamilyMember>>.value(const []);
+      return broadcastValueStream(const <FamilyMember>[]);
     }
 
-    // Stream.multi runs this setup fresh for each listener, so the result is a
-    // re-listenable (multi-subscription) stream — matching Firestore's own
-    // snapshots(). A single-subscription controller would throw "Stream has
-    // already been listened to" when a StreamBuilder re-subscribes (e.g. when
-    // its list sliver is recycled on scroll).
+    // Stream.multi with isBroadcast runs this setup fresh for each listener,
+    // matching Firestore's own snapshots(). A single-subscription controller
+    // would throw "Stream has already been listened to" when a StreamBuilder
+    // re-subscribes (e.g. when its list sliver is recycled on scroll).
     return Stream.multi((controller) {
       var sent = const <FamilyMember>[];
       var received = const <FamilyMember>[];
@@ -245,7 +243,7 @@ class FamilyService {
           await s.cancel();
         }
       };
-    });
+    }, isBroadcast: true);
   }
 
   /// Maps a request snapshot to accepted [FamilyMember]s. When [asRecipient] is

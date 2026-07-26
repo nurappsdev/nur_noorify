@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:first_project/features/amol_track/models/amol_track_models.dart';
 import 'package:first_project/features/amol_track/providers/amol_track_provider.dart';
 import 'package:first_project/features/amol_track/widgets/amol_trend_view.dart';
+import 'package:first_project/features/quran/screens/quran_screen.dart';
 import 'package:first_project/shared/providers/language_provider.dart';
 
 /// "Today Amol Track" — a daily deeds tracker. The user can mark fardh prayers
@@ -158,11 +159,11 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
     return time.isAfter(DateTime.now());
   }
 
-  /// The 7-day window shown in the strip: two days before the selected date
-  /// through four days after, so the selected day sits near the start like the
-  /// reference design.
+  /// The 7-day window shown in the strip: three days before the selected date
+  /// through three days after, so the selected day (today on open) sits in the
+  /// middle with three days on each side.
   List<DateTime> get _weekWindow =>
-      List.generate(7, (i) => _selectedDate.subtract(Duration(days: 2 - i)));
+      List.generate(7, (i) => _selectedDate.subtract(Duration(days: 3 - i)));
 
   DateTime _firstDayOfMonth(DateTime date) => DateTime(date.year, date.month);
 
@@ -327,13 +328,16 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
                               SizedBox(height: 12.h),
                               if (_range == _AmolRange.today) ...[
                                 _buildDateStrip(),
+
+                                SizedBox(height: 12.h),
+                                _buildDashboard(),
                                 SizedBox(height: 12.h),
                                 _buildWeekStrip(),
                                 SizedBox(height: 12.h),
                                 _buildOverallCard(),
                                 SizedBox(height: 14.h),
                                 for (final section in kAmolSections) ...[
-                                  _buildSection(section),
+                                _buildSection(section),
                                   SizedBox(height: 12.h),
                                 ],
                               ] else ...[
@@ -482,6 +486,102 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// A compact at-a-glance dashboard for the selected day: one stat tile per
+  /// amol section (e.g. Fardh Prayers, Sunnah & Witr), each showing that
+  /// section's done/total score, laid out in a 2-column grid.
+  Widget _buildDashboard() {
+    final tiles = [
+      for (final section in kAmolSections) _sectionStatTile(section),
+    ];
+
+    return Column(
+      children: [
+        for (int i = 0; i < tiles.length; i += 2) ...[
+          Row(
+            children: [
+              Expanded(child: tiles[i]),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: i + 1 < tiles.length
+                    ? tiles[i + 1]
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+          if (i + 2 < tiles.length) SizedBox(height: 10.h),
+        ],
+      ],
+    );
+  }
+
+  /// One dashboard tile for [section]: its icon, title and the day's
+  /// done/total score for that section.
+  Widget _sectionStatTile(AmolSection section) {
+    final done = section.items
+        .where((item) => _completed.contains(item.id))
+        .fold(0, (sum, item) => sum + item.weight);
+    final total = section.maxScore;
+    return _statTile(
+      icon: section.icon,
+      iconColor: _gold,
+      value: '${_digits(done.toString())}/${_digits(total.toString())}',
+      label: _t(section.titleEn, section.titleBn),
+    );
+  }
+
+  Widget _statTile({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+  }) {
+    return _card(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      child: Row(
+        children: [
+          Container(
+            width: 36.r,
+            height: 36.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: iconColor.withValues(alpha: 0.14),
+            ),
+            child: Icon(icon, color: iconColor, size: 18.sp),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textSecondary,
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -668,11 +768,20 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
     );
   }
 
+  void _openQuranScreen() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const QuranScreen()),
+    );
+  }
+
   Widget _buildItemRow(AmolItem item) {
     final done = _completed.contains(item.id);
     final locked = _isNotYetAvailable(item);
+    // "Quran Tilawat" opens the Quran reader; marking it done stays on the
+    // trailing check circle.
+    final opensQuran = item.id == 'quran';
     return InkWell(
-      onTap: () => _toggleItem(item),
+      onTap: opensQuran ? _openQuranScreen : () => _toggleItem(item),
       borderRadius: BorderRadius.circular(12.r),
       child: Opacity(
         opacity: locked ? 0.45 : 1.0,
@@ -709,25 +818,29 @@ class _AmolTrackViewState extends State<_AmolTrackView> {
               if (locked)
                 Icon(Icons.lock_outline_rounded, color: _textMuted, size: 18.sp)
               else
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  width: 24.r,
-                  height: 24.r,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: done ? _done : Colors.transparent,
-                    border: Border.all(
-                      color: done ? _done : _textMuted,
-                      width: 1.6,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _toggleItem(item),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 24.r,
+                    height: 24.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: done ? _done : Colors.transparent,
+                      border: Border.all(
+                        color: done ? _done : _textMuted,
+                        width: 1.6,
+                      ),
                     ),
+                    child: done
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 15.sp,
+                          )
+                        : null,
                   ),
-                  child: done
-                      ? Icon(
-                          Icons.check_rounded,
-                          color: Colors.white,
-                          size: 15.sp,
-                        )
-                      : null,
                 ),
             ],
           ),

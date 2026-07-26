@@ -10,11 +10,78 @@ mixin DailyActivityViewMixin
         DailyHeaderSectionMixin,
         DailyPrayerSectionMixin,
         DailyQiblaMealSectionMixin,
-        DailyMosqueSectionMixin,
         DailyQuickActionsSectionMixin,
         DailyLastReadSectionMixin,
         DailyActivitySectionMixin,
         DailyForbiddenTimesSectionMixin {
+  /// A compact card that opens the OpenStreetMap-based "Find Mosque" map where
+  /// the user can browse and route to nearby mosques.
+  Widget _buildFindMosqueCard() {
+    return _buildGlassCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18.r),
+          onTap: () => Navigator.of(context).pushNamed(RouteNames.findMosque),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 12.h),
+            child: Row(
+              children: [
+                Container(
+                  width: 40.r,
+                  height: 40.r,
+                  decoration: BoxDecoration(
+                    color: _surfaceStrong,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.mosque_rounded,
+                    color: _accentSoft,
+                    size: 21.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _text('Find Mosque', 'মসজিদ খুঁজুন'),
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        _text(
+                          'Nearby mosques on the map',
+                          'মানচিত্রে কাছের মসজিদ',
+                        ),
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 11.5.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13.sp,
+                  color: _textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,6 +187,9 @@ mixin DailyActivityViewMixin
 
                           SizedBox(height: 12.h),
                           _buildQiblaAndCountdownRow(),
+
+                          SizedBox(height: 12.h),
+                          _buildFindMosqueCard(),
 
                           SizedBox(height: 12.h),
                           _buildZakatCalculatorCard(),

@@ -65,15 +65,14 @@ mixin DailyForbiddenTimesSectionMixin
     ];
   }
 
-  /// Zero-padded 12-hour clock with localized digits and meridiem, e.g.
-  /// `05:09 AM` (or `০৫:০৯ পূর্বাহ্ণ` in Bangla).
+  /// Zero-padded 12-hour clock with localized digits, e.g. `05:09`
+  /// (or `০৫:০৯` in Bangla). No meridiem suffix.
   String _forbiddenClock(DateTime t) {
     final h12 = t.hour % 12 == 0 ? 12 : t.hour % 12;
     final hh = h12.toString().padLeft(2, '0');
     final mm = t.minute.toString().padLeft(2, '0');
     final clock = '$hh:$mm';
-    final localizedClock = _isBangla ? _toBanglaDigits(clock) : clock;
-    return '$localizedClock ${_localizedMeridiem(t.hour < 12)}';
+    return _isBangla ? _toBanglaDigits(clock) : clock;
   }
 
   String _forbiddenRange(DateTime start, DateTime end) =>
@@ -168,7 +167,7 @@ mixin DailyForbiddenTimesSectionMixin
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: _textPrimary,
-                      fontSize: 13.5.sp,
+                      fontSize: 16.5.sp,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
                     ),

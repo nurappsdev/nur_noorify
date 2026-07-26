@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:first_project/core/utils/stream_utils.dart';
 import 'package:first_project/features/leaderboard/models/leaderboard_entry.dart';
 
 class LeaderboardService {
@@ -23,7 +24,7 @@ class LeaderboardService {
   /// listed, treated as zero. Ties break alphabetically by name.
   Stream<List<LeaderboardEntry>> watchLeaderboard() {
     if (!_firebaseReady) {
-      return Stream<List<LeaderboardEntry>>.value(const []);
+      return broadcastValueStream(const <LeaderboardEntry>[]);
     }
 
     return _db.collection('users').snapshots().map((snapshot) {

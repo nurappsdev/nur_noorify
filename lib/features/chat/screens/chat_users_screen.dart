@@ -9,8 +9,22 @@ import 'package:first_project/shared/providers/language_provider.dart';
 import 'package:first_project/shared/services/app_globals.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
 
-class ChatUsersScreen extends StatelessWidget {
+class ChatUsersScreen extends StatefulWidget {
   const ChatUsersScreen({super.key});
+
+  @override
+  State<ChatUsersScreen> createState() => _ChatUsersScreenState();
+}
+
+class _ChatUsersScreenState extends State<ChatUsersScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +64,46 @@ class ChatUsersScreen extends StatelessWidget {
                         color: glass.textSecondary,
                       ),
                     ),
+                    SizedBox(height: 12.h),
+                    NoorifyGlassCard(
+                      radius: BorderRadius.circular(14.r),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
+                      child: TextFormField(
+                        controller: _searchController,
+                        onChanged: (value) => setState(() => _query = value),
+                        style: TextStyle(
+                          color: glass.textPrimary,
+                          fontSize: 14.sp,
+                        ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          icon: Icon(
+                            Icons.search_rounded,
+                            size: 18.sp,
+                            color: glass.textMuted,
+                          ),
+                          hintText: t('Search by email', 'ইমেইল দিয়ে খুঁজুন'),
+                          hintStyle: TextStyle(
+                            color: glass.textMuted,
+                            fontSize: 14.sp,
+                          ),
+                          suffixIcon: _query.isEmpty
+                              ? null
+                              : InkWell(
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  onTap: () {
+                                    _searchController.clear();
+                                    setState(() => _query = '');
+                                  },
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    size: 18.sp,
+                                    color: glass.textMuted,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -73,14 +127,35 @@ class ChatUsersScreen extends StatelessWidget {
                       );
                     }
 
-                    final users = snapshot.data ?? const <ChatUser>[];
-                    if (users.isEmpty) {
+                    final allUsers = snapshot.data ?? const <ChatUser>[];
+                    if (allUsers.isEmpty) {
                       return _CenterMessage(
                         glass: glass,
                         icon: Icons.people_outline_rounded,
                         text: t(
                           'No other users yet',
                           'এখনো অন্য কোনো ব্যবহারকারী নেই',
+                        ),
+                      );
+                    }
+
+                    final query = _query.trim().toLowerCase();
+                    final users = query.isEmpty
+                        ? allUsers
+                        : allUsers
+                              .where(
+                                (user) =>
+                                    user.email.toLowerCase().contains(query),
+                              )
+                              .toList();
+
+                    if (users.isEmpty) {
+                      return _CenterMessage(
+                        glass: glass,
+                        icon: Icons.search_off_rounded,
+                        text: t(
+                          'No users match that email',
+                          'এই ইমেইলের সাথে মিলে এমন কোনো ব্যবহারকারী নেই',
                         ),
                       );
                     }

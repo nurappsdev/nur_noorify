@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:first_project/core/constants/route_names.dart';
 import 'package:first_project/features/admin/services/admin_role_service.dart';
+import 'package:first_project/features/admin/widgets/admin_quiz_tab.dart';
+import 'package:first_project/features/auth/services/auth_service.dart';
+import 'package:first_project/features/admin/widgets/admin_users_tab.dart';
 import 'package:first_project/features/announcements/models/announcement_item.dart';
 import 'package:first_project/features/announcements/services/announcement_service.dart';
 import 'package:first_project/shared/widgets/noorify_glass.dart';
@@ -13,8 +17,30 @@ class AdminPanelScreen extends StatefulWidget {
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen> {
+class _AdminPanelScreenState extends State<AdminPanelScreen>
+    with SingleTickerProviderStateMixin {
   final AnnouncementService _announcementService = AnnouncementService.instance;
+  final GlobalKey<AdminQuizTabState> _quizTabKey =
+      GlobalKey<AdminQuizTabState>();
+  late final TabController _tabController;
+  int _tabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (_tabIndex != _tabController.index) {
+        setState(() => _tabIndex = _tabController.index);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _showMessage(String text) {
     if (!mounted) return;
@@ -630,6 +656,59 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Log out?'),
+          content: const Text('You will return to the sign-in screen.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Log out'),
+            ),
+          ],
+        );
+      },
+    );
+    if (sure != true) return;
+
+    try {
+      await AuthService.instance.signOut();
+    } catch (e) {
+      _showMessage('Sign out failed: $e');
+      return;
+    }
+    if (!mounted) return;
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(RouteNames.signIn, (route) => false);
+  }
+
+  Widget? _buildFab() {
+    switch (_tabIndex) {
+      case 0:
+        return FloatingActionButton.extended(
+          onPressed: () => _openEditor(),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Announcement'),
+        );
+      case 1:
+        return FloatingActionButton.extended(
+          onPressed: () => _quizTabKey.currentState?.openEditor(),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Question'),
+        );
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final glass = NoorifyGlassTheme(context);
@@ -643,13 +722,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
         return Scaffold(
           backgroundColor: glass.bgBottom,
-          floatingActionButton: isAdmin
-              ? FloatingActionButton.extended(
-                  onPressed: () => _openEditor(),
-                  icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add Announcement'),
-                )
-              : null,
+          floatingActionButton: isAdmin ? _buildFab() : null,
           body: NoorifyGlassBackground(
             child: SafeArea(
               child: Column(
@@ -658,10 +731,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 8.h),
                     child: Row(
                       children: [
-                        IconButton(
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
+                        if (Navigator.of(context).canPop())
+                          IconButton(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(Icons.arrow_back_rounded),
+                          )
+                        else
+                          SizedBox(width: 6.w),
                         Text(
                           'Admin Panel',
                           style: TextStyle(
@@ -670,14 +746,49 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             color: glass.textPrimary,
                           ),
                         ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: 'Open user app',
+                          onPressed: () {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              RouteNames.home,
+                              (route) => false,
+                            );
+                          },
+                          icon: const Icon(Icons.home_outlined),
+                        ),
+                        IconButton(
+                          tooltip: 'Log out',
+                          onPressed: _logout,
+                          icon: const Icon(Icons.logout_rounded),
+                        ),
                       ],
                     ),
                   ),
+                  if (isAdmin)
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: glass.accent,
+                      unselectedLabelColor: glass.textMuted,
+                      indicatorColor: glass.accent,
+                      tabs: const [
+                        Tab(text: 'Announcements'),
+                        Tab(text: 'Quizzes'),
+                        Tab(text: 'Users'),
+                      ],
+                    ),
                   Expanded(
                     child: checkingRole
                         ? const Center(child: CircularProgressIndicator())
                         : (isAdmin
-                              ? _buildAdminBody(context)
+                              ? TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _buildAdminBody(context),
+                                    AdminQuizTab(key: _quizTabKey),
+                                    const AdminUsersTab(),
+                                  ],
+                                )
                               : _buildAccessDenied(context)),
                   ),
                 ],
