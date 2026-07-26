@@ -732,12 +732,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                     padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 8.h),
                     child: Row(
                       children: [
-                        if (Navigator.of(context).canPop())
-                          IconButton(
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                          )
-                        else
                           SizedBox(width: 6.w),
                         Text(
                           'Admin Panel',
@@ -748,16 +742,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           ),
                         ),
                         const Spacer(),
-                        IconButton(
-                          tooltip: 'Open user app',
-                          onPressed: () {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              RouteNames.home,
-                              (route) => false,
-                            );
-                          },
-                          icon: const Icon(Icons.home_outlined),
-                        ),
+                        // IconButton(
+                        //   tooltip: 'Open user app',
+                        //   onPressed: () {
+                        //     Navigator.of(context).pushNamedAndRemoveUntil(
+                        //       RouteNames.home,
+                        //       (route) => false,
+                        //     );
+                        //   },
+                        //   icon: const Icon(Icons.home_outlined),
+                        // ),
                         IconButton(
                           tooltip: 'Log out',
                           onPressed: _logout,
